@@ -2,16 +2,20 @@
 
 ## Current stack
 
-- Frontend: [framework and version]
-- Backend: [framework or API runtime]
+- Application: a single full-stack Next.js project using the App Router
+- Frontend: Next.js 16.2.10 with React 19.2.4
+- Backend: Next.js server-side route handlers in the same application
 - Language: TypeScript
-- Styling: [CSS solution]
-- Validation: [schema library]
-- Testing: [test frameworks]
-- AI: OpenAI API with GPT-5.6
-- Image generation: OpenAI Image API
-- Deployment: [platform]
-- Package manager: [npm / pnpm / yarn]
+- Styling: Tailwind CSS 4
+- Validation: Zod at all external boundaries (planned; not installed yet)
+- Testing: no test framework is configured yet
+- AI: OpenAI API with GPT-5.6, called only from server-side route handlers
+- Image generation: OpenAI Image API, called only from server-side route handlers
+- Deployment: Vercel
+- Source control and automatic deployments: GitHub connected to Vercel
+- Domain and DNS: may remain with GreenGeeks or OVH
+- Runtime constraint: GreenGeeks EcoSite Lite must never host the Node.js runtime
+- Package manager: npm
 
 Update this section whenever a major dependency or platform changes.
 
@@ -136,6 +140,11 @@ The server owns:
 - rate limiting and error handling
 - secret management
 
+Server-side capabilities must be implemented as Next.js route handlers in
+this project. They must import server-only code and read OpenAI credentials
+only from server environment variables. Client components may call these
+handlers, but must never import the OpenAI SDK or receive credentials.
+
 ## Input schema
 
 The simulation input should include:
@@ -207,7 +216,12 @@ The user should receive:
 
 ## Deployment
 
-Deployment should provide:
+Vercel is the production runtime for the Next.js application. GitHub is the
+source-control system and the source of automatic deployments. GreenGeeks or
+OVH may provide DNS and domain management only; GreenGeeks EcoSite Lite is
+not a supported Node.js hosting target for this application.
+
+Deployment must provide:
 
 - secure server-side environment variables
 - production build verification
@@ -220,6 +234,8 @@ Deployment should provide:
 Current deployment target:
 
 ```text
-Platform: [add platform]
+Platform: Vercel
+Source control and deployments: GitHub → Vercel
+Domain and DNS: GreenGeeks
 Production URL: [add URL]
 ```

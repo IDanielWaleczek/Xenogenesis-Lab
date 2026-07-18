@@ -61,6 +61,59 @@ Follow-up work:
 
 ## Initial decisions
 
+### 2026-07-18 — Use one full-stack Next.js application on Vercel
+
+**Status:** Accepted
+
+**Decision**
+
+Xenogenesis Lab will be a single TypeScript Next.js App Router project.
+React renders the interface, Zod validates external data, and Next.js
+server-side route handlers own privileged OpenAI API calls. The application
+will deploy on Vercel from GitHub.
+
+**Context**
+
+The MVP needs a fast, maintainable end-to-end delivery path without managing
+separate frontend and backend deployments. OpenAI credentials must remain on
+the server. The domain and DNS may remain with GreenGeeks, but
+GreenGeeks EcoSite Lite cannot host the application runtime.
+
+**Options considered**
+
+1. Separate frontend and API services.
+2. A single full-stack Next.js application.
+3. A static site with direct browser calls to AI providers.
+
+**Rationale**
+
+The single application minimizes deployment and integration work while
+keeping secrets in server-only code. Vercel provides the required Node.js
+runtime and automatic deployment flow from GitHub.
+
+**Consequences**
+
+Positive consequences:
+
+- one repository and deployment pipeline
+- server-side protection for OpenAI credentials
+- simple route-handler boundary for validation and AI integration
+- automatic preview and production deployments through GitHub
+
+Tradeoffs:
+
+- provider calls must fit the serverless execution model
+- rate limiting and observability require explicit implementation
+- domain DNS remains a separate configuration concern
+
+Follow-up work:
+
+- add Zod and the OpenAI SDK when implementing the API boundary
+- create server-only route handlers for simulation, dossier, and illustration
+- configure Vercel environment variables and GitHub deployment integration
+
+---
+
 ### 2026-07-18 — Separate simulation from AI interpretation
 
 **Status:** Accepted

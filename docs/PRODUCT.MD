@@ -19,6 +19,8 @@ A user should be able to:
 5. read an accessible scientific dossier
 6. view a generated scientific illustration
 
+The deterministic analysis is the source of truth for environmental constraints; generated explanations and illustrations describe those results without changing them.
+
 ## MVP journey
 
 ### Configure
