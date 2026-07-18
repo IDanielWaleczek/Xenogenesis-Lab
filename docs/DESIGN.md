@@ -153,6 +153,8 @@ Minimum requirements:
 - reduced-motion support
 - readable text at browser zoom
 - accessible slider values and units
+- initial interface languages: English and Polish
+- every new visible string added to the interface must have reviewed translations for every supported language
 
 ## Illustration rules
 
