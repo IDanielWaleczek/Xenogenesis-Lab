@@ -41,15 +41,15 @@ Semantic colors:
 Exact values:
 
 ```text
-Background: [add value]
-Surface: [add value]
-Primary accent: [add value]
-Secondary accent: [add value]
-Main text: [add value]
-Muted text: [add value]
-Success: [add value]
-Warning: [add value]
-Error: [add value]
+Background: #030817
+Surface: #0F1A34 with translucent glass panels
+Primary accent: #67E8F9
+Secondary accent: #0E7490
+Main text: #E5F4FF
+Muted text: #94A3B8
+Success: #86EFAC
+Warning: #FDE68A
+Error: #FCA5A5
 ```
 
 ## Typography
