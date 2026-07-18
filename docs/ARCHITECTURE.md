@@ -7,8 +7,8 @@
 - Backend: Next.js server-side route handlers in the same application
 - Language: TypeScript
 - Styling: Tailwind CSS 4
-- Validation: Zod at all external boundaries (planned; not installed yet)
-- Testing: no test framework is configured yet
+- Validation: Zod 4 at all external boundaries
+- Testing: Vitest 4 for deterministic domain and schema tests
 - AI: OpenAI API with GPT-5.6, called only from server-side route handlers
 - Image generation: OpenAI Image API, called only from server-side route handlers
 - Deployment: Vercel
@@ -153,17 +153,31 @@ The simulation input should include:
 type WorldParameters = {
   gravityG: number;
   atmosphericPressureAtm: number;
+  atmosphereComposition: {
+    oxygenFraction: number;
+    carbonDioxideFraction: number;
+    nitrogenFraction: number;
+    inertGasFraction: number;
+    toxicGasFraction: number;
+  };
   averageTemperatureC: number;
   temperatureVariationC: number;
-  radiationLevel: number;
+  radiationDoseRate: { value: number; unit: "mSv/h" | "Sv/h" };
   lightLevel: number;
   waterAvailability: number;
-  habitat: string;
-  atmosphereComposition: Record<string, number>;
+  habitat: Habitat;
+  shieldingColumnMassKgM2: number;
+  geochemicalEnergyAvailability: "none" | "low" | "moderate" | "high";
+  electronAcceptors: ElectronAcceptor[];
+  atmosphericMeanMolarMassKgPerMol?: number;
 };
 ```
 
-Exact types and ranges are defined in `SCIENCE_RULES.md`.
+The source radiation value and unit are retained. The server derives
+`radiationDoseRateMilliSvPerHour`, the symmetric temperature range, oxygen
+partial pressure, and—when a mean molar mass is supplied—local atmospheric
+density. Exact ranges and scientific conventions are defined in
+`SCIENCE_RULES.md`.
 
 ## Output schema
 
@@ -172,7 +186,8 @@ The deterministic engine should return:
 ```ts
 type SimulationResult = {
   rulesetVersion: string;
-  normalizedEnvironment: WorldParameters;
+  normalizedEnvironment: NormalizedWorldParameters;
+  viability: ViabilityAssessment;
   pressures: EnvironmentalPressure[];
   constraints: BiologicalConstraint[];
   adaptationCandidates: AdaptationCandidate[];

@@ -61,6 +61,61 @@ Follow-up work:
 
 ## Initial decisions
 
+### 2026-07-18 — Use local physics inputs without invented protection or energy
+
+**Status:** Accepted
+
+**Decision**
+
+Radiation dose is normalized to `mSv/h` but never reduced solely because a
+world is labelled cave or deep ocean. `shieldingColumnMassKgM2` is retained as
+input with a default of zero. Low-oxygen alternatives require both declared
+geochemical energy and electron acceptors. High-atmosphere analysis uses
+local pressure, temperature, and explicitly supplied mean molar mass; thermal
+variation is evaluated as a symmetric range around the local average.
+
+**Context**
+
+The initial rules needed to avoid four forms of false precision: universal
+radiation attenuation, invented non-aerobic metabolism, surface values used
+at high altitude, and a flat temperature-variability penalty.
+
+**Options considered**
+
+1. Infer protection, energy pathways, and atmospheric properties from habitat labels.
+2. Add undocumented universal coefficients for all four effects.
+3. Require explicit inputs and apply only documented deterministic derivations.
+
+**Rationale**
+
+The selected approach preserves scientific honesty while still producing
+useful educational constraints. It creates a small, testable data contract and
+defers spectrum-, material-, and species-dependent science until the model has
+adequate inputs.
+
+**Consequences**
+
+Positive consequences:
+
+- no artificial radiation safety from habitat labels
+- no unsupported alternative metabolism
+- reproducible oxygen partial-pressure and local-density calculations
+- thermal extremes remain visible and testable
+
+Tradeoffs:
+
+- high-atmosphere worlds need one additional molar-mass input
+- shielding mass is recorded but not yet used for attenuation
+- flight-density and oxygen thresholds remain explicit follow-up coefficients
+
+Follow-up work:
+
+- define and test the named low-oxygen and flight-density thresholds
+- implement viability and adaptation rules using these normalized values
+- add spectrum-specific shielding only if future inputs justify it
+
+---
+
 ### 2026-07-18 — Use one full-stack Next.js application on Vercel
 
 **Status:** Accepted
