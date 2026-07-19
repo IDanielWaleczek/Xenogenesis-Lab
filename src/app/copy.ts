@@ -1,601 +1,657 @@
 import type {
-  AdaptationId,
-  PressureId,
-  RevisionConclusion,
-  SurvivalStrategy,
-} from "@/domain/mission/schema";
-import type { WorldParameters } from "@/domain/world/schema";
+  LifeTraitId,
+  RegionId,
+  SimulationMetricId,
+  SurvivalSimulationResult,
+} from "@/domain/simulator/schema";
+import type { TraitCategory } from "@/domain/simulator/traits";
 
-/** Supported interface languages. */
+/** Languages supported by the reviewed interface copy. */
 export type Language = "en" | "pl";
 
-/** Stable stages in the single-mission training loop. */
-export type MissionStage =
-  | "briefing"
-  | "world"
-  | "decisions"
-  | "simulation"
-  | "debrief"
-  | "progress";
+/** User-facing phases in the repeatable simulation loop. */
+export type LabPhase = "planet" | "life" | "results";
 
-type ParameterKey =
+/** Editable inputs exposed by the first complete simulator mission. */
+export type ParameterId =
   | "gravity"
+  | "temperature"
   | "pressure"
   | "oxygen"
   | "carbonDioxide"
-  | "inertGas"
-  | "toxicGas"
-  | "nitrogen"
-  | "molarMass"
-  | "temperature"
-  | "variation"
+  | "water"
   | "radiation"
   | "light"
-  | "water"
-  | "habitat"
-  | "shielding"
-  | "geochemical"
-  | "acceptors";
+  | "humidity"
+  | "magneticField";
 
-type ParameterCopy = { label: string; influence: string };
+type ParameterCopy = {
+  label: string;
+  unit: string;
+  influence: string;
+};
 
-type Copy = {
+type TraitCopy = {
+  title: string;
+  advantage: string;
+  tradeoff: string;
+};
+
+export type LabCopy = {
   document: { title: string; description: string };
   language: { label: string; english: string; polish: string };
-  system: {
-    bootTitle: string;
-    bootSubtitle: string;
-    bootSteps: string[];
-    bootReady: string;
+  boot: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    steps: Array<{ title: string; detail: string }>;
+    systemCheck: string;
+    ready: string;
     skip: string;
     enter: string;
   };
-  header: { subtitle: string; mission: string; home: string; reset: string };
-  stages: Record<MissionStage, string>;
-  stageNavigation: string;
-  provenance: {
-    baseline: string;
-    variant: string;
-    hypothesis: string;
-    calculated: string;
-    ai: string;
-    local: string;
-    visual: string;
-  };
-  home: {
-    eyebrow: string;
-    title: string;
-    description: string;
-    available: string;
-    missionTitle: string;
-    missionDescription: string;
-    duration: string;
-    begin: string;
-    firstTime: string;
-    steps: string[];
+  header: {
+    system: string;
+    mission: string;
+    seed: string;
+    reset: string;
+    resetCamera: string;
+    rotationOn: string;
+    rotationOff: string;
   };
   mission: {
     eyebrow: string;
     title: string;
-    planet: string;
     objectiveLabel: string;
     objective: string;
-    briefing: string;
-    candidateTask: string;
-    factsTitle: string;
-    facts: {
-      gravity: string;
-      pressure: string;
-      temperature: string;
-      radiation: string;
-      water: string;
-      habitat: string;
-    };
-    instructionsTitle: string;
-    instructions: string[];
-    ruleset: string;
-    begin: string;
+    description: string;
+    loopLabel: string;
+    loop: string[];
+    convention: string;
+    guidanceTitle: string;
+    guidance: string;
   };
-  world: {
-    eyebrow: string;
+  phases: Record<LabPhase, { label: string; description: string }>;
+  planet: {
     title: string;
     instruction: string;
-    controlsTitle: string;
-    atmosphereTitle: string;
-    energyTitle: string;
-    previewTitle: string;
-    previewNotice: string;
+    parameterGroup: string;
     baseline: string;
-    variant: string;
-    reset: string;
-    lock: string;
-    invalid: string;
-    localValues: string;
+    resetBaseline: string;
+    liveView: string;
+    viewMode: string;
+    modes: { realistic: string; temperature: string; radiation: string };
+    inspectHint: string;
+    inspecting: string;
+    noInspection: string;
+    regionalModel: string;
+    visualTransition: string;
+    openDesigner: string;
+    oxygenPartialPressure: string;
+    atmosphericDensity: string;
     temperatureRange: string;
-    oxygenPressure: string;
-    density: string;
-    notAvailable: string;
-    nitrogenBalance: string;
-    parameters: Record<ParameterKey, ParameterCopy>;
-    habitats: Record<WorldParameters["habitat"], string>;
-    geochemicalLevels: Record<WorldParameters["geochemicalEnergyAvailability"], string>;
-    acceptorNames: Record<WorldParameters["electronAcceptors"][number], string>;
   };
-  decisions: {
-    eyebrow: string;
+  parameters: Record<ParameterId, ParameterCopy>;
+  life: {
     title: string;
     instruction: string;
-    worldSummary: string;
-    editWorld: string;
-    pressureTitle: string;
-    pressureHint: string;
-    adaptationTitle: string;
-    adaptationHint: string;
-    strategyTitle: string;
-    strategyHint: string;
-    validation: string;
-    commit: string;
-    committed: string;
-  };
-  strategies: Record<SurvivalStrategy, { title: string; description: string }>;
-  simulation: {
-    eyebrow: string;
-    title: string;
-    ready: string;
+    selected: string;
+    budget: string;
+    budgetExplanation: string;
+    cost: string;
+    advantage: string;
+    tradeoff: string;
+    conflict: string;
+    budgetExceeded: string;
+    selectionLimit: string;
+    minimumTraits: string;
+    clear: string;
     run: string;
     running: string;
-    outcomeLabel: string;
-    outcome: string;
-    rulesetLabel: string;
-    normalizedFacts: string;
-    pressureTitle: string;
-    organismTitle: string;
-    candidateNotice: string;
-    comparisonTitle: string;
-    alignment: string;
-    pressureAccuracy: string;
-    supported: string;
-    missed: string;
-    unsupported: string;
-    none: string;
-    instructor: string;
+    previewHint: string;
   };
-  debrief: {
-    eyebrow: string;
+  categories: Record<TraitCategory, string>;
+  traits: Record<LifeTraitId, TraitCopy>;
+  simulation: {
     title: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    staleTitle: string;
+    staleDescription: string;
+    deterministic: string;
+    success: string;
+    continue: string;
+    objective: string;
+    outcome: string;
+    stateHash: string;
+    modelVersion: string;
+    metricsTitle: string;
+    strengths: string;
+    limits: string;
+    regionsTitle: string;
+    habitable: string;
+    populationTitle: string;
+    generation: string;
+    population: string;
+    initial: string;
+    peak: string;
+    final: string;
+    capacity: string;
+    previousScore: string;
+    noPreviousRun: string;
+    adaptPlanet: string;
+    adaptLife: string;
+    rerun: string;
+    educationalNotice: string;
+  };
+  metrics: Record<SimulationMetricId, { label: string; description: string }>;
+  regions: Record<RegionId, { label: string; description: string }>;
+  outcomes: Record<SurvivalSimulationResult["outcome"], { title: string; description: string }>;
+  organism: {
+    title: string;
+    procedural: string;
+    generated: string;
+    requestImage: string;
+    generating: string;
+    fallback: string;
+    error: string;
+    alt: string;
+  };
+  consultant: {
+    title: string;
+    description: string;
+    request: string;
     loading: string;
     liveSource: string;
-    fallbackSource: string;
+    localSource: string;
     fallbackNotice: string;
-    evidence: string;
-    tradeOffs: string;
-    question: string;
+    assessment: string;
+    traits: string;
+    insights: string;
     experiment: string;
-    revisionTitle: string;
-    revisionInstruction: string;
-    evidenceLabel: string;
-    conclusionLabel: string;
-    revisionValidation: string;
-    submit: string;
     error: string;
     retry: string;
   };
-  revisionConclusions: Record<RevisionConclusion, { title: string; description: string }>;
-  progress: {
-    eyebrow: string;
-    title: string;
-    completed: string;
-    archiveTitle: string;
-    archiveEntry: string;
-    sessionOnly: string;
-    competencyTitle: string;
-    hypothesisFormation: string;
-    adaptationAnalysis: string;
-    evidenceUse: string;
-    certification: string;
-    candidate: string;
-    nextTitle: string;
-    nextDescription: string;
-    todo: string;
-    repeat: string;
+  status: {
+    local: string;
+    ai: string;
+    visual: string;
+    calculated: string;
   };
-  adaptations: Record<AdaptationId, { title: string; description: string }>;
-  pressures: Record<PressureId, { title: string; description: string }>;
-  severity: { moderate: string; high: string };
   footer: string;
 };
 
-const english: Copy = {
+const english: LabCopy = {
   document: {
-    title: "Xenogenesis Lab | Mission Control",
-    description: "Explore a planet, commit mission decisions, and test them with a deterministic astrobiology model.",
+    title: "Xenogenesis Lab | Procedural Life Simulator",
+    description: "Engineer a procedural planet, design alien life, and test it with a deterministic astrobiology simulation.",
   },
-  language: { label: "Language", english: "English", polish: "Polish" },
-  system: {
-    bootTitle: "XENOGENESIS LAB",
-    bootSubtitle: "Astrobiology mission training system",
-    bootSteps: ["Power core online", "Loading ruleset 0.2.0", "Validating mission archive", "Opening Mission Control"],
-    bootReady: "SYSTEM READY",
-    skip: "Skip boot",
-    enter: "Enter Mission Control",
+  language: { label: "Language", english: "English", polish: "Polski" },
+  boot: {
+    eyebrow: "Xenogenesis research platform · remote node 07",
+    title: "XENOGENESIS LAB",
+    subtitle: "Procedural astrobiology simulation environment",
+    steps: [
+      { title: "Power lattice", detail: "Stabilizing orbital laboratory systems" },
+      { title: "Planet renderer", detail: "Compiling terrain, water, cloud, and atmosphere shaders" },
+      { title: "Science core", detail: "Loading deterministic simulator 1.0.0" },
+      { title: "Biology archive", detail: "Validating trait costs and compatibility rules" },
+      { title: "Mission channel", detail: "Synchronizing Vespera-7A telemetry" },
+    ],
+    systemCheck: "System integrity check",
+    ready: "LABORATORY ONLINE",
+    skip: "Skip startup",
+    enter: "Enter laboratory",
   },
-  header: { subtitle: "Mission Control", mission: "Training mission 01", home: "Mission Control home", reset: "Reset exercise" },
-  stages: { briefing: "Briefing", world: "World Lab", decisions: "Decisions", simulation: "Simulation", debrief: "Debrief", progress: "Progress" },
-  stageNavigation: "Mission training stages",
-  provenance: { baseline: "Mission baseline", variant: "Experimental variant", hypothesis: "Your decisions", calculated: "Calculated result", ai: "GPT-5.6 interpretation", local: "Local training review", visual: "Visual interpretation" },
-  home: {
-    eyebrow: "Mission Control · Candidate programme",
-    title: "Train for worlds no biologist has seen.",
-    description: "Change a target planet, observe how it responds, predict survival pressures, and compare your decisions with a reproducible model.",
-    available: "1 mission available",
-    missionTitle: "Mission 01 · Vespera b",
-    missionDescription: "Create an experimental Vespera variant and design a plausible survival strategy before the simulation reveals its constraints.",
-    duration: "Estimated training time · 3 minutes",
-    begin: "Open mission briefing",
-    firstTime: "Your mission in four moves",
-    steps: ["Read the objective", "Build and observe a world variant", "Commit multiple-choice decisions", "Run, review, and revise"],
+  header: {
+    system: "Dynamic life engineering system",
+    mission: "Genesis mission 01",
+    seed: "Planet seed",
+    reset: "Reset mission",
+    resetCamera: "Reset camera",
+    rotationOn: "Pause rotation",
+    rotationOff: "Resume rotation",
   },
   mission: {
-    eyebrow: "Incoming mission · Vespera-01",
-    title: "First, understand the target. Then make it your experiment.",
-    planet: "Target: Vespera b",
-    objectiveLabel: "Mission objective",
-    objective: "Create a controlled planetary variant, predict the pressures it will produce, and select adaptations for a plausible complex organism under ruleset 0.2.0.",
-    briefing: "The values below are the verified mission baseline. In the World Lab you may change every supplied environmental input. Your changes create a separate experiment and never overwrite mission telemetry.",
-    candidateTask: "You do not need to write scientific prose. The interface will guide you through pressure, adaptation, and strategy choices.",
-    factsTitle: "Verified baseline telemetry",
-    facts: { gravity: "Gravity", pressure: "Local pressure", temperature: "Temperature", radiation: "Radiation", water: "Water access", habitat: "Habitat" },
-    instructionsTitle: "What to do",
-    instructions: ["Review the baseline", "Open the World Lab and change any inputs", "Watch the planet respond, then lock your variant", "Choose predicted pressures, adaptations, and one strategy", "Run the model and revise from evidence"],
-    ruleset: "Ruleset 0.2.0 · educational model conventions",
-    begin: "Open World Lab",
+    eyebrow: "Mission objective · Vespera 7A",
+    title: "Create stable advanced life",
+    objectiveLabel: "Target outcome",
+    objective: "Engineer the planet and design a stable, advanced multicellular lifeform capable of persisting there.",
+    description: "There is no predefined correct world. Change the environment, build a biological strategy, run the model, then adapt from evidence.",
+    loopLabel: "Experimental loop",
+    loop: ["Observe", "Modify", "Design", "Simulate", "Adapt"],
+    convention: "Broad outcome, visible evidence, multiple viable strategies.",
+    guidanceTitle: "Start here",
+    guidance: "Move one or two environmental controls and watch the planet transform. Then open Design life, choose traits within the energy budget, and run the simulation.",
   },
-  world: {
-    eyebrow: "World Lab · Experimental variant",
-    title: "Shape the planet before you predict its life.",
-    instruction: "Every control updates the visual interpretation immediately. The transition is continuous; scientific conclusions remain hidden until you run the deterministic simulation.",
-    controlsTitle: "Environment controls",
-    atmosphereTitle: "Atmosphere and local conditions",
-    energyTitle: "Energy and advanced inputs",
-    previewTitle: "Live planet preview",
-    previewNotice: "This hybrid scientific/cinematic view is a deterministic visual mapping, not a measured image or habitability result.",
-    baseline: "Using mission baseline",
-    variant: "Experimental variant active",
-    reset: "Restore baseline",
-    lock: "Lock variant and make decisions",
-    invalid: "Adjust the highlighted input before continuing.",
-    localValues: "Derived local values",
-    temperatureRange: "Temperature range",
-    oxygenPressure: "O₂ partial pressure",
-    density: "Atmospheric density",
-    notAvailable: "Not supplied",
-    nitrogenBalance: "Nitrogen is automatically used as the balance gas.",
-    parameters: {
-      gravity: { label: "Gravity", influence: "Can shape support tissues, height, circulation, and locomotion." },
-      pressure: { label: "Local pressure", influence: "Can shape gas exchange, body sealing, buoyancy, and sound." },
-      oxygen: { label: "Oxygen", influence: "Together with pressure, determines oxygen partial pressure available for aerobic metabolism." },
-      carbonDioxide: { label: "Carbon dioxide", influence: "Can shape atmospheric chemistry and potential carbon sources; this ruleset does not infer climate from it." },
-      inertGas: { label: "Inert gases", influence: "Change composition but do not define a gas species or biological effect by themselves." },
-      toxicGas: { label: "Broad toxic gases", influence: "Signals a possible chemical hazard without inventing a specific compound." },
-      nitrogen: { label: "Nitrogen balance", influence: "Automatically fills the unassigned fraction so the composition stays valid." },
-      molarMass: { label: "Mean molar mass", influence: "Combines with local pressure and temperature to derive atmospheric density." },
-      temperature: { label: "Average temperature", influence: "Can shape metabolism, biochemistry, insulation, and cooling." },
-      variation: { label: "Temperature half-range", influence: "Creates symmetric minimum and maximum temperatures that may cross tolerance limits." },
-      radiation: { label: "Radiation dose rate", influence: "Can favour protection and cellular repair. Habitat labels do not reduce this value." },
-      light: { label: "Light level", influence: "Can shape photosynthesis, pigmentation, sensing, and activity cycles." },
-      water: { label: "Accessible water", influence: "Can shape water retention, skin, reproduction, metabolism, and dormancy." },
-      habitat: { label: "Habitat", influence: "Changes the setting and possible behaviours, but never substitutes for physical inputs." },
-      shielding: { label: "Shielding column mass", influence: "Records possible material shielding; ruleset 0.2.0 does not invent a universal attenuation factor." },
-      geochemical: { label: "Geochemical energy", influence: "May support an alternative energy pathway only when electron acceptors are also supplied." },
-      acceptors: { label: "Electron acceptors", influence: "Explicit chemistry prevents the model from inventing unsupported metabolism." },
-    },
-    habitats: { "open surface": "Open surface", desert: "Desert", "shallow water": "Shallow water", "deep ocean": "Deep ocean", cave: "Cave", "forest-like biome": "Forest-like biome", "ice surface": "Ice surface", "high atmosphere": "High atmosphere" },
-    geochemicalLevels: { none: "None", low: "Low", moderate: "Moderate", high: "High" },
-    acceptorNames: { nitrate: "Nitrate", sulfate: "Sulfate", ferricIron: "Ferric iron", carbonDioxide: "Carbon dioxide" },
+  phases: {
+    planet: { label: "Engineer planet", description: "Change the world and inspect its regions." },
+    life: { label: "Design life", description: "Build a biological strategy with real tradeoffs." },
+    results: { label: "Analyze", description: "Read the outcome and decide what to change." },
   },
-  decisions: {
-    eyebrow: "Commit before reveal",
-    title: "Make your mission decisions.",
-    instruction: "Your locked planet remains visible. Select what you predict—no written answer is required.",
-    worldSummary: "Locked world variant",
-    editWorld: "Edit variant",
-    pressureTitle: "1 · Which pressures will the model detect?",
-    pressureHint: "Choose one or more. These are predictions, not revealed results.",
-    adaptationTitle: "2 · Which adaptations could help?",
-    adaptationHint: "Choose up to six. Some options are intentionally unsupported.",
-    strategyTitle: "3 · Which overall strategy would you investigate?",
-    strategyHint: "Choose one. The strategy is interpretive and is not scored by ruleset 0.2.0.",
-    validation: "Choose at least one pressure, one adaptation, and one strategy.",
-    commit: "Commit decisions",
-    committed: "Decisions committed before simulation results were revealed",
+  planet: {
+    title: "Planet engineering",
+    instruction: "Every control affects both the visual planet and the deterministic model.",
+    parameterGroup: "Environmental systems",
+    baseline: "Mission baseline",
+    resetBaseline: "Restore baseline",
+    liveView: "Live procedural planet",
+    viewMode: "Scientific view",
+    modes: { realistic: "Realistic", temperature: "Temperature", radiation: "Radiation" },
+    inspectHint: "Drag to rotate · scroll to zoom · select the surface to inspect a representative region",
+    inspecting: "Selected region",
+    noInspection: "Select a point on the planet to inspect its model region.",
+    regionalModel: "Six representative habitat regions are evaluated; this is not a full climate grid.",
+    visualTransition: "Terraforming visualization is interpolating toward the current parameters.",
+    openDesigner: "Continue to life designer",
+    oxygenPartialPressure: "Oxygen partial pressure",
+    atmosphericDensity: "Atmospheric density",
+    temperatureRange: "Configured temperature range",
   },
-  strategies: {
-    surfaceConservation: { title: "Conserve on the surface", description: "Prioritise compact form, protected reproduction, and low resource loss." },
-    shelterSeeking: { title: "Seek environmental shelter", description: "Use behavioural shelter without assuming that habitat alone reduces radiation dose." },
-    mobileForaging: { title: "Mobile resource foraging", description: "Trade higher energy demand for access to scattered water or nutrients." },
-    aerialDispersal: { title: "Aerial dispersal", description: "Investigate lift or passive dispersal using local density, gravity, and body cost." },
+  parameters: {
+    gravity: { label: "Gravity", unit: "g", influence: "Higher gravity favors compact, strongly supported bodies and makes flight more expensive." },
+    temperature: { label: "Mean temperature", unit: "°C", influence: "Controls ice, stable surface water, thermal stress, and biome color." },
+    pressure: { label: "Local pressure", unit: "atm", influence: "Changes atmospheric density, water stability, cloud formation, and movement options." },
+    oxygen: { label: "Atmospheric oxygen", unit: "%", influence: "Sets oxygen partial pressure and the energy available to aerobic organisms." },
+    carbonDioxide: { label: "Atmospheric carbon dioxide", unit: "%", influence: "Changes atmospheric color and supplies carbon while high levels impose a model cost." },
+    water: { label: "Available water", unit: "%", influence: "Fills low terrain first and supports hydration, oceans, clouds, and biological energy." },
+    radiation: { label: "Radiation dose rate", unit: "mSv/h", influence: "Raises biological damage unless explicit defenses or magnetic protection compensate." },
+    light: { label: "Stellar energy", unit: "%", influence: "Changes illumination and the energy available to photosynthetic strategies." },
+    humidity: { label: "Humidity", unit: "%", influence: "Influences clouds, surface moisture, hydration, and fertile terrain." },
+    magneticField: { label: "Magnetic field", unit: "Earth", influence: "Reduces the modeled incoming radiation exposure and changes the radiation overlay." },
+  },
+  life: {
+    title: "Lifeform designer",
+    instruction: "Choose compatible adaptations. Advantages consume a shared biological energy budget and always carry costs.",
+    selected: "traits selected",
+    budget: "Biological energy budget",
+    budgetExplanation: "The budget prevents unlimited trait stacking. Costs are simulator conventions, not universal biological constants.",
+    cost: "Cost",
+    advantage: "Advantage",
+    tradeoff: "Tradeoff",
+    conflict: "That trait conflicts with one of your current selections.",
+    budgetExceeded: "That trait would exceed the biological energy budget.",
+    selectionLimit: "The first model supports at most 14 selected traits.",
+    minimumTraits: "Select at least three traits before running the simulation.",
+    clear: "Clear traits",
+    run: "Run survival simulation",
+    running: "Simulating 40 generations…",
+    previewHint: "The procedural morphology updates from the seed, world, and selected traits.",
+  },
+  categories: {
+    body: "Body",
+    physiology: "Physiology",
+    senses: "Senses",
+    reproduction: "Reproduction",
+    intelligence: "Complexity",
+  },
+  traits: {
+    compactBody: { title: "Compact body", advantage: "Handles high gravity and conserves water.", tradeoff: "Offers less room for specialized organs." },
+    largeBody: { title: "Large body", advantage: "Buffers cold and supports greater complexity.", tradeoff: "Needs more oxygen and biological energy." },
+    internalSkeleton: { title: "Internal skeleton", advantage: "Supports efficient movement under gravity.", tradeoff: "Consumes construction resources." },
+    exoskeleton: { title: "Exoskeleton", advantage: "Limits water loss and adds physical shielding.", tradeoff: "Becomes costly under high gravity." },
+    aquaticMovement: { title: "Aquatic movement", advantage: "Moves efficiently through water and pressure gradients.", tradeoff: "Conflicts with specialized land or aerial movement." },
+    terrestrialMovement: { title: "Terrestrial movement", advantage: "Traverses exposed surface habitats efficiently.", tradeoff: "Performs poorly in deep water and extreme terrain." },
+    aerialMovement: { title: "Aerial movement", advantage: "Provides dispersal and habitat access in dense air.", tradeoff: "Very costly in high gravity or thin atmospheres." },
+    oxygenRespiration: { title: "Oxygen respiration", advantage: "Supports high-energy, complex activity near Earth-like oxygen levels.", tradeoff: "Fails as oxygen partial pressure falls." },
+    lowOxygenMetabolism: { title: "Low-oxygen metabolism", advantage: "Extracts energy from oxygen-poor atmospheres.", tradeoff: "Delivers less power for complex tissues." },
+    anaerobicMetabolism: { title: "Anaerobic metabolism", advantage: "Uses explicit geochemical redox energy without oxygen.", tradeoff: "Requires a usable gradient and limits complexity." },
+    photosynthesis: { title: "Photosynthesis", advantage: "Captures stellar energy directly.", tradeoff: "Needs light and reduces mobility." },
+    chemosynthesis: { title: "Chemosynthesis", advantage: "Uses supplied geochemical energy in dark habitats.", tradeoff: "Depends on explicit electron acceptors and has lower yield." },
+    radiationResistance: { title: "Radiation resistance", advantage: "Reduces damage under strong exposure.", tradeoff: "Consumes repair energy and slows reproduction." },
+    thermalInsulation: { title: "Thermal insulation", advantage: "Improves cold survival.", tradeoff: "Creates heat stress in warm regions." },
+    heatResistance: { title: "Heat resistance", advantage: "Protects proteins and membranes at high temperature.", tradeoff: "Raises water demand and conflicts with thick insulation." },
+    waterConservation: { title: "Water conservation", advantage: "Extends survival in dry regions.", tradeoff: "Slows exchange and reproduction." },
+    pressureResistance: { title: "Pressure resistance", advantage: "Supports deep-ocean and unusual-pressure habitats.", tradeoff: "Reduces movement efficiency." },
+    regenerativeTissue: { title: "Regenerative tissue", advantage: "Repairs radiation and environmental damage.", tradeoff: "High metabolic and reproductive cost." },
+    hibernation: { title: "Hibernation", advantage: "Survives cold, dry, or seasonal stress.", tradeoff: "Sacrifices active growth time." },
+    visibleVision: { title: "Visible-light vision", advantage: "Low-cost navigation under useful starlight.", tradeoff: "Weak in darkness, dust, or deep water." },
+    infraredVision: { title: "Infrared vision", advantage: "Finds heat contrasts in darkness or haze.", tradeoff: "Costs more neural and sensory energy." },
+    echolocation: { title: "Echolocation", advantage: "Maps dark or obscured environments.", tradeoff: "Requires active energy and suitable atmospheric density." },
+    chemicalSensing: { title: "Chemical sensing", advantage: "Finds nutrients and redox gradients without light.", tradeoff: "Provides slow, local information." },
+    rapidReproduction: { title: "Rapid reproduction", advantage: "Recovers quickly from mortality shocks.", tradeoff: "Reduces individual complexity and parental care." },
+    protectedEggs: { title: "Protected eggs", advantage: "Buffers embryos against dryness and temperature swings.", tradeoff: "Costs material and conflicts with other development modes." },
+    liveBirth: { title: "Live birth", advantage: "Protects developing offspring internally.", tradeoff: "Slows reproduction and raises adult energy needs." },
+    spores: { title: "Spores", advantage: "Disperses widely and survives harsh intervals.", tradeoff: "Supports simpler development and low individual survival." },
+    parentalInvestment: { title: "Parental investment", advantage: "Improves learning and offspring survival.", tradeoff: "Produces fewer offspring and conflicts with rapid reproduction." },
+    simpleNeuralSystem: { title: "Simple neural system", advantage: "Adds basic behavioral adaptation at low cost.", tradeoff: "Cannot support sophisticated tools." },
+    socialCoordination: { title: "Social coordination", advantage: "Improves collective survival and resource use.", tradeoff: "Requires communication and group stability." },
+    toolUsePotential: { title: "Tool-use potential", advantage: "Allows flexible environmental modification.", tradeoff: "Demands exceptional energy and oxygen supply." },
+    complexCommunication: { title: "Complex communication", advantage: "Coordinates learning and social adaptation.", tradeoff: "Requires costly neural processing and development." },
+    adaptiveLearning: { title: "Adaptive learning", advantage: "Responds flexibly to changing conditions.", tradeoff: "Consumes energy and delays reproduction." },
   },
   simulation: {
-    eyebrow: "Deterministic simulation",
-    title: "Test the locked experiment.",
-    ready: "Ruleset 0.2.0 will validate the locked world, derive local facts, and evaluate four named conventions. Identical input produces identical output.",
-    run: "Run simulation",
-    running: "Calculating environmental pressures",
-    outcomeLabel: "Model outcome",
-    outcome: "Conditionally plausible complex life",
-    rulesetLabel: "Ruleset",
-    normalizedFacts: "Normalized facts",
-    pressureTitle: "Environmental pressures",
-    organismTitle: "Adaptation candidates",
-    candidateNotice: "Structured model output—not a generated species or illustration.",
-    comparisonTitle: "Decision comparison",
-    alignment: "Combined alignment",
-    pressureAccuracy: "Pressure predictions",
-    supported: "Supported",
-    missed: "Missed",
-    unsupported: "Unsupported",
-    none: "None under the four implemented rules",
-    instructor: "Request Mission Instructor debrief",
+    title: "Survival analysis",
+    emptyTitle: "No simulation yet",
+    emptyDescription: "Engineer the planet, select at least three compatible traits, and simulate 40 generations.",
+    staleTitle: "Configuration changed",
+    staleDescription: "These results belong to the previous configuration. Run again to evaluate the current world and organism.",
+    deterministic: "Locally calculated",
+    success: "Mission objective reached",
+    continue: "Viable experiment — continue adapting",
+    objective: "Advanced-life potential",
+    outcome: "Model outcome",
+    stateHash: "Reproducible state",
+    modelVersion: "Simulator",
+    metricsTitle: "Interacting suitability scores",
+    strengths: "Strongest systems",
+    limits: "Limiting systems",
+    regionsTitle: "Regional survival",
+    habitable: "habitable under this model",
+    populationTitle: "Population across 40 generations",
+    generation: "Generation",
+    population: "Population",
+    initial: "Initial",
+    peak: "Peak",
+    final: "Final",
+    capacity: "Carrying capacity",
+    previousScore: "Change from previous run",
+    noPreviousRun: "Run another configuration to compare advanced-life potential.",
+    adaptPlanet: "Adapt planet",
+    adaptLife: "Adapt lifeform",
+    rerun: "Run current configuration",
+    educationalNotice: "Scientifically inspired educational model, not a complete climate or evolutionary prediction.",
   },
-  debrief: {
-    eyebrow: "Mission Instructor",
-    title: "Review the evidence, then choose your revision.",
-    loading: "Preparing a validated debrief…",
-    liveSource: "Live structured response from GPT-5.6",
-    fallbackSource: "Deterministic local fallback",
-    fallbackNotice: "GPT-5.6 was not available for this run. This validated local review is not AI-generated.",
-    evidence: "Evidence",
-    tradeOffs: "Biological trade-offs",
-    question: "Instructor question",
-    experiment: "Recommended experiment",
-    revisionTitle: "Evidence-based revision",
-    revisionInstruction: "Select calculated pressures you relied on, then choose how the evidence changes your decision. No written response is required.",
-    evidenceLabel: "Evidence used",
-    conclusionLabel: "My conclusion",
-    revisionValidation: "Choose one conclusion to complete the mission.",
-    submit: "Complete mission",
-    error: "The debrief could not be loaded. Your experiment and decisions are preserved.",
-    retry: "Retry debrief",
+  metrics: {
+    liquidWater: { label: "Liquid water", description: "Surface water supported by supply, pressure, and temperature." },
+    atmosphere: { label: "Atmosphere", description: "Pressure, oxygen partial pressure, and non-toxic composition." },
+    thermalStability: { label: "Thermal stability", description: "Compatibility across the configured mean and variation." },
+    radiationSafety: { label: "Radiation safety", description: "Exposure after explicit magnetic and biological protection." },
+    biologicalEnergy: { label: "Biological energy", description: "Light, geochemical, water, and carbon energy opportunity." },
+    metabolicViability: { label: "Metabolic viability", description: "How well selected energy pathways fit the supplied world." },
+    organismCompatibility: { label: "Organism compatibility", description: "Combined body, movement, hydration, pressure, and stress fit." },
+    reproductionPotential: { label: "Reproduction", description: "Capacity to replace losses without overspending energy." },
+    populationStability: { label: "Population stability", description: "Long-term balance of compatibility, reproduction, and adaptation." },
+    ecosystemPotential: { label: "Ecosystem potential", description: "Capacity for a durable biosphere under available energy." },
+    advancedLifePotential: { label: "Advanced life", description: "Combined ecosystem, metabolism, adaptability, and complexity potential." },
   },
-  revisionConclusions: {
-    strengthenHypothesis: { title: "Strengthen my original hypothesis", description: "The calculated pressures largely support my choices." },
-    changeAdaptations: { title: "Change the adaptations", description: "The evidence shows that different biological features need priority." },
-    changeStrategy: { title: "Change the overall strategy", description: "The world suggests a different way of occupying the habitat." },
+  regions: {
+    coastal: { label: "Coastal zones", description: "Mixed land-water habitats with access to moisture and energy." },
+    equatorial: { label: "Equatorial zones", description: "High-light regions sensitive to heat and radiation." },
+    polar: { label: "Polar zones", description: "Cold regions that reward insulation and dormancy." },
+    deepOcean: { label: "Deep ocean", description: "Dark, high-pressure habitat dependent on water and geochemistry." },
+    underground: { label: "Underground", description: "Sheltered habitat; radiation is not reduced without explicit shielding input." },
+    highAltitude: { label: "High atmosphere", description: "Thin-air region governed by local density, gravity, and flight costs." },
   },
-  progress: {
-    eyebrow: "Competency progress",
-    title: "Mission 01 complete.",
-    completed: "A training record was created for this browser session.",
-    archiveTitle: "Research Archive",
-    archiveEntry: "Vespera b experimental-variant assessment",
-    sessionOnly: "Session only · this record resets when the page reloads.",
-    competencyTitle: "Competency Profile",
-    hypothesisFormation: "Decision alignment",
-    adaptationAnalysis: "Adaptation analysis",
-    evidenceUse: "Evidence use",
-    certification: "Certification stage",
-    candidate: "Candidate",
-    nextTitle: "Next mission",
-    nextDescription: "A mission library and persistent certification path are outside this vertical slice.",
-    todo: "TODO · Next mission not implemented",
-    repeat: "Return to Mission Control",
+  outcomes: {
+    immediateExtinction: { title: "Immediate extinction", description: "Basic environmental stress overwhelms the selected organism." },
+    temporarySurvival: { title: "Temporary survival", description: "A small population persists briefly but cannot replace its losses." },
+    regionalRefuge: { title: "Regional refuge", description: "The organism survives only inside a limited set of favorable regions." },
+    stableSimplePopulation: { title: "Stable simple population", description: "The population persists, but energy or complexity remains constrained." },
+    expandingPopulation: { title: "Expanding population", description: "The organism grows across compatible habitats without advanced stability yet." },
+    unstableDominance: { title: "Unstable ecological dominance", description: "Rapid growth approaches capacity while ecosystem stability lags." },
+    stableMulticellularEcosystem: { title: "Stable multicellular ecosystem", description: "Population and ecosystem scores support durable complex life." },
+    advancedAdaptiveLife: { title: "Advanced adaptable life", description: "The configured world supports high complexity, adaptation, and long-term stability." },
   },
-  adaptations: {
-    compactBody: { title: "Compact body plan", description: "Reduces leverage and structural load under higher gravity." },
-    reinforcedSupport: { title: "Reinforced support tissues", description: "Increases resistance to sustained gravitational loading." },
-    thermalBuffering: { title: "Thermal buffering", description: "Moderates exposure to calculated temperature extremes." },
-    radiationProtection: { title: "Radiation-protective outer layer", description: "May reduce biological damage from elevated exposure." },
-    cellularRepair: { title: "Enhanced cellular repair", description: "Supports recovery from radiation-related molecular damage." },
-    waterConservation: { title: "Closed-loop water conservation", description: "Limits water loss in a constrained environment." },
-    protectedReproduction: { title: "Protected reproduction", description: "Shields water-dependent early development." },
-    aerialFlight: { title: "Sustained aerial flight", description: "A potentially costly locomotion strategy under higher gravity." },
-    permeableSkin: { title: "Highly permeable skin", description: "Improves exchange but increases water-loss risk." },
+  organism: {
+    title: "Organism field model",
+    procedural: "Deterministic procedural morphology",
+    generated: "GPT-guided generated field illustration",
+    requestImage: "Generate field illustration",
+    generating: "Generating controlled illustration…",
+    fallback: "The procedural field model remains available; no generated image was returned.",
+    error: "Image generation is unavailable. The deterministic field model is unchanged.",
+    alt: "Procedural alien organism adapted to the current Vespera experiment",
   },
-  pressures: {
-    highGravity: { title: "High-gravity loading", description: "Triggered at or above the 1.5 g model convention." },
-    thermalRange: { title: "Thermal extremes", description: "Triggered when the symmetric range reaches 0°C or 40°C." },
-    radiationExposure: { title: "Elevated radiation", description: "Triggered at or above 0.1 mSv/h without habitat-based attenuation." },
-    limitedWater: { title: "Limited accessible water", description: "Triggered at or below 0.40 relative availability." },
+  consultant: {
+    title: "Life Sciences Consultant",
+    description: "Ask GPT-5.6 to interpret the completed deterministic result. It cannot alter the scores.",
+    request: "Request consultant analysis",
+    loading: "Consultant is reviewing the evidence…",
+    liveSource: "GPT-5.6 analysis",
+    localSource: "Local scientific fallback",
+    fallbackNotice: "GPT-5.6 was unavailable, so this clearly labelled local interpretation was used.",
+    assessment: "Planet assessment",
+    traits: "Trait assessment",
+    insights: "Key observations",
+    experiment: "Suggested experiment",
+    error: "Consultant analysis could not be loaded.",
+    retry: "Try consultant again",
   },
-  severity: { moderate: "Moderate", high: "High" },
-  footer: "Educational plausibility model · Calculated facts, learner decisions, visual interpretation, and AI explanation remain separate",
+  status: {
+    local: "Local deterministic model",
+    ai: "Server-side AI",
+    visual: "Visual interpretation",
+    calculated: "Calculated evidence",
+  },
+  footer: "Xenogenesis Lab · OpenAI Build Week · educational astrobiology simulator",
 };
 
-const polish: Copy = {
+const polish: LabCopy = {
   document: {
-    title: "Xenogenesis Lab | Centrum Misji",
-    description: "Eksploruj planetę, zatwierdzaj decyzje misyjne i sprawdzaj je deterministycznym modelem astrobiologicznym.",
+    title: "Xenogenesis Lab | Proceduralny symulator życia",
+    description: "Zaprojektuj proceduralną planetę i obce życie, a następnie przetestuj je w deterministycznej symulacji astrobiologicznej.",
   },
-  language: { label: "Język", english: "Angielski", polish: "Polski" },
-  system: {
-    bootTitle: "XENOGENESIS LAB",
-    bootSubtitle: "System szkolenia misji astrobiologicznych",
-    bootSteps: ["Rdzeń zasilania aktywny", "Wczytywanie zestawu reguł 0.2.0", "Weryfikacja archiwum misji", "Uruchamianie Centrum Misji"],
-    bootReady: "SYSTEM GOTOWY",
+  language: { label: "Język", english: "English", polish: "Polski" },
+  boot: {
+    eyebrow: "Platforma badawcza Xenogenesis · zdalny węzeł 07",
+    title: "XENOGENESIS LAB",
+    subtitle: "Środowisko proceduralnych symulacji astrobiologicznych",
+    steps: [
+      { title: "Sieć zasilania", detail: "Stabilizacja systemów laboratorium orbitalnego" },
+      { title: "Renderer planety", detail: "Kompilacja shaderów terenu, wody, chmur i atmosfery" },
+      { title: "Rdzeń naukowy", detail: "Ładowanie deterministycznego symulatora 1.0.0" },
+      { title: "Archiwum biologiczne", detail: "Weryfikacja kosztów cech i reguł zgodności" },
+      { title: "Kanał misji", detail: "Synchronizacja telemetrii Vespera-7A" },
+    ],
+    systemCheck: "Kontrola integralności systemu",
+    ready: "LABORATORIUM ONLINE",
     skip: "Pomiń uruchamianie",
-    enter: "Wejdź do Centrum Misji",
+    enter: "Wejdź do laboratorium",
   },
-  header: { subtitle: "Centrum Misji", mission: "Misja treningowa 01", home: "Strona główna Centrum Misji", reset: "Resetuj ćwiczenie" },
-  stages: { briefing: "Odprawa", world: "Laboratorium Świata", decisions: "Decyzje", simulation: "Symulacja", debrief: "Omówienie", progress: "Postęp" },
-  stageNavigation: "Etapy treningu misyjnego",
-  provenance: { baseline: "Dane bazowe misji", variant: "Wariant eksperymentalny", hypothesis: "Twoje decyzje", calculated: "Wynik obliczeń", ai: "Interpretacja GPT-5.6", local: "Lokalna analiza treningowa", visual: "Interpretacja wizualna" },
-  home: {
-    eyebrow: "Centrum Misji · Program kandydacki",
-    title: "Trenuj przed wyprawą do światów, których nie widział żaden biolog.",
-    description: "Zmieniaj planetę docelową, obserwuj jej reakcję, przewiduj presje środowiska i porównuj decyzje z powtarzalnym modelem.",
-    available: "Dostępna 1 misja",
-    missionTitle: "Misja 01 · Vespera b",
-    missionDescription: "Utwórz eksperymentalny wariant Vespery i zaprojektuj wiarygodną strategię przetrwania przed ujawnieniem ograniczeń przez symulację.",
-    duration: "Szacowany czas treningu · 3 minuty",
-    begin: "Otwórz odprawę misyjną",
-    firstTime: "Twoja misja w czterech ruchach",
-    steps: ["Przeczytaj cel", "Zbuduj i obserwuj wariant świata", "Zatwierdź decyzje wielokrotnego wyboru", "Uruchom, przeanalizuj i popraw"],
+  header: {
+    system: "Dynamiczny system projektowania życia",
+    mission: "Misja Genesis 01",
+    seed: "Ziarno planety",
+    reset: "Resetuj misję",
+    resetCamera: "Resetuj kamerę",
+    rotationOn: "Wstrzymaj obrót",
+    rotationOff: "Wznów obrót",
   },
   mission: {
-    eyebrow: "Nadchodząca misja · Vespera-01",
-    title: "Najpierw poznaj cel. Potem przekształć go w swój eksperyment.",
-    planet: "Cel: Vespera b",
-    objectiveLabel: "Cel misji",
-    objective: "Utwórz kontrolowany wariant planety, przewidź wynikające z niego presje i wybierz adaptacje wiarygodnego złożonego organizmu w zestawie reguł 0.2.0.",
-    briefing: "Poniższe wartości to zweryfikowane dane bazowe misji. W Laboratorium Świata możesz zmienić każdy dostarczony parametr środowiska. Zmiany tworzą osobny eksperyment i nigdy nie nadpisują telemetrii misji.",
-    candidateTask: "Nie musisz pisać tekstu naukowego. Interfejs poprowadzi cię przez wybór presji, adaptacji i strategii.",
-    factsTitle: "Zweryfikowana telemetria bazowa",
-    facts: { gravity: "Grawitacja", pressure: "Ciśnienie lokalne", temperature: "Temperatura", radiation: "Promieniowanie", water: "Dostęp do wody", habitat: "Siedlisko" },
-    instructionsTitle: "Co masz zrobić",
-    instructions: ["Przejrzyj dane bazowe", "Otwórz Laboratorium Świata i zmień dowolne dane", "Obserwuj planetę, a następnie zablokuj wariant", "Wybierz przewidywane presje, adaptacje i jedną strategię", "Uruchom model i popraw decyzję na podstawie dowodów"],
-    ruleset: "Zestaw reguł 0.2.0 · edukacyjne konwencje modelu",
-    begin: "Otwórz Laboratorium Świata",
+    eyebrow: "Cel misji · Vespera 7A",
+    title: "Stwórz stabilne zaawansowane życie",
+    objectiveLabel: "Docelowy rezultat",
+    objective: "Przekształć planetę i zaprojektuj stabilną, zaawansowaną wielokomórkową formę życia zdolną na niej przetrwać.",
+    description: "Nie istnieje jedna poprawna konfiguracja świata. Zmieniaj środowisko, buduj strategię biologiczną, uruchamiaj model i adaptuj projekt na podstawie wyników.",
+    loopLabel: "Pętla eksperymentu",
+    loop: ["Obserwuj", "Modyfikuj", "Projektuj", "Symuluj", "Adaptuj"],
+    convention: "Szeroki cel, jawne dane, wiele możliwych strategii.",
+    guidanceTitle: "Zacznij tutaj",
+    guidance: "Przesuń jeden lub dwa parametry środowiska i obserwuj przemianę planety. Następnie otwórz projektant życia, wybierz cechy w granicach budżetu energetycznego i uruchom symulację.",
   },
-  world: {
-    eyebrow: "Laboratorium Świata · Wariant eksperymentalny",
-    title: "Ukształtuj planetę, zanim przewidzisz jej życie.",
-    instruction: "Każde sterowanie natychmiast aktualizuje interpretację wizualną. Przejście jest płynne; wnioski naukowe pozostają ukryte do uruchomienia symulacji deterministycznej.",
-    controlsTitle: "Sterowanie środowiskiem",
-    atmosphereTitle: "Atmosfera i warunki lokalne",
-    energyTitle: "Energia i dane zaawansowane",
-    previewTitle: "Podgląd planety na żywo",
-    previewNotice: "Ten hybrydowy widok naukowo-filmowy jest deterministycznym odwzorowaniem wizualnym, a nie zmierzonym obrazem ani wynikiem zdatności do życia.",
-    baseline: "Używasz danych bazowych misji",
-    variant: "Wariant eksperymentalny aktywny",
-    reset: "Przywróć dane bazowe",
-    lock: "Zablokuj wariant i podejmij decyzje",
-    invalid: "Popraw zaznaczone dane przed kontynuacją.",
-    localValues: "Wyprowadzone wartości lokalne",
-    temperatureRange: "Zakres temperatury",
-    oxygenPressure: "Ciśnienie cząstkowe O₂",
-    density: "Gęstość atmosfery",
-    notAvailable: "Nie podano",
-    nitrogenBalance: "Azot automatycznie wypełnia pozostałą część składu.",
-    parameters: {
-      gravity: { label: "Grawitacja", influence: "Może kształtować tkanki podporowe, wysokość, krążenie i lokomocję." },
-      pressure: { label: "Ciśnienie lokalne", influence: "Może kształtować wymianę gazową, szczelność ciała, wyporność i dźwięk." },
-      oxygen: { label: "Tlen", influence: "Wraz z ciśnieniem określa ciśnienie cząstkowe tlenu dostępnego dla metabolizmu tlenowego." },
-      carbonDioxide: { label: "Dwutlenek węgla", influence: "Może kształtować chemię atmosfery i źródła węgla; ten zestaw reguł nie wyprowadza z niego klimatu." },
-      inertGas: { label: "Gazy obojętne", influence: "Zmieniają skład, ale same nie określają gatunku gazu ani efektu biologicznego." },
-      toxicGas: { label: "Ogólne gazy toksyczne", influence: "Sygnalizują możliwe zagrożenie chemiczne bez wymyślania konkretnego związku." },
-      nitrogen: { label: "Bilans azotu", influence: "Automatycznie wypełnia nieprzypisaną część, aby skład pozostał prawidłowy." },
-      molarMass: { label: "Średnia masa molowa", influence: "Wraz z lokalnym ciśnieniem i temperaturą wyznacza gęstość atmosfery." },
-      temperature: { label: "Średnia temperatura", influence: "Może kształtować metabolizm, biochemię, izolację i chłodzenie." },
-      variation: { label: "Połowa zakresu temperatury", influence: "Tworzy symetryczne minimum i maksimum, które mogą przekraczać granice tolerancji." },
-      radiation: { label: "Moc dawki promieniowania", influence: "Może sprzyjać ochronie i naprawie komórkowej. Etykieta siedliska nie zmniejsza tej wartości." },
-      light: { label: "Poziom światła", influence: "Może kształtować fotosyntezę, pigmentację, zmysły i cykle aktywności." },
-      water: { label: "Dostępna woda", influence: "Może kształtować retencję wody, skórę, rozmnażanie, metabolizm i uśpienie." },
-      habitat: { label: "Siedlisko", influence: "Zmienia otoczenie i możliwe zachowania, ale nigdy nie zastępuje danych fizycznych." },
-      shielding: { label: "Masa kolumnowa osłony", influence: "Rejestruje możliwą osłonę materiałową; zestaw 0.2.0 nie wymyśla uniwersalnego tłumienia." },
-      geochemical: { label: "Energia geochemiczna", influence: "Może wspierać alternatywną ścieżkę energii tylko przy podanych akceptorach elektronów." },
-      acceptors: { label: "Akceptory elektronów", influence: "Jawna chemia zapobiega wymyślaniu przez model nieuzasadnionego metabolizmu." },
-    },
-    habitats: { "open surface": "Otwarta powierzchnia", desert: "Pustynia", "shallow water": "Płytka woda", "deep ocean": "Głęboki ocean", cave: "Jaskinia", "forest-like biome": "Biom przypominający las", "ice surface": "Powierzchnia lodowa", "high atmosphere": "Wysoka atmosfera" },
-    geochemicalLevels: { none: "Brak", low: "Niska", moderate: "Umiarkowana", high: "Wysoka" },
-    acceptorNames: { nitrate: "Azotany", sulfate: "Siarczany", ferricIron: "Żelazo(III)", carbonDioxide: "Dwutlenek węgla" },
+  phases: {
+    planet: { label: "Modyfikuj planetę", description: "Zmieniaj świat i badaj jego regiony." },
+    life: { label: "Projektuj życie", description: "Zbuduj strategię biologiczną z realnymi kompromisami." },
+    results: { label: "Analizuj", description: "Odczytaj wynik i zdecyduj, co zmienić." },
   },
-  decisions: {
-    eyebrow: "Zatwierdź przed ujawnieniem",
-    title: "Podejmij decyzje misyjne.",
-    instruction: "Zablokowana planeta pozostaje widoczna. Wybierz przewidywania — nie musisz niczego pisać.",
-    worldSummary: "Zablokowany wariant świata",
-    editWorld: "Edytuj wariant",
-    pressureTitle: "1 · Jakie presje wykryje model?",
-    pressureHint: "Wybierz co najmniej jedną. To przewidywania, a nie ujawnione wyniki.",
-    adaptationTitle: "2 · Które adaptacje mogą pomóc?",
-    adaptationHint: "Wybierz do sześciu. Niektóre opcje celowo nie mają poparcia.",
-    strategyTitle: "3 · Którą ogólną strategię zbadasz?",
-    strategyHint: "Wybierz jedną. Strategia jest interpretacją i nie jest punktowana przez zestaw 0.2.0.",
-    validation: "Wybierz co najmniej jedną presję, jedną adaptację i jedną strategię.",
-    commit: "Zatwierdź decyzje",
-    committed: "Decyzje zatwierdzono przed ujawnieniem wyników symulacji",
+  planet: {
+    title: "Inżynieria planetarna",
+    instruction: "Każdy parametr wpływa zarówno na obraz planety, jak i na model deterministyczny.",
+    parameterGroup: "Systemy środowiskowe",
+    baseline: "Wartości początkowe misji",
+    resetBaseline: "Przywróć wartości początkowe",
+    liveView: "Proceduralna planeta na żywo",
+    viewMode: "Widok naukowy",
+    modes: { realistic: "Realistyczny", temperature: "Temperatura", radiation: "Promieniowanie" },
+    inspectHint: "Przeciągnij, aby obrócić · przewiń, aby przybliżyć · wybierz powierzchnię, aby zbadać reprezentatywny region",
+    inspecting: "Wybrany region",
+    noInspection: "Wybierz punkt na planecie, aby zbadać jego region modelowy.",
+    regionalModel: "Model ocenia sześć reprezentatywnych siedlisk; nie jest to pełna siatka klimatyczna.",
+    visualTransition: "Wizualizacja terraformowania płynnie zmierza do bieżących parametrów.",
+    openDesigner: "Przejdź do projektanta życia",
+    oxygenPartialPressure: "Ciśnienie parcjalne tlenu",
+    atmosphericDensity: "Gęstość atmosfery",
+    temperatureRange: "Ustawiony zakres temperatury",
   },
-  strategies: {
-    surfaceConservation: { title: "Oszczędzanie na powierzchni", description: "Priorytet dla zwartej budowy, chronionego rozmnażania i małych strat zasobów." },
-    shelterSeeking: { title: "Poszukiwanie schronienia", description: "Wykorzystanie schronienia behawioralnego bez założenia, że samo siedlisko zmniejsza dawkę promieniowania." },
-    mobileForaging: { title: "Mobilne poszukiwanie zasobów", description: "Wyższy koszt energii w zamian za dostęp do rozproszonej wody lub składników." },
-    aerialDispersal: { title: "Rozprzestrzenianie w powietrzu", description: "Badanie siły nośnej lub biernego unoszenia z uwzględnieniem gęstości, grawitacji i kosztu ciała." },
+  parameters: {
+    gravity: { label: "Grawitacja", unit: "g", influence: "Większa grawitacja sprzyja zwartym, silnie podpartym ciałom i podnosi koszt lotu." },
+    temperature: { label: "Średnia temperatura", unit: "°C", influence: "Steruje lodem, stabilnością wody powierzchniowej, stresem cieplnym i barwą biomów." },
+    pressure: { label: "Ciśnienie lokalne", unit: "atm", influence: "Zmienia gęstość atmosfery, stabilność wody, powstawanie chmur i możliwości ruchu." },
+    oxygen: { label: "Tlen w atmosferze", unit: "%", influence: "Określa ciśnienie parcjalne tlenu i energię dostępną dla organizmów tlenowych." },
+    carbonDioxide: { label: "Dwutlenek węgla w atmosferze", unit: "%", influence: "Zmienia kolor atmosfery i dostarcza węgla, lecz wysokie stężenie generuje koszt modelowy." },
+    water: { label: "Dostępna woda", unit: "%", influence: "Najpierw wypełnia niziny oraz wspiera nawodnienie, oceany, chmury i energię biologiczną." },
+    radiation: { label: "Dawka promieniowania", unit: "mSv/h", influence: "Zwiększa uszkodzenia biologiczne, jeśli nie równoważą ich jawne mechanizmy ochronne lub pole magnetyczne." },
+    light: { label: "Energia gwiazdy", unit: "%", influence: "Zmienia oświetlenie i energię dostępną dla strategii fotosyntetycznych." },
+    humidity: { label: "Wilgotność", unit: "%", influence: "Wpływa na chmury, wilgoć powierzchni, nawodnienie i żyzne obszary." },
+    magneticField: { label: "Pole magnetyczne", unit: "Ziemi", influence: "Zmniejsza modelowaną ekspozycję na promieniowanie i zmienia nakładkę radiacyjną." },
+  },
+  life: {
+    title: "Projektant formy życia",
+    instruction: "Wybierz zgodne adaptacje. Zalety zużywają wspólny budżet energii biologicznej i zawsze wiążą się z kosztami.",
+    selected: "wybranych cech",
+    budget: "Budżet energii biologicznej",
+    budgetExplanation: "Budżet zapobiega łączeniu nieograniczonej liczby cech. Koszty są konwencjami symulatora, a nie uniwersalnymi stałymi biologicznymi.",
+    cost: "Koszt",
+    advantage: "Zaleta",
+    tradeoff: "Kompromis",
+    conflict: "Ta cecha jest sprzeczna z jedną z obecnie wybranych.",
+    budgetExceeded: "Ta cecha przekroczyłaby budżet energii biologicznej.",
+    selectionLimit: "Pierwsza wersja modelu obsługuje najwyżej 14 wybranych cech.",
+    minimumTraits: "Przed uruchomieniem symulacji wybierz co najmniej trzy cechy.",
+    clear: "Wyczyść cechy",
+    run: "Uruchom symulację przetrwania",
+    running: "Symulowanie 40 pokoleń…",
+    previewHint: "Proceduralna morfologia zmienia się zgodnie z ziarnem, światem i wybranymi cechami.",
+  },
+  categories: {
+    body: "Budowa ciała",
+    physiology: "Fizjologia",
+    senses: "Zmysły",
+    reproduction: "Rozmnażanie",
+    intelligence: "Złożoność",
+  },
+  traits: {
+    compactBody: { title: "Zwarte ciało", advantage: "Radzi sobie z dużą grawitacją i oszczędza wodę.", tradeoff: "Zapewnia mniej miejsca na wyspecjalizowane narządy." },
+    largeBody: { title: "Duże ciało", advantage: "Buforuje zimno i wspiera większą złożoność.", tradeoff: "Wymaga więcej tlenu i energii biologicznej." },
+    internalSkeleton: { title: "Szkielet wewnętrzny", advantage: "Wspiera sprawny ruch w polu grawitacyjnym.", tradeoff: "Zużywa zasoby budulcowe." },
+    exoskeleton: { title: "Egzoszkielet", advantage: "Ogranicza utratę wody i zapewnia fizyczną osłonę.", tradeoff: "Staje się kosztowny przy dużej grawitacji." },
+    aquaticMovement: { title: "Ruch wodny", advantage: "Umożliwia sprawny ruch w wodzie i gradientach ciśnienia.", tradeoff: "Wyklucza wyspecjalizowany ruch lądowy lub powietrzny." },
+    terrestrialMovement: { title: "Ruch lądowy", advantage: "Pozwala sprawnie przemierzać odsłonięte siedliska powierzchniowe.", tradeoff: "Działa słabo w głębokiej wodzie i skrajnym terenie." },
+    aerialMovement: { title: "Ruch powietrzny", advantage: "Umożliwia rozprzestrzenianie i dostęp do siedlisk w gęstym powietrzu.", tradeoff: "Jest bardzo kosztowny przy dużej grawitacji lub rzadkiej atmosferze." },
+    oxygenRespiration: { title: "Oddychanie tlenowe", advantage: "Wspiera wysokoenergetyczną, złożoną aktywność przy ziemskim poziomie tlenu.", tradeoff: "Zawodzi przy spadku ciśnienia parcjalnego tlenu." },
+    lowOxygenMetabolism: { title: "Metabolizm niskotlenowy", advantage: "Pozyskuje energię z atmosfer ubogich w tlen.", tradeoff: "Dostarcza mniej energii złożonym tkankom." },
+    anaerobicMetabolism: { title: "Metabolizm beztlenowy", advantage: "Korzysta z jawnie podanej energii reakcji redoks bez tlenu.", tradeoff: "Wymaga użytecznego gradientu i ogranicza złożoność." },
+    photosynthesis: { title: "Fotosynteza", advantage: "Bezpośrednio przechwytuje energię gwiazdy.", tradeoff: "Wymaga światła i ogranicza ruchliwość." },
+    chemosynthesis: { title: "Chemosynteza", advantage: "Korzysta z podanej energii geochemicznej w ciemnych siedliskach.", tradeoff: "Zależy od jawnych akceptorów elektronów i ma mniejszą wydajność." },
+    radiationResistance: { title: "Odporność na promieniowanie", advantage: "Zmniejsza uszkodzenia przy silnej ekspozycji.", tradeoff: "Zużywa energię naprawczą i spowalnia rozmnażanie." },
+    thermalInsulation: { title: "Izolacja termiczna", advantage: "Poprawia przetrwanie w zimnie.", tradeoff: "Powoduje stres cieplny w ciepłych regionach." },
+    heatResistance: { title: "Odporność na gorąco", advantage: "Chroni białka i błony w wysokiej temperaturze.", tradeoff: "Zwiększa zapotrzebowanie na wodę i wyklucza grubą izolację." },
+    waterConservation: { title: "Oszczędzanie wody", advantage: "Wydłuża przetrwanie w suchych regionach.", tradeoff: "Spowalnia wymianę substancji i rozmnażanie." },
+    pressureResistance: { title: "Odporność na ciśnienie", advantage: "Wspiera życie w głębokim oceanie i nietypowym ciśnieniu.", tradeoff: "Zmniejsza sprawność ruchu." },
+    regenerativeTissue: { title: "Tkanka regeneracyjna", advantage: "Naprawia szkody radiacyjne i środowiskowe.", tradeoff: "Ma wysoki koszt metaboliczny i reprodukcyjny." },
+    hibernation: { title: "Hibernacja", advantage: "Pozwala przetrwać zimno, suszę lub okresowy stres.", tradeoff: "Ogranicza czas aktywnego wzrostu." },
+    visibleVision: { title: "Wzrok w świetle widzialnym", advantage: "Zapewnia tanią orientację przy użytecznym świetle gwiazdy.", tradeoff: "Działa słabo w ciemności, pyle lub głębokiej wodzie." },
+    infraredVision: { title: "Widzenie w podczerwieni", advantage: "Wykrywa kontrasty cieplne w ciemności lub mgle.", tradeoff: "Zużywa więcej energii nerwowej i sensorycznej." },
+    echolocation: { title: "Echolokacja", advantage: "Odwzorowuje ciemne lub nieprzejrzyste środowiska.", tradeoff: "Wymaga aktywnej energii i odpowiedniej gęstości atmosfery." },
+    chemicalSensing: { title: "Zmysł chemiczny", advantage: "Odnajduje składniki odżywcze i gradienty redoks bez światła.", tradeoff: "Dostarcza powolnych, lokalnych informacji." },
+    rapidReproduction: { title: "Szybkie rozmnażanie", advantage: "Szybko odbudowuje populację po wzroście śmiertelności.", tradeoff: "Zmniejsza złożoność osobnika i opiekę rodzicielską." },
+    protectedEggs: { title: "Chronione jaja", advantage: "Osłania zarodki przed suszą i wahaniami temperatury.", tradeoff: "Zużywa materiał i wyklucza inne sposoby rozwoju." },
+    liveBirth: { title: "Żyworodność", advantage: "Chroni rozwijające się potomstwo wewnątrz organizmu.", tradeoff: "Spowalnia rozmnażanie i zwiększa potrzeby energetyczne dorosłych." },
+    spores: { title: "Zarodniki", advantage: "Rozprzestrzeniają się daleko i przetrzymują trudne okresy.", tradeoff: "Wspierają prostszy rozwój i niskie przeżycie osobnika." },
+    parentalInvestment: { title: "Opieka rodzicielska", advantage: "Poprawia uczenie i przeżycie potomstwa.", tradeoff: "Zmniejsza liczbę potomstwa i wyklucza szybkie rozmnażanie." },
+    simpleNeuralSystem: { title: "Prosty układ nerwowy", advantage: "Dodaje podstawową adaptację behawioralną niewielkim kosztem.", tradeoff: "Nie wspiera zaawansowanego używania narzędzi." },
+    socialCoordination: { title: "Koordynacja społeczna", advantage: "Poprawia wspólne przetrwanie i wykorzystanie zasobów.", tradeoff: "Wymaga komunikacji i stabilności grupy." },
+    toolUsePotential: { title: "Potencjał używania narzędzi", advantage: "Umożliwia elastyczne modyfikowanie środowiska.", tradeoff: "Wymaga wyjątkowej podaży energii i tlenu." },
+    complexCommunication: { title: "Złożona komunikacja", advantage: "Koordynuje uczenie i adaptację społeczną.", tradeoff: "Wymaga kosztownego przetwarzania nerwowego i rozwoju." },
+    adaptiveLearning: { title: "Uczenie adaptacyjne", advantage: "Pozwala elastycznie reagować na zmienne warunki.", tradeoff: "Zużywa energię i opóźnia rozmnażanie." },
   },
   simulation: {
-    eyebrow: "Symulacja deterministyczna",
-    title: "Sprawdź zablokowany eksperyment.",
-    ready: "Zestaw 0.2.0 zweryfikuje zablokowany świat, wyprowadzi wartości lokalne i oceni cztery nazwane konwencje. Identyczne dane dają identyczny wynik.",
-    run: "Uruchom symulację",
-    running: "Obliczanie presji środowiskowych",
-    outcomeLabel: "Wynik modelu",
-    outcome: "Warunkowo prawdopodobne złożone życie",
-    rulesetLabel: "Zestaw reguł",
-    normalizedFacts: "Dane znormalizowane",
-    pressureTitle: "Presje środowiskowe",
-    organismTitle: "Kandydaci na adaptacje",
-    candidateNotice: "Ustrukturyzowany wynik modelu — nie wygenerowany gatunek ani ilustracja.",
-    comparisonTitle: "Porównanie decyzji",
-    alignment: "Łączna zgodność",
-    pressureAccuracy: "Przewidywania presji",
-    supported: "Z poparciem",
-    missed: "Pominięte",
-    unsupported: "Bez poparcia",
-    none: "Brak w czterech zaimplementowanych regułach",
-    instructor: "Poproś Instruktora Misji o omówienie",
+    title: "Analiza przetrwania",
+    emptyTitle: "Brak symulacji",
+    emptyDescription: "Przekształć planetę, wybierz co najmniej trzy zgodne cechy i zasymuluj 40 pokoleń.",
+    staleTitle: "Konfiguracja została zmieniona",
+    staleDescription: "Te wyniki dotyczą poprzedniej konfiguracji. Uruchom model ponownie, aby ocenić bieżący świat i organizm.",
+    deterministic: "Obliczone lokalnie",
+    success: "Cel misji osiągnięty",
+    continue: "Eksperyment możliwy — kontynuuj adaptację",
+    objective: "Potencjał zaawansowanego życia",
+    outcome: "Wynik modelu",
+    stateHash: "Odtwarzalny stan",
+    modelVersion: "Symulator",
+    metricsTitle: "Współdziałające wskaźniki przydatności",
+    strengths: "Najsilniejsze systemy",
+    limits: "Systemy ograniczające",
+    regionsTitle: "Przetrwanie regionalne",
+    habitable: "nadaje się do życia w tym modelu",
+    populationTitle: "Populacja przez 40 pokoleń",
+    generation: "Pokolenie",
+    population: "Populacja",
+    initial: "Początkowa",
+    peak: "Szczytowa",
+    final: "Końcowa",
+    capacity: "Pojemność środowiska",
+    previousScore: "Zmiana względem poprzedniej próby",
+    noPreviousRun: "Uruchom inną konfigurację, aby porównać potencjał zaawansowanego życia.",
+    adaptPlanet: "Dostosuj planetę",
+    adaptLife: "Dostosuj formę życia",
+    rerun: "Uruchom bieżącą konfigurację",
+    educationalNotice: "Inspirowany nauką model edukacyjny, a nie pełna prognoza klimatu lub ewolucji.",
   },
-  debrief: {
-    eyebrow: "Instruktor Misji",
-    title: "Przeanalizuj dowody, a następnie wybierz poprawkę.",
-    loading: "Przygotowywanie zweryfikowanego omówienia…",
-    liveSource: "Ustrukturyzowana odpowiedź na żywo z GPT-5.6",
-    fallbackSource: "Deterministyczny lokalny tryb zastępczy",
-    fallbackNotice: "GPT-5.6 nie był dostępny w tej próbie. Ta zweryfikowana lokalna analiza nie została wygenerowana przez AI.",
-    evidence: "Dowody",
-    tradeOffs: "Kompromisy biologiczne",
-    question: "Pytanie instruktora",
-    experiment: "Zalecany eksperyment",
-    revisionTitle: "Poprawka oparta na dowodach",
-    revisionInstruction: "Wybierz obliczone presje, z których korzystasz, a następnie określ, jak dowody zmieniają decyzję. Nie musisz niczego pisać.",
-    evidenceLabel: "Wykorzystane dowody",
-    conclusionLabel: "Mój wniosek",
-    revisionValidation: "Wybierz jeden wniosek, aby ukończyć misję.",
-    submit: "Ukończ misję",
-    error: "Nie udało się wczytać omówienia. Eksperyment i decyzje zostały zachowane.",
-    retry: "Ponów omówienie",
+  metrics: {
+    liquidWater: { label: "Woda w stanie ciekłym", description: "Woda powierzchniowa wspierana przez zasoby, ciśnienie i temperaturę." },
+    atmosphere: { label: "Atmosfera", description: "Ciśnienie, ciśnienie parcjalne tlenu i nietoksyczny skład." },
+    thermalStability: { label: "Stabilność termiczna", description: "Zgodność z ustawioną średnią temperaturą i jej wahaniami." },
+    radiationSafety: { label: "Bezpieczeństwo radiacyjne", description: "Ekspozycja po uwzględnieniu jawnej ochrony magnetycznej i biologicznej." },
+    biologicalEnergy: { label: "Energia biologiczna", description: "Możliwości energetyczne światła, geochemii, wody i węgla." },
+    metabolicViability: { label: "Żywotność metaboliczna", description: "Zgodność wybranych szlaków energetycznych z podanym światem." },
+    organismCompatibility: { label: "Zgodność organizmu", description: "Łączne dopasowanie ciała, ruchu, nawodnienia, ciśnienia i odporności." },
+    reproductionPotential: { label: "Rozmnażanie", description: "Zdolność odtwarzania strat bez przekraczania dostępnej energii." },
+    populationStability: { label: "Stabilność populacji", description: "Długotrwała równowaga zgodności, rozmnażania i adaptacji." },
+    ecosystemPotential: { label: "Potencjał ekosystemu", description: "Zdolność do utrzymania trwałej biosfery przy dostępnej energii." },
+    advancedLifePotential: { label: "Zaawansowane życie", description: "Łączny potencjał ekosystemu, metabolizmu, adaptacji i złożoności." },
   },
-  revisionConclusions: {
-    strengthenHypothesis: { title: "Wzmocnię pierwotną hipotezę", description: "Obliczone presje w dużym stopniu wspierają moje wybory." },
-    changeAdaptations: { title: "Zmienię adaptacje", description: "Dowody wskazują, że inne cechy biologiczne powinny mieć pierwszeństwo." },
-    changeStrategy: { title: "Zmienię ogólną strategię", description: "Świat sugeruje inny sposób zajęcia siedliska." },
+  regions: {
+    coastal: { label: "Strefy przybrzeżne", description: "Siedliska lądowo-wodne z dostępem do wilgoci i energii." },
+    equatorial: { label: "Strefy równikowe", description: "Silnie oświetlone obszary wrażliwe na gorąco i promieniowanie." },
+    polar: { label: "Strefy polarne", description: "Zimne obszary sprzyjające izolacji i stanom uśpienia." },
+    deepOcean: { label: "Głęboki ocean", description: "Ciemne siedlisko pod wysokim ciśnieniem, zależne od wody i geochemii." },
+    underground: { label: "Podziemie", description: "Schronienie; bez jawnego parametru osłony dawka promieniowania nie spada." },
+    highAltitude: { label: "Wysoka atmosfera", description: "Region rzadkiego powietrza zależny od lokalnej gęstości, grawitacji i kosztu lotu." },
   },
-  progress: {
-    eyebrow: "Postęp kompetencji",
-    title: "Misja 01 ukończona.",
-    completed: "Utworzono zapis treningu dla tej sesji przeglądarki.",
-    archiveTitle: "Archiwum Badawcze",
-    archiveEntry: "Ocena eksperymentalnego wariantu Vespery b",
-    sessionOnly: "Tylko ta sesja · zapis znika po ponownym wczytaniu strony.",
-    competencyTitle: "Profil Kompetencji",
-    hypothesisFormation: "Zgodność decyzji",
-    adaptationAnalysis: "Analiza adaptacji",
-    evidenceUse: "Wykorzystanie dowodów",
-    certification: "Etap certyfikacji",
-    candidate: "Kandydat",
-    nextTitle: "Następna misja",
-    nextDescription: "Biblioteka misji i trwała ścieżka certyfikacji nie należą do tego wycinka pionowego.",
-    todo: "TODO · Następna misja nie jest zaimplementowana",
-    repeat: "Wróć do Centrum Misji",
+  outcomes: {
+    immediateExtinction: { title: "Natychmiastowe wymarcie", description: "Podstawowy stres środowiskowy przewyższa możliwości wybranego organizmu." },
+    temporarySurvival: { title: "Tymczasowe przetrwanie", description: "Niewielka populacja utrzymuje się krótko, ale nie odtwarza strat." },
+    regionalRefuge: { title: "Regionalne schronienie", description: "Organizm przeżywa wyłącznie w ograniczonej liczbie sprzyjających regionów." },
+    stableSimplePopulation: { title: "Stabilna prosta populacja", description: "Populacja trwa, lecz energia lub złożoność pozostają ograniczone." },
+    expandingPopulation: { title: "Rosnąca populacja", description: "Organizm rozprzestrzenia się w zgodnych siedliskach, ale nie osiąga zaawansowanej stabilności." },
+    unstableDominance: { title: "Niestabilna dominacja ekologiczna", description: "Szybki wzrost zbliża się do pojemności środowiska, gdy stabilność ekosystemu pozostaje niska." },
+    stableMulticellularEcosystem: { title: "Stabilny ekosystem wielokomórkowy", description: "Wyniki populacji i ekosystemu wspierają trwałe złożone życie." },
+    advancedAdaptiveLife: { title: "Zaawansowane życie adaptacyjne", description: "Skonfigurowany świat wspiera wysoką złożoność, adaptację i długotrwałą stabilność." },
   },
-  adaptations: {
-    compactBody: { title: "Zwarta budowa ciała", description: "Zmniejsza dźwignię i obciążenia konstrukcyjne przy wyższej grawitacji." },
-    reinforcedSupport: { title: "Wzmocnione tkanki podporowe", description: "Zwiększają odporność na stałe obciążenia grawitacyjne." },
-    thermalBuffering: { title: "Buforowanie cieplne", description: "Ogranicza ekspozycję na obliczone ekstrema temperatury." },
-    radiationProtection: { title: "Warstwa chroniąca przed promieniowaniem", description: "Może zmniejszać szkody biologiczne przy podwyższonej ekspozycji." },
-    cellularRepair: { title: "Wzmocniona naprawa komórkowa", description: "Wspiera usuwanie uszkodzeń molekularnych związanych z promieniowaniem." },
-    waterConservation: { title: "Zamknięty obieg wody", description: "Ogranicza utratę wody w środowisku z jej niedoborem." },
-    protectedReproduction: { title: "Chronione rozmnażanie", description: "Zabezpiecza zależne od wody wczesne etapy rozwoju." },
-    aerialFlight: { title: "Długotrwały lot aktywny", description: "Potencjalnie kosztowna forma lokomocji przy wyższej grawitacji." },
-    permeableSkin: { title: "Wysoce przepuszczalna skóra", description: "Ułatwia wymianę, ale zwiększa ryzyko utraty wody." },
+  organism: {
+    title: "Model terenowy organizmu",
+    procedural: "Deterministyczna morfologia proceduralna",
+    generated: "Ilustracja terenowa wygenerowana pod kontrolą GPT",
+    requestImage: "Wygeneruj ilustrację terenową",
+    generating: "Generowanie kontrolowanej ilustracji…",
+    fallback: "Proceduralny model terenowy pozostaje dostępny; nie zwrócono wygenerowanego obrazu.",
+    error: "Generowanie obrazu jest niedostępne. Deterministyczny model terenowy nie uległ zmianie.",
+    alt: "Proceduralny obcy organizm dostosowany do bieżącego eksperymentu Vespera",
   },
-  pressures: {
-    highGravity: { title: "Obciążenie wysoką grawitacją", description: "Uruchamiane od konwencji modelu 1,5 g." },
-    thermalRange: { title: "Ekstrema temperatury", description: "Uruchamiane, gdy symetryczny zakres sięga 0°C lub 40°C." },
-    radiationExposure: { title: "Podwyższone promieniowanie", description: "Uruchamiane od 0,1 mSv/h bez tłumienia wynikającego z etykiety siedliska." },
-    limitedWater: { title: "Ograniczona dostępność wody", description: "Uruchamiane przy względnej dostępności 0,40 lub mniejszej." },
+  consultant: {
+    title: "Konsultant nauk biologicznych",
+    description: "Poproś GPT-5.6 o interpretację ukończonego wyniku deterministycznego. Model nie może zmienić punktacji.",
+    request: "Poproś o analizę konsultanta",
+    loading: "Konsultant analizuje dane…",
+    liveSource: "Analiza GPT-5.6",
+    localSource: "Lokalna analiza zapasowa",
+    fallbackNotice: "GPT-5.6 był niedostępny, dlatego użyto wyraźnie oznaczonej lokalnej interpretacji.",
+    assessment: "Ocena planety",
+    traits: "Ocena cech",
+    insights: "Kluczowe obserwacje",
+    experiment: "Sugerowany eksperyment",
+    error: "Nie udało się pobrać analizy konsultanta.",
+    retry: "Spróbuj ponownie",
   },
-  severity: { moderate: "Umiarkowana", high: "Wysoka" },
-  footer: "Edukacyjny model prawdopodobieństwa · Obliczenia, decyzje ucznia, interpretacja wizualna i wyjaśnienie AI pozostają rozdzielone",
+  status: {
+    local: "Lokalny model deterministyczny",
+    ai: "AI po stronie serwera",
+    visual: "Interpretacja wizualna",
+    calculated: "Obliczone dane",
+  },
+  footer: "Xenogenesis Lab · OpenAI Build Week · edukacyjny symulator astrobiologiczny",
 };
 
-/** Complete, compile-time-checked translations for every supported language. */
-export const COPY: Record<Language, Copy> = { en: english, pl: polish };
+/** Complete compile-time checked bilingual interface copy. */
+export const COPY: Record<Language, LabCopy> = { en: english, pl: polish };

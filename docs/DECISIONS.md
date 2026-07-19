@@ -1,441 +1,189 @@
 # Xenogenesis Lab — Decision Log
 
-This file records decisions that materially affect architecture, scientific
-behavior, cost, security, product scope, or maintainability.
+This file records decisions that materially affect product scope, architecture, scientific behavior, cost, security, or submission claims.
 
-Do not record routine implementation details.
+## 2026-07-19 — Replace the hypothesis quiz with a continuous life-engineering simulator
 
-## Decision template
-
-### YYYY-MM-DD — Decision title
-
-**Status:** Proposed / Accepted / Replaced / Rejected
+**Status:** Accepted; replaces the earlier briefing → committed hypothesis → competency flow.
 
 **Decision**
 
-Describe the selected approach in one or two sentences.
-
-**Context**
-
-Explain:
-
-- what problem needed to be solved
-- what constraints applied
-- why the decision mattered
-
-**Options considered**
-
-1. Option A
-2. Option B
-3. Option C
+The product is a dynamic procedural astrobiology laboratory built around `Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt`. Missions define broad outcomes and allow multiple viable strategies rather than one hidden answer.
 
 **Rationale**
 
-Explain why the selected option was preferred.
-
-Consider:
-
-- complexity
-- development time
-- scientific credibility
-- maintainability
-- cost
-- security
-- hackathon value
+The prior multi-screen hypothesis flow separated the learner from planet data, added a writing barrier, and made experimentation feel like a test. A continuous laboratory better demonstrates interacting systems, creates immediate delight, and gives the deterministic model and GPT-5.6 visible roles within a sub-three-minute demo.
 
 **Consequences**
 
-Positive consequences:
+- hypothesis, pressure-choice, revision, archive, competency, and certification modules were removed;
+- the product now opens after a cinematic boot into one persistent laboratory;
+- world and organism remain editable after every run;
+- success is a broad evaluated outcome, not a disclosed slider recipe;
+- additional missions and persistence remain deferred.
 
-- [result]
+## 2026-07-19 — Use a persistent seeded WebGL planet with custom shaders
 
-Negative consequences or tradeoffs:
-
-- [result]
-
-Follow-up work:
-
-- [task]
-
----
-
-## Initial decisions
-
-### 2026-07-19 — Add learner-controlled variants with a code-native planet preview
-
-**Status:** Accepted
+**Status:** Accepted.
 
 **Decision**
 
-Mission 01 starts from immutable Vespera telemetry but lets learners create a resettable experimental variant using all current parameter groups. A deterministic SVG planet maps validated input to continuously transitioning visual states, and learners commit multiple-choice pressure, adaptation, and strategy decisions after locking the variant.
-
-**Context**
-
-The previous build opened directly on the briefing, did not provide a Mission Control home, hid environmental data during hypothesis work, and required written reasoning. It also gave learners no playful way to manipulate a planet before making a prediction.
+Three.js, React Three Fiber, Drei, and custom GLSL render one deterministic planet from a stable seed. Terrain geometry remains allocated while shader uniforms interpolate world changes.
 
 **Options considered**
 
-1. Keep one fixed world and add clearer text.
-2. Add unrestricted world editing and treat the visual as scientific output.
-3. Preserve an immutable baseline, create separate validated variants, and label the smoothly animated planet as visual interpretation.
+1. Extend the previous animated SVG.
+2. Swap pre-rendered planet images.
+3. Build a layered persistent WebGL scene.
 
 **Rationale**
 
-The selected approach gives learners freedom and immediate feedback while preserving provenance and the deterministic science boundary. Multiple-choice decisions reduce first-mission friction and keep the exercise testable. A code-native SVG adds no dependency or image-service cost.
+The WebGL scene makes the planet the product’s central interactive object and visibly communicates water, ice, cloud, atmosphere, temperature, radiation, and biosphere changes. Uniform updates avoid CPU terrain regeneration and React frame-state churn.
 
 **Consequences**
 
-- the application now boots into a dedicated Mission Control home
-- the briefing explicitly explains the exercise before opening the World Lab
-- every current parameter group is visible with a potential biological influence
-- committed variants are sent to the server and recalculated instead of trusting client results
-- visual changes are not evidence and do not create undocumented science rules
-- ruleset 0.2.0 still scores only gravity, thermal range, radiation, and water
+- Three.js, `@react-three/fiber`, and `@react-three/drei` are production dependencies;
+- terrain, water, clouds, and atmosphere are separate shader layers;
+- dynamic import and a capped DPR reduce initial and rendering cost;
+- the rendering remains a labelled visual interpretation, not a science engine;
+- lower-end device performance needs final field testing.
 
-Follow-up work:
+## 2026-07-19 — Adopt continuous simulator 1.0.0 with regions and population
 
-- validate parameter ranges and explanations with an educator
-- add new deterministic rules only with named coefficients and boundary tests
-- user-test the full parameter set for first-mission cognitive load
-
----
-
-### 2026-07-19 — Ship one fixed mission with an honest instructor fallback
-
-**Status:** Replaced by learner-controlled variants; instructor fallback remains accepted
+**Status:** Accepted.
 
 **Decision**
 
-The first vertical slice uses one fixed Vespera b mission and four named deterministic rules. The server-only Mission Instructor requests a structured GPT-5.6 response when configured and otherwise returns an explicitly labelled deterministic local review so the training loop remains testable without impersonating AI.
-
-**Context**
-
-The repository needed a complete demonstrable learning loop before a mission library or image pipeline. Development and CI environments cannot be assumed to have an OpenAI API key, while submission claims must distinguish live model output from fallback content.
-
-**Options considered**
-
-1. Keep the existing non-functional preview.
-2. Require GPT credentials and leave the mission blocked without them.
-3. Complete one deterministic mission and preserve the same response schema for an honest fallback.
+Replace four Boolean pressure rules with continuous normalized scores, six representative regional aggregates, and a deterministic 40-generation logistic-style population model. Centralize model conventions in `coefficients.ts` and emit a stable state hash.
 
 **Rationale**
 
-The fixed mission minimizes scientific and interface scope while proving committed reasoning, reproducible calculation, revision, and meaningful progress. The fallback keeps automated and local testing reliable without making a false GPT claim.
+Continuous interactions support several strategies and better explain tradeoffs than a chain of threshold checks. Regional aggregates allow partial survival without pretending to implement a full climate grid. Population output creates an observable consequence beyond a binary verdict.
 
 **Consequences**
 
-- the full mission can be completed without external services
-- GPT output and fallback output have explicit provenance
-- the server re-runs deterministic facts instead of trusting client results
-- live GPT-5.6 behavior still requires an API key and end-to-end verification
-- archive data and competency progress remain session-only
+- model version changes require coefficient, test, and documentation review;
+- outcome and success still use documented conventions for mission evaluation;
+- the first model is educational and cannot be described as predictive planetary science;
+- spatial climate, food webs, mutation, and natural selection remain out of scope.
 
-Follow-up work:
+## 2026-07-19 — Constrain life design with costs, modifiers, and conflicts
 
-- verify a live GPT-5.6 response in the deployed environment
-- add rate limiting and observability before public scale
-- evaluate the mission science and scoring with an educator
-- add a second mission only after the first is validated
-
----
-
-### 2026-07-19 — Frame the product as mission training, not a generator
-
-**Status:** Accepted
+**Status:** Accepted.
 
 **Decision**
 
-Xenogenesis Lab will be designed as an AI-guided astrobiology mission-training
-simulator. The first complete experience will require a mission briefing, a
-committed hypothesis, deterministic inspection, a GPT-5.6 instructor debrief,
-evidence-based revision, and meaningful competency progress.
-
-**Context**
-
-An environment configurator or organism generator can be visually engaging,
-but does not by itself require learners to make and evaluate scientific
-decisions. The product needs a clearer educational role and a focused demo
-loop.
-
-**Options considered**
-
-1. Keep a general world-to-organism exploration experience.
-2. Add decorative gamification to increase engagement.
-3. Build a focused mission-training loop with learning-relevant progression.
+The first designer exposes 33 meaningful traits in five categories. Every trait has a cost, modifier set, tradeoff, and conflict list. A 100-point budget and server-side engine validation prevent unlimited positive stacking.
 
 **Rationale**
 
-The training loop makes the educational objective explicit and gives GPT-5.6
-a bounded instructional role. It also prioritizes a coherent vertical slice
-over disconnected features.
+Cosmetic parts would not demonstrate astrobiological reasoning. Explicit costs make learners choose between survival, reproduction, energy, movement, and complexity while keeping the interface understandable.
 
 **Consequences**
 
-Positive consequences:
+- trait values are simulator conventions rather than measured biological constants;
+- incompatible or over-budget input is rejected even if it bypasses the client;
+- a deterministic organism SVG provides immediate visual feedback without network cost;
+- more anatomy controls are deferred until current traits are educator-reviewed.
 
-- hypothesis quality and revision become visible learning outcomes
-- calculated facts, user reasoning, and AI interpretation have clear provenance
-- progression can reflect competencies rather than arbitrary rewards
+## 2026-07-19 — Make GPT-5.6 an on-demand scientific consultant
 
-Tradeoffs:
-
-- the product needs mission, hypothesis, debrief, archive, and progression data
-- the current UI prototype does not yet implement the full loop
-
-Follow-up work:
-
-- define and validate mission, hypothesis, debrief, archive, and competency contracts
-- implement one end-to-end training exercise before adding a mission library
-- update demo copy only as those capabilities become live
-
----
-
-### 2026-07-18 — Use local physics inputs without invented protection or energy
-
-**Status:** Accepted
+**Status:** Accepted.
 
 **Decision**
 
-Radiation dose is normalized to `mSv/h` but never reduced solely because a
-world is labelled cave or deep ocean. `shieldingColumnMassKgM2` is retained as
-input with a default of zero. Low-oxygen alternatives require both declared
-geochemical energy and electron acceptors. High-atmosphere analysis uses
-local pressure, temperature, and explicitly supplied mean molar mass; thermal
-variation is evaluated as a symmetric range around the local average.
-
-**Context**
-
-The initial rules needed to avoid four forms of false precision: universal
-radiation attenuation, invented non-aerobic metabolism, surface values used
-at high altitude, and a flat temperature-variability penalty.
-
-**Options considered**
-
-1. Infer protection, energy pathways, and atmospheric properties from habitat labels.
-2. Add undocumented universal coefficients for all four effects.
-3. Require explicit inputs and apply only documented deterministic derivations.
+GPT-5.6 explains a completed server-recalculated result only when requested. It does not run on sliders, frames, or deterministic simulation. The route returns a Zod-validated local fallback with explicit provenance when live AI is unavailable.
 
 **Rationale**
 
-The selected approach preserves scientific honesty while still producing
-useful educational constraints. It creates a small, testable data contract and
-defers spectrum-, material-, and species-dependent science until the model has
-adequate inputs.
+This gives AI a visible educational role while controlling latency, cost, and hallucination risk. The complete simulator remains testable without credentials and never impersonates a live model.
 
 **Consequences**
 
-Positive consequences:
+- the server owns `OPENAI_API_KEY`, recalculation, prompt construction, validation, and caching;
+- process-local stable-hash caching prevents repeated requests only within one instance;
+- live GPT-5.6 behavior remains a deployment-verification TODO;
+- rate limiting and observability are required before public scale.
 
-- no artificial radiation safety from habitat labels
-- no unsupported alternative metabolism
-- reproducible oxygen partial-pressure and local-density calculations
-- thermal extremes remain visible and testable
+## 2026-07-19 — Build image prompts from facts plus structured art direction
 
-Tradeoffs:
-
-- high-atmosphere worlds need one additional molar-mass input
-- shielding mass is recorded but not yet used for attenuation
-- flight-density and oxygen thresholds remain explicit follow-up coefficients
-
-Follow-up work:
-
-- define and test the named low-oxygen and flight-density thresholds
-- implement viability and adaptation rules using these normalized values
-- add spectrum-specific shielding only if future inputs justify it
-
----
-
-### 2026-07-18 — Use one full-stack Next.js application on Vercel
-
-**Status:** Accepted
+**Status:** Accepted; tightens the earlier controlled-prompt decision.
 
 **Decision**
 
-Xenogenesis Lab will be a single TypeScript Next.js App Router project.
-React renders the interface, Zod validates external data, and Next.js
-server-side route handlers own privileged OpenAI API calls. The application
-will deploy on Vercel from GitHub.
-
-**Context**
-
-The MVP needs a fast, maintainable end-to-end delivery path without managing
-separate frontend and backend deployments. OpenAI credentials must remain on
-the server. The domain and DNS may remain with GreenGeeks, but
-GreenGeeks EcoSite Lite cannot host the application runtime.
-
-**Options considered**
-
-1. Separate frontend and API services.
-2. A single full-stack Next.js application.
-3. A static site with direct browser calls to AI providers.
+GPT-5.6 may select only pose, viewpoint, lighting, and emphasis enums. The server constructs the final `gpt-image-2` prompt from validated world values, selected trait IDs, deterministic outcome, and those enums.
 
 **Rationale**
 
-The single application minimizes deployment and integration work while
-keeping secrets in server-only code. Vercel provides the required Node.js
-runtime and automatic deployment flow from GitHub.
+A free-form model-authored prompt is untrusted and could add unsupported anatomy or contradict the result. Structured direction preserves some visual choice without allowing AI to redefine facts.
 
 **Consequences**
 
-Positive consequences:
+- image generation cannot change simulator state;
+- missing or failed image calls preserve the procedural organism;
+- generated data URLs are cached only in process;
+- live `gpt-image-2` output and serverless payload behavior require deployment verification.
 
-- one repository and deployment pipeline
-- server-side protection for OpenAI credentials
-- simple route-handler boundary for validation and AI integration
-- automatic preview and production deployments through GitHub
+## 2026-07-18 — Require explicit physical inputs for shielding and alternative energy
 
-Tradeoffs:
-
-- provider calls must fit the serverless execution model
-- rate limiting and observability require explicit implementation
-- domain DNS remains a separate configuration concern
-
-Follow-up work:
-
-- add Zod and the OpenAI SDK when implementing the API boundary
-- create server-only route handlers for simulation, dossier, and illustration
-- configure Vercel environment variables and GitHub deployment integration
-
----
-
-### 2026-07-18 — Separate simulation from AI interpretation
-
-**Status:** Accepted
+**Status:** Accepted and retained in simulator 1.0.0.
 
 **Decision**
 
-Environmental analysis and biological constraints will be calculated by a
-deterministic rules engine. GPT-5.6 will explain and elaborate on validated
-structured results.
-
-**Context**
-
-Allowing the model to invent physical calculations would reduce
-reproducibility, testability, and scientific credibility.
-
-**Options considered**
-
-1. Let GPT-5.6 generate the complete organism directly from user parameters.
-2. Use only a deterministic engine without GPT.
-3. Use a deterministic engine followed by GPT interpretation.
+Habitat labels never attenuate radiation. `shieldingColumnMassKgM2` defaults to zero but is not converted to dose reduction without spectrum/material data. Alternative non-aerobic energy requires declared geochemical availability and at least one electron acceptor. Atmospheric density uses local pressure, temperature, and supplied molar mass. Temperature variation is a symmetric half-range.
 
 **Rationale**
 
-The hybrid approach demonstrates meaningful AI usage while preserving
-testable scientific logic.
+These boundaries avoid false precision, invented energy, and inappropriate surface assumptions.
 
 **Consequences**
 
-Positive consequences:
+- cave, deep-ocean, and underground labels cannot create radiation safety;
+- low oxygen constrains aerobic metabolism but does not automatically forbid simple life;
+- high-atmosphere flight uses derived density;
+- simulator thermal fitness evaluates both extremes rather than applying a flat variability penalty.
 
-- reproducible simulations
-- clearer architecture
-- easier testing
-- stronger hackathon story
-- lower risk of unsupported model claims
+## 2026-07-18 — Use one full-stack Next.js application on Vercel
 
-Tradeoffs:
-
-- more schemas and validation
-- additional implementation work
-- deterministic rules must be designed manually
-
-Follow-up work:
-
-- define simulation input schema
-- define deterministic output schema
-- define validated GPT output schema
-
----
-
-### 2026-07-18 — Generate illustrations from validated organism data
-
-**Status:** Accepted
+**Status:** Accepted.
 
 **Decision**
 
-Image prompts will be built from validated organism data rather than directly
-from raw user parameters or unrestricted model prose.
-
-**Context**
-
-The illustration should represent the simulation result and must not
-contradict important adaptations.
-
-**Options considered**
-
-1. Generate images directly from raw world parameters.
-2. Let GPT create an unrestricted artistic prompt.
-3. Construct a controlled prompt from validated organism data.
+Use a single TypeScript Next.js App Router project, React UI, Zod validation, and server-only OpenAI route handlers. Deploy through GitHub to Vercel. Domain and DNS may remain at GreenGeeks or OVH, but GreenGeeks EcoSite Lite must not host the Node.js runtime.
 
 **Rationale**
 
-A controlled prompt provides better visual consistency and keeps the image
-aligned with the scientific dossier.
+One application is the shortest maintainable path to a secure hackathon vertical slice with protected credentials.
 
 **Consequences**
 
-Positive consequences:
+- one repository and deployment boundary;
+- AI requests must fit serverless limits;
+- environment configuration, rate limits, and production logs need explicit setup;
+- production-to-HEAD status remains a submission TODO.
 
-- fewer contradictions
-- more consistent results
-- easier debugging
-- clearer separation of responsibilities
+## 2026-07-18 — Complete one vertical slice before optional systems
 
-Tradeoffs:
-
-- prompt construction requires its own module
-- some artistic variety may be reduced
-
-Follow-up work:
-
-- define illustration input schema
-- define prompt-template versioning
-- add fallback behavior for image-generation failures
-
----
-
-### 2026-07-18 — Complete one vertical slice before optional features
-
-**Status:** Accepted
+**Status:** Accepted.
 
 **Decision**
 
-Development will prioritize one complete path from world configuration to
-generated organism and illustration.
-
-**Context**
-
-The hackathon requires a working and demonstrable project under a limited
-deadline.
-
-**Options considered**
-
-1. Build many independent features.
-2. Focus first on infrastructure.
-3. Complete one polished end-to-end flow.
+Prioritize one polished mission through planet engineering, life design, deterministic simulation, optional consultant, and optional image before accounts, campaigns, or detailed ecosystem systems.
 
 **Rationale**
 
-A complete vertical slice provides the strongest demo and reduces the risk of
-submitting disconnected prototypes.
+A coherent runnable product is stronger for judging and user testing than many disconnected prototypes.
+
+## 2026-07-18 — Keep English and Polish structurally complete
+
+**Status:** Accepted.
+
+**Decision**
+
+All visible and accessible interface copy lives in one typed dictionary supporting only English and Polish. Every UI change must update and review both languages.
 
 **Consequences**
 
-Positive consequences:
-
-- working demo earlier
-- clearer priorities
-- easier testing
-- reduced submission risk
-
-Tradeoffs:
-
-- fewer secondary features
-- some architecture may initially support only the MVP scope
-
-Follow-up work:
-
-- define the minimum end-to-end scenario
-- select the default demo world
-- postpone optional features until the vertical slice is stable
+- TypeScript detects missing structural keys;
+- content review remains a human responsibility;
+- additional languages are deferred.

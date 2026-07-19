@@ -91,6 +91,8 @@ export const WorldParametersSchema = z
     radiationDoseRate: RadiationDoseRateSchema,
     lightLevel: z.number().finite().min(0).max(1),
     waterAvailability: z.number().finite().min(0).max(1),
+    humidity: z.number().finite().min(0).max(1).default(0.45),
+    magneticFieldStrengthEarth: z.number().finite().min(0).max(5).default(0.7),
     habitat: HabitatSchema,
     shieldingColumnMassKgM2: z.number().finite().min(0).default(0),
     geochemicalEnergyAvailability: GeochemicalEnergyAvailabilitySchema.default(

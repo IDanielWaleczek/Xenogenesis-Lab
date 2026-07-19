@@ -2,115 +2,167 @@
 
 ## Current implementation
 
-The repository contains a Next.js 16.2.10 / React 19.2.4 application, Tailwind CSS 4, TypeScript, Zod 4, the official OpenAI JavaScript SDK, and Vitest domain tests. One Vespera baseline supports validated learner variants, deterministic visual-state mapping, four deterministic pressure rules, structured-decision comparison, adaptation candidates, a server-only Mission Instructor route, multiple-choice revision, and session-only competency progress.
+Xenogenesis Lab is one full-stack Next.js 16 App Router application written in TypeScript. React owns the interactive laboratory, React Three Fiber owns the persistent WebGL scene, deterministic domain modules own science and population output, and server-only route handlers own OpenAI calls. Zod validates every external boundary.
 
-`POST /api/instructor` validates the committed world variant and decisions, re-runs that exact deterministic simulation on the server, and validates the response. With `OPENAI_API_KEY`, it requests a structured response from the `gpt-5.6` alias through the Responses API. Without a usable live response, it returns a Zod-validated local fallback with explicit provenance. No credentials are sent to the client.
+The application is designed for Vercel deployment from GitHub. DNS may remain at GreenGeeks or OVH, but GreenGeeks EcoSite Lite is not an application runtime.
 
-Image generation, database persistence, accounts, a mission library, and durable certification are not implemented.
-
-## Target mission flow
+## Runtime data flow
 
 ```text
-System boot → Mission Control → mission briefing
-→ immutable mission baseline + learner world variant
-→ Zod validation
-→ deterministic visual-state mapping for the live planet preview
-→ committed learner pressure, adaptation, and strategy decisions
-→ deterministic rules engine
-→ validated SimulationResult
-→ pressure and organism inspection
-→ GPT-5.6 instructor request
-→ validated MissionDebrief
-→ multiple-choice evidence revision and competency update
-→ research-archive record
+Genesis mission seed + baseline WorldParameters
+        │
+        ├── learner changes validated planet state
+        │       ├── shader target derivation → interpolated WebGL uniforms
+        │       └── life-trait selection → cost/conflict validation
+        │
+        └── Run simulation
+                ├── normalize physical inputs
+                ├── calculate 11 continuous suitability metrics
+                ├── calculate six regional scores
+                ├── run 40-generation population model
+                └── validate SurvivalSimulationResult + stable hash
+                        │
+                        ├── local charts, markers, outcome, organism SVG
+                        ├── POST /api/consultant
+                        │       ├── validate request
+                        │       ├── re-run deterministic model on server
+                        │       ├── GPT-5.6 structured interpretation
+                        │       └── Zod response or labelled local fallback
+                        └── POST /api/organism-image
+                                ├── validate and re-run model
+                                ├── reuse consultant result
+                                ├── construct controlled image prompt
+                                └── gpt-image-2 data URL or procedural fallback
 ```
 
-Image generation is a separate, optional representation flow from validated organism data. It must not modify the simulation result or instructor assessment.
+No AI request occurs during rendering, rotation, parameter editing, or deterministic simulation.
 
 ## Module boundaries
 
-### Mission and world input
+### World contract — `src/domain/world/`
 
-Owns scenario objectives, immutable baseline telemetry, experimental parameter collection, structured-decision validation, and client-side non-authoritative validation.
+Owns authoritative physical inputs, units, atmospheric-fraction validation, radiation normalization, symmetric temperature range, oxygen partial pressure, local ideal-gas density, and conservative geochemical pathway detection.
 
-### Planet visualisation
+It does not infer radiation shielding, electron acceptors, molar mass, or alternative energy from a habitat label.
 
-`src/domain/mission/visualization.ts` maps every validated world input to deterministic presentation values used by the SVG planet. It owns aesthetic interpolation only. It is not the science engine and cannot emit pressures, adaptations, viability, shielding attenuation, or energy-pathway conclusions.
+### Simulator — `src/domain/simulator/`
 
-### Deterministic rules engine
+- `schema.ts` defines the mission, trait, request, result, consultant, and illustration contracts.
+- `mission.ts` contains the immutable Vespera 7A seed and baseline.
+- `traits.ts` centralizes 33 trait definitions, costs, conflicts, and modifiers.
+- `simulate.ts` calculates continuous metrics, representative regions, population, outcome, success, and stable hash.
+- `consultant.ts` builds the local fallback and final controlled image prompt.
 
-Owns environmental calculations, biological constraints, adaptation scoring, scientific coefficients, ruleset versioning, and reproducible `SimulationResult` output. It must not call model or image services.
+The simulator has no React, Three.js, OpenAI, route, or persistence dependency.
 
-### Instructor integration
+### Procedural rendering — `src/components/planet/` and `src/shaders/`
 
-Receives only validated mission context, the learner’s committed structured decisions, and deterministic output. It builds a versioned structured request for GPT-5.6, validates the response with Zod, and returns instructional—not authoritative scientific—content.
+The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, biome masks, ice, water masks, clouds, radiation heatmaps, and biosphere patches.
 
-### Illustration integration
+React state changes only update target values. `useFrame` interpolates external Three.js shader uniforms and rotation without React state updates. Terrain geometry is not regenerated for slider changes. Water, cloud, and atmosphere are separate coordinated layers. Region markers visualize deterministic result scores.
 
-Builds a controlled visual prompt from validated organism data. It handles service failures separately and cannot add or change calculated adaptations.
+This layer owns presentation only. It cannot produce habitability or population facts.
 
-### Progress and archive
+### Presentation — `src/app/page.tsx` and `src/components/life/`
 
-Stores completed exercise data, evidence-based revisions, competency measurements, and provenance. It must not award progress for unrelated clicks or decorative activity.
+The client keeps one mission’s current state: language, phase, planet, traits, visualization mode, inspection, latest result, previous result, AI states, and fallback image. It provides non-authoritative interaction validation and runs the same pure deterministic simulator for immediate results.
 
-### Presentation
+`src/app/copy.ts` is a compile-time checked English/Polish dictionary covering visible and accessible text. New UI text must be added and reviewed in both languages.
 
-Renders boot, Mission Control home, briefing, World Lab, structured decisions, simulation state, provenance-labelled results, debrief, revision, archive, and accessible recovery states. UI components must not contain scientific calculations or privileged credentials.
+### Server-only OpenAI services — `src/server/`
 
-## Validation and provenance
+`life-consultant.ts` calls the Responses API with the `gpt-5.6` alias, low reasoning effort, and a Zod structured-output format. It receives only validated state and server-recalculated output.
 
-Validate every external boundary with Zod: world input, mission definition, hypothesis, simulation request and result, GPT request and response, illustration request, and persisted archive record.
+`organism-image.ts` calls the Image API with `gpt-image-2`. GPT output cannot provide a free-form final prompt: it selects a strict `imageDirection` object, and the server combines those enums with deterministic world facts and selected trait IDs.
 
-Every displayed claim must retain one of these sources:
+Both services use process-local `Map` caches keyed by a stable hash. This avoids duplicate calls in one process but is not durable or globally shared on Vercel.
 
-- **Learner decisions:** the committed pressure, adaptation, and strategy predictions.
-- **Calculated result:** deterministic output with a ruleset version.
-- **AI interpretation:** GPT-5.6 instructional content tied to that output.
-- **Visual interpretation:** the code-rendered planet mapping derived from world inputs; not scientific evidence.
-- **Generated illustration:** a future image grounded in validated organism data.
+### Route handlers — `src/app/api/`
+
+- `POST /api/consultant`
+- `POST /api/organism-image`
+
+Credentials remain server-side. Routes return generic public errors, never prompts, keys, provider stack traces, or internal exception details.
 
 ## Implemented data contracts
 
+Simplified shapes; exact Zod schemas are in `src/domain/simulator/schema.ts`.
+
 ```ts
-type CommittedHypothesis = {
-  missionId: "vespera-01";
+type PlanetState = {
+  seed: string;
   world: WorldParameters;
-  pressureIds: PressureId[];
-  adaptationIds: AdaptationId[];
-  strategy: SurvivalStrategy;
-  committedAt: string;
 };
 
-type SimulationResult = {
-  missionId: "vespera-01";
-  rulesetVersion: "0.2.0";
-  viability: "conditionallyPlausibleComplexLife";
-  normalizedFacts: NormalizedFacts;
-  pressures: EnvironmentalPressure[];
-  adaptationCandidates: AdaptationCandidate[];
+type SurvivalSimulationRequest = {
+  missionId: "genesis-01";
+  planet: PlanetState;
+  traitIds: LifeTraitId[];
+  initialPopulation: number;
 };
 
-type MissionDebrief = {
-  assessment: string;
-  evidence: string[];
-  tradeOffs: string[];
-  followUpQuestion?: string;
-  recommendedExperiment?: string;
+type SurvivalSimulationResult = {
+  simulatorVersion: "1.0.0";
+  stateHash: string;
+  outcome: SimulationOutcome;
+  missionSuccess: boolean;
+  objectiveScore: number;
+  metrics: Record<SimulationMetricId, number>;
+  regionScores: Record<RegionId, number>;
+  populationTimeline: Array<{ generation: number; population: number }>;
+  carryingCapacity: number;
+  peakPopulation: number;
+  finalPopulation: number;
+};
+
+type ImageDirection = {
+  pose: "resting" | "foraging" | "moving" | "social";
+  viewpoint: "field-profile" | "three-quarter" | "environment-wide";
+  lighting: "diffuse" | "low-angle" | "backlit";
+  emphasis: "anatomy" | "adaptation" | "habitat";
 };
 ```
 
-The exact Zod schemas are exported from `src/domain/mission/schema.ts`. The current viability value is scoped only to Mission 01 and its validated variants; it is not a general viability engine.
+## Trust and provenance
 
-## Client and server boundary
+| Source | May own | Must not own |
+| --- | --- | --- |
+| Learner state | world choices and trait selection | calculated facts |
+| Deterministic simulator | scores, population, outcome, success | narrative or art |
+| WebGL renderer | interpolated visual interpretation | scientific conclusions |
+| GPT-5.6 consultant | explanation, naming, experiment suggestion, constrained art direction | scores or outcome |
+| Image model | final pixels | anatomy requirements or simulation facts |
+| Local fallback | deterministic templated explanation | claim to be GPT output |
 
-The client may collect input, provide non-authoritative validation, show results, and manage local state. It must not define scientific rules, contain API keys, call privileged endpoints directly, or trust raw model output.
+External and model output is untrusted until Zod validation. The server recomputes the simulation instead of accepting client-provided results.
 
-The server owns final validation, deterministic recalculation, model calls, output validation, safe fallback behavior, and secret management. Rate limiting, persistent user identity, and production observability are **TODOs** before public scale.
+## Failure behavior
 
-## Failure handling
+- Invalid route input returns HTTP 400.
+- Unexpected server failures return HTTP 500 with generic text.
+- Missing or failing GPT credentials produce a validated response with `source: "local-fallback"`.
+- Missing or failing image generation returns `source: "procedural-fallback"` and no image data.
+- A later AI or image failure never removes the deterministic result or procedural organism.
+- Changing world or traits marks the displayed calculation stale and requires an explicit re-run.
 
-Keep input after a failure. Distinguish invalid input, unsupported conditions, deterministic simulation failure, GPT failure, malformed model response, image failure, rate limit, and network failure. Explain the failed stage without exposing stack traces, prompts, or secrets, and allow a safe retry only where appropriate.
+## Performance choices
 
-## Deployment
+- dynamic client import for the WebGL scene;
+- one seeded geometry allocation per scene rather than per slider change;
+- shader uniform interpolation instead of texture regeneration;
+- no React state writes in the frame loop;
+- capped device pixel ratio of 1.5;
+- local deterministic feedback before optional network requests;
+- request caches keyed by stable state;
+- no production dependency beyond the libraries needed for this vertical slice.
 
-Vercel and GitHub deployment integration are documented as intended infrastructure, not confirmed current deployment configuration. **TODO:** verify the production target, environment variables, rate limiting, logging, and deployment-to-HEAD status before submission.
+## Deployment and production TODOs
+
+- verify Vercel production serves repository HEAD;
+- configure `OPENAI_API_KEY` only in server environment variables;
+- verify live GPT-5.6 and `gpt-image-2` requests;
+- add rate limiting, abuse protection, timeout policy, and observability;
+- decide whether generated data URLs should move to object storage;
+- pin a supported Node.js version;
+- monitor the two moderate PostCSS findings currently inherited through Next.js; npm reports no available fix;
+- add persistence only if save/share becomes submission-critical.

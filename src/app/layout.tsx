@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Xenogenesis Lab | Astrobiology Mission Training",
+  title: "Xenogenesis Lab | Procedural Life Simulator",
   description:
-    "Train scientific reasoning for fictional xenobiology missions.",
+    "Engineer a procedural planet, design alien life, and test it with a deterministic astrobiology simulation.",
 };
 
 export default function RootLayout({

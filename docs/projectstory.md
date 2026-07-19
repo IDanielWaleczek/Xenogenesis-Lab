@@ -2,80 +2,81 @@
 
 ## Submission-integrity note
 
-This is a product-story draft, not evidence that every described capability is
-live. The current repository implements one mission with an immutable baseline,
-learner-controlled experimental variants, a smooth code-rendered planet,
-committed multiple-choice decisions, deterministic pressure analysis, an
-instructor route with a clearly labelled local fallback, multiple-choice
-revision, and session-only progress.
-Live GPT-5.6 behavior remains **TODO: verify end to end with server credentials**.
-AI-generated illustration, persistence, certification progression, and a
-mission library are not implemented. The current SVG planet is a visual
-interpretation of inputs, not a scientific image or simulation result.
+This story describes the current repository unless a limitation is explicitly marked. The deterministic simulator, WebGL planet, life designer, population analysis, procedural organism, server routes, and local fallbacks are implemented. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed credentials**. The public URL remains **TODO: verify against repository HEAD**.
 
-Update this document, the README, and the demo script together as features
-become testable. Do not submit future-tense product intent as a live feature.
+Do not submit fallback output as live AI or shader output as measured planetary science.
 
-## Problem
+## The problem
 
-Astrobiology and planetary habitability are complex, abstract subjects often
-taught through static content. Learners can read about gravity, atmospheric
-pressure, temperature, radiation, light, and water, but rarely practise making
-a scientific decision, committing to a hypothesis, observing consequences, and
-receiving personal feedback.
+Astrobiology is full of coupled tradeoffs, but it is often experienced as a list of facts. Gravity shapes support structures. Pressure and gas composition change respiration and movement. Water, temperature, radiation, and energy determine where metabolism can persist. Reading those relationships is useful; changing them and watching a designed organism succeed in one region but fail globally makes them understandable.
 
-## Solution
+The early Xenogenesis concept became too much like a quiz. It asked learners to commit a hypothesis before they could comfortably see and manipulate the planet. That created a writing barrier and implied there might be one expected answer.
 
-Xenogenesis Lab is an AI-guided astrobiology mission-training simulator. It
-places the learner inside a fictional future xenobiology programme and trains
-scientific reasoning through a complete loop of briefing, hypothesis,
-deterministic simulation, evidence-based debrief, revision, and progression.
+## The solution
 
-It is not a generic chatbot, planet configurator, or unconstrained creature
-generator. The learner’s role is: “I am a candidate training to reason like a
-xenobiology mission specialist.”
+Xenogenesis Lab is a dynamic procedural life-creation simulator. The learner boots an orbital research computer and enters one continuous laboratory. A seeded 3D planet dominates the workspace. Environmental controls reshape it smoothly. A lifeform designer forces biological choices through costs and incompatibilities. A local deterministic engine then calculates whether that particular organism can find energy, tolerate the world, reproduce, occupy regional refuges, and grow through 40 generations.
 
-## Intended training exercise
+The loop is deliberately experimental:
 
-1. Boot the training system and enter Mission Control.
-2. Receive a Mission Briefing with a target world and scientific objective.
-3. Create an experimental variant while observing a live planet interpretation.
-4. Commit multiple-choice pressure, adaptation, and strategy decisions.
-5. Run the deterministic plausibility simulation.
-6. Inspect calculated pressures and organism adaptations.
-7. Receive a structured GPT-5.6 Mission Instructor debrief.
-8. Revise the original decision using calculated evidence.
-9. Record the exercise in the Research Archive.
-10. Progress a Competency Profile toward Mission Ready certification.
+```text
+Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt
+```
 
-## Scientific integrity and AI roles
+There is no single planet recipe. A high-energy aerobic surface strategy and a low-light geochemical ocean strategy can both be viable for different reasons.
 
-The deterministic rules engine owns the environmental pressures, causal
-constraints, adaptation scores, coefficients, and repeatable simulation facts.
-GPT-5.6 receives only validated structured inputs. It may frame exercises,
-evaluate the learner’s reasoning, explain trade-offs, ask follow-up questions,
-create debriefs, and recommend experiments. It cannot replace calculated
-values or represent unsupported invention as a simulation fact.
+## What the learner sees
 
-Zod validates external data at each boundary. The interface will distinguish
-the user hypothesis, deterministic result, AI interpretation, and generated
-visual representation. An image, if generated, is a representation of
-validated organism data rather than a source of scientific facts.
+The planet is not a static asset. Custom shaders use a deterministic seed and layered noise to generate orbital-scale terrain, ridges, oceans, ice, moisture, clouds, atmosphere, and biosphere patches. Each major world parameter affects both this presentation and the internal model. Temperature and radiation overlays let the learner switch from the cinematic world to a scientific view without recoloring the planet permanently.
 
-## Why this structure matters
+The organism is not a paragraph. Its immediate procedural field model responds to the current seed and selected body, movement, support, sensory, thermal, radiation, and energy traits. An optional AI-generated field illustration can replace it only after the server grounds the prompt in validated facts.
 
-A static article can explain that high gravity favours stronger support
-structures. A mission exercise asks the learner to predict that relationship,
-compares their reasoning with a reproducible model, then gives focused feedback
-and a next experiment. The educational value comes from that adaptive feedback
-loop, not from generating more text or a decorative reward.
+The survival result is not just success or failure. It includes 11 interacting scores, six representative habitat regions, a population curve, carrying capacity, strongest systems, limiting systems, and one of eight outcomes. The learner can change one variable and compare the next run without restarting.
 
-## Codex and human roles
+## Scientific integrity
 
-Codex has accelerated repository analysis, implementation, testing,
-refactoring, debugging, and documentation in this project. The human made and
-reviewed the product vision, scientific boundaries, training structure,
-architecture decisions, design direction, and final implementation choices.
+The simulation is intentionally educational, but deterministic and inspectable. It derives oxygen partial pressure and local atmospheric density, evaluates both configured temperature extremes, requires explicit geochemical energy and electron acceptors, and never reduces radiation because a habitat is labelled cave or deep ocean.
 
-**TODO:** before submission, link this story to the primary `/feedback` session,
-dated commits, meaningful diffs, tests, and verified live GPT-5.6 behaviour.
+All coefficients live in a versioned convention module. Trait costs and mission success thresholds are disclosed as model choices rather than universal biology. A stable input hash makes repeated experiments reproducible.
+
+The shader scene explains state visually but never becomes the source of scientific truth.
+
+## Where GPT-5.6 adds value
+
+GPT-5.6 is a scientific consultant, not the simulator. On request, the server validates the current state, reruns the deterministic model, and asks GPT-5.6 to explain the evidence, tradeoffs, unexpected result, and one controlled next experiment. Zod validates the structured response.
+
+For organism art, GPT-5.6 may choose only a pose, viewpoint, lighting setup, and emphasis. The server constructs the final prompt from selected traits and calculated world facts before calling `gpt-image-2`. This lets AI add interpretation and presentation without inventing a new organism or changing the outcome.
+
+If either service is unavailable, the deterministic experiment remains complete and the interface labels its local or procedural fallback honestly.
+
+## Why the architecture matters
+
+The project is one full-stack Next.js application, but it preserves strict boundaries:
+
+- world validation and scientific derivations are independent of React;
+- continuous biology and population calculations are independent of GPT;
+- WebGL shaders consume presentation targets, not hidden science;
+- server-only routes protect credentials and recompute client state;
+- every model response is untrusted until validation;
+- English and Polish are compile-time parallel copy structures.
+
+This makes the demo visually ambitious without turning its core into an untestable prompt.
+
+## Codex and human collaboration
+
+Codex accelerated the work that benefited from fast iteration across many layers: repository audit, product reframing, Zod contracts, continuous simulation, coefficient centralization, custom shaders, React implementation, trait data, population tests, server routes, bilingual copy, browser QA, and documentation reconciliation.
+
+The human made the important product choices: replace the quiz with learner freedom, expose all major world systems, make the planet respond smoothly, use multiple biological strategies, keep an animated boot, preserve English and Polish, and prioritize one convincing mission before optional infrastructure.
+
+The result demonstrates a useful division of labor: human direction and scientific boundaries, Codex-accelerated implementation and verification, deterministic local computation, and GPT-5.6 only where explanation and controlled creative interpretation are valuable.
+
+## Current limitations
+
+The first build contains one mission, one baseline seed, six representative regions rather than a spatial climate grid, and one dominant organism rather than a food web. It has no accounts, persistence, campaign, detailed evolution, creature animation, or production rate limiting. Live model behavior and the public deployment must be verified before final submission claims.
+
+## Submission TODOs
+
+- add the primary Codex `/feedback` session ID;
+- link the public sub-three-minute YouTube demo;
+- verify production equals repository HEAD;
+- run live GPT-5.6 and `gpt-image-2` paths;
+- update the final verification record and Devpost submission text together.

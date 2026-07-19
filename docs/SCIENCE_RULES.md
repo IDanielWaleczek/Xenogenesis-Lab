@@ -2,386 +2,269 @@
 
 ## Model scope
 
-The model explores plausible biological adaptations caused by environmental
-pressure.
+Simulator 1.0.0 is a deterministic, scientifically inspired educational model for exploring interactions among a planet, a designed organism, representative habitats, and population stability. It is not a complete climate, atmospheric-chemistry, radiation-transport, ecosystem, genetics, or evolutionary model.
 
-It is an educational simulation, not a complete evolutionary, genetic,
-ecological, or planetary model.
+All coefficients are versioned model conventions. They express consistent tradeoffs for this experience and must not be presented as universal biological limits.
 
-The model focuses on relationships such as:
+## Sources of truth
 
-- gravity and body structure
-- atmosphere and respiration
-- temperature and thermal regulation
-- radiation and biological protection
-- light and sensory systems
-- water availability and metabolism
-- terrain and locomotion
+- Physical input validation and derivation: `src/domain/world/schema.ts`
+- Simulator coefficients: `src/domain/simulator/coefficients.ts`
+- Trait costs, conflicts, and modifiers: `src/domain/simulator/traits.ts`
+- Continuous calculations and population loop: `src/domain/simulator/simulate.ts`
+- Boundary and representative tests: `src/domain/world/schema.test.ts` and `src/domain/simulator/simulate.test.ts`
 
-## Units
+Identical validated input and simulator version must produce identical output and the same stable state hash.
 
-Use consistent internal units:
+## Units and validated inputs
 
-- gravity: multiples of Earth gravity, `g`
-- pressure: atmospheres, `atm`
-- temperature: degrees Celsius, `°C`
-- temperature variation: symmetric half-range in degrees Celsius, `°C`
-- radiation input: `mSv/h` or `Sv/h`; deterministic evaluation: `mSv/h`
-- light: normalized relative intensity
-- water availability: normalized range from `0` to `1`
-- gas composition: fractions summing to `1`
-- shielding column mass: kilograms per square metre, `kg/m²`
-- atmospheric mean molar mass: kilograms per mole, `kg/mol`
+| Input | Unit or range |
+| --- | --- |
+| Gravity | Earth gravity, `g`; schema range `0.05–5` |
+| Local atmospheric pressure | `atm`; schema range `0.05–20` |
+| Atmospheric gases | fractions in `[0,1]` summing to `1` |
+| Mean temperature | `°C`; schema range `−100–150` |
+| Temperature variation | symmetric half-range, `°C`; `0–100` |
+| Radiation dose rate | `mSv/h` or `Sv/h`, normalized to `mSv/h` |
+| Stellar energy/light | normalized `[0,1]` |
+| Available water | normalized `[0,1]` |
+| Humidity | normalized `[0,1]` |
+| Magnetic-field strength | Earth-relative `[0,5]` |
+| Shielding column mass | `kg/m²`, default `0` |
+| Mean atmospheric molar mass | `kg/mol`, explicitly supplied |
+| Geochemical availability | `none`, `low`, `moderate`, or `high` |
+| Electron acceptors | nitrate, sulfate, ferric iron, carbon dioxide |
 
-All conversions must happen before rules are evaluated.
+The UI exposes a narrower demonstration range for some values while the domain schema remains wider.
 
-The input retains the original radiation value and unit for display and
-traceability. `1 Sv/h` is normalized to `1,000 mSv/h`; the model evaluates
-only the normalized dose rate.
+## Deterministic physical derivations
 
-## Input parameters
-
-### Gravity
-
-Suggested range:
+### Radiation normalization
 
 ```text
-0.05 g to 5.0 g
+1 Sv/h = 1,000 mSv/h
 ```
 
-Influences:
+The original value and unit remain in validated state for display and traceability.
 
-- body height
-- skeletal strength
-- limb thickness
-- locomotion
-- circulation
-- balance
+### Temperature extremes
 
-### Atmospheric pressure
-
-Suggested range:
+`temperatureVariationC` is a symmetric half-range:
 
 ```text
-0.05 atm to 20 atm
+Tmin = Taverage − variation
+Tmax = Taverage + variation
 ```
 
-Influences:
-
-- respiratory structures
-- body sealing
-- gas exchange
-- flight feasibility
-- sound propagation
-
-Pressure and temperature are **local values at the organism's altitude**, not
-planetary surface values. This is particularly important for high-atmosphere
-habitats.
-
-### Atmospheric composition and density
-
-Atmospheric composition must provide oxygen, carbon dioxide, nitrogen, inert
-gas, and toxic-gas fractions. All five fractions must be finite, non-negative,
-and sum to one within a documented numerical tolerance.
-
-The model derives oxygen partial pressure as:
+Thermal suitability evaluates the mean and both extremes:
 
 ```text
-oxygenPartialPressureAtm = atmosphericPressureAtm × oxygenFraction
+thermalBase = 0.50 × bell(Taverage, 18, 58)
+            + 0.25 × bell(Tmin, 18, 58)
+            + 0.25 × bell(Tmax, 18, 58)
 ```
 
-When atmospheric density is needed, especially for high-atmosphere life, the
-world input must supply `atmosphericMeanMolarMassKgPerMol`. The model derives
-local density using the ideal-gas relationship:
+Cold and heat traits respond to `Tmin` and `Tmax`. Variation is not applied as a flat penalty to mean fitness; it can harm or help depending on where the full range falls relative to the performance curve.
+
+### Oxygen partial pressure
+
+```text
+oxygenPartialPressureAtm = localPressureAtm × oxygenFraction
+```
+
+Respiration uses partial pressure, not oxygen fraction alone.
+
+### Local atmospheric density
+
+When mean molar mass is supplied:
 
 ```text
 ρ = pM / RT
 ```
 
-where `p` is local pressure in pascals, `M` is supplied mean molar mass,
-`R` is the universal gas constant, and `T` is local absolute temperature.
-Fraction categories such as `inertGas` and `toxicGas` are too broad to infer
-a defensible mean molar mass, so the model never silently substitutes one.
+`p` is local pressure in pascals, `M` is supplied mean molar mass, `R` is the universal gas constant, and `T` is local absolute temperature. High-atmosphere movement uses this derived local density; a habitat label never substitutes for it.
 
-### Temperature
+### Explicit alternative energy
 
-Suggested range:
+An anaerobic or chemosynthetic pathway receives geochemical energy only when:
 
 ```text
--100°C to 150°C
+geochemicalEnergyAvailability != "none"
+AND electronAcceptors.length > 0
 ```
 
-Influences:
+The availability mapping is `none=0`, `low=0.28`, `moderate=0.60`, and `high=0.90`. Missing input never creates a redox gradient.
 
-- metabolism
-- insulation
-- cooling systems
-- activity patterns
-- biochemistry
+## Continuous global scores
 
-`temperatureVariationC` is a symmetric half-range, not a generic fitness
-penalty. The engine evaluates both extremes:
+All public metrics are clamped to `[0,1]`. `bell(value, ideal, width)` is:
 
 ```text
-minimumTemperatureC = averageTemperatureC − temperatureVariationC
-maximumTemperatureC = averageTemperatureC + temperatureVariationC
+exp(-((value − ideal) / width)²)
 ```
 
-Variability may add adaptation pressure for dormancy, insulation, thermal
-buffering, migration, or broad tolerance. It does not impose a flat penalty;
-its effect depends on whether either derived extreme crosses a modelled limit.
+### Liquid-water support
 
-### Radiation
+Combines supplied water (`0.55`), temperature suitability around `14°C` (`0.30`), and pressure support relative to `1.1 atm` (`0.15`). It is an educational stability proxy, not a phase-equilibrium calculation.
 
-Influences:
+### Atmospheric suitability
 
-- pigmentation
-- shielding
-- cellular repair
-- underground or nocturnal behavior
-- reproductive strategy
+Combines pressure suitability around `1.05 atm` (`0.42`), oxygen partial-pressure suitability around `0.19 atm` (`0.45`), and the non-toxic fraction (`0.13`). Carbon dioxide above `5%` adds a gradually increasing model penalty.
 
-The field `shieldingColumnMassKgM2` defaults to `0` when absent or unknown.
-The initial ruleset records this physical input but does **not** reduce the
-normalized radiation dose from cave or deep-ocean habitat labels, nor does it
-calculate attenuation from column mass. Radiation spectra and shielding
-materials require scenario-specific modelling; applying a universal depth or
-mass factor would imply false precision. Cave and deep-ocean habitats may
-still favour shelter-seeking adaptations.
+### Thermal stability
 
-### Light
+Uses the weighted mean/minimum/maximum calculation above and selected cold/heat modifiers. The configured Vespera half-range remains part of every result even though the current UI edits only the mean.
 
-Influences:
+### Radiation safety
 
-- vision
-- photosynthesis
-- pigmentation
-- circadian behavior
-- alternative sensory systems
-
-### Water availability
-
-Influences:
-
-- body-water retention
-- skin permeability
-- reproduction
-- metabolism
-- dormancy
-
-### Habitat
-
-Initial values may include:
-
-- open surface
-- desert
-- shallow water
-- deep ocean
-- cave
-- forest-like biome
-- ice surface
-- high atmosphere
-
-For `high atmosphere`, density—not the habitat label alone—will constrain
-active flight, buoyancy, and passive or aerosol life. Proposed density
-thresholds must be explicitly named, versioned model conventions; they are not
-universal biological limits.
-
-### Geochemical energy and electron acceptors
-
-`geochemicalEnergyAvailability` is one of `none`, `low`, `moderate`, or
-`high`. `electronAcceptors` can contain `nitrate`, `sulfate`, `ferricIron`,
-or `carbonDioxide` without duplicates.
-
-The model may propose anaerobic, anoxygenic, or chemosynthetic candidates only
-when both a non-`none` geochemical energy availability and at least one listed
-electron acceptor are present. Missing or incomplete geochemical inputs do not
-justify invented metabolism: at low oxygen, the engine must conservatively
-return microbial-only or no plausible complex organism when no modelled
-alternative energy pathway exists.
-
-## Rule structure
-
-Each rule should contain:
-
-```ts
-type ScienceRule = {
-  id: string;
-  version: string;
-  description: string;
-  inputConditions: RuleCondition[];
-  effects: RuleEffect[];
-  confidence: "high" | "medium" | "speculative";
-  sourceNotes?: string[];
-};
-```
-
-## Example rules
-
-### High gravity
-
-When gravity increases:
-
-- body height tends to decrease
-- support structures become stronger
-- limbs become thicker
-- jumping and flight become less plausible
-- circulation requires stronger pressure regulation
-
-### Low gravity
-
-When gravity decreases:
-
-- taller and more delicate structures become possible
-- jumping and gliding become easier
-- balance and anchoring become more important
-- fragile elongated limbs become more plausible
-
-### High radiation
-
-When radiation increases:
-
-- protective pigmentation becomes more likely
-- biological repair mechanisms become more important
-- shielding structures become more plausible
-- underground, aquatic, or nocturnal behavior gains value
-
-### Low oxygen
-
-Low oxygen is evaluated from oxygen partial pressure, not oxygen fraction
-alone. The aerobic-metabolism threshold has not yet been assigned; before the
-viability engine uses it, it must be introduced as a named, documented,
-versioned coefficient with boundary tests. Falling below that threshold will
-constrain aerobic metabolism rather than automatically making all life
-impossible.
-
-### Low water availability
-
-When available water decreases:
-
-- sealed skin becomes more likely
-- water recycling improves
-- reproduction may use protected eggs or internal development
-- dormancy becomes more plausible
-
-## Coefficients
-
-All coefficients must be:
-
-- centralized
-- named
-- documented
-- covered by tests
-- assigned to a ruleset version
-
-Avoid unexplained values such as:
-
-```ts
-score += 0.37;
-```
-
-Prefer:
-
-```ts
-score += HIGH_GRAVITY_COMPACT_BODY_WEIGHT;
-```
-
-## Implemented mission ruleset 0.2.0
-
-The first working ruleset is intentionally limited to mission `vespera-01` and validated learner-created variants of its world input. Its thresholds are named educational model conventions, not universal biological limits:
-
-| Rule | Trigger | Derived candidates |
-| --- | --- | --- |
-| High gravity | `gravityG >= 1.5` | compact body, reinforced support tissues |
-| Thermal range | derived minimum `<= 0°C` or maximum `>= 40°C` | thermal buffering |
-| Elevated radiation | normalized dose `>= 0.1 mSv/h` | radiation protection, cellular repair |
-| Limited water | availability `<= 0.40` | water conservation, protected reproduction |
-
-The Vespera b baseline produces all four pressures. A learner variant may produce any subset, including none. The result `conditionallyPlausibleComplexLife` remains a mission-scoped label and does not establish universal habitability, fitness, evolutionary likelihood, or organism viability.
-
-The radiation rule uses the supplied dose unchanged. It does not calculate attenuation from habitat or shielding column mass. The thermal rule evaluates the derived `−6°C` and `42°C` extremes instead of penalizing the mean temperature. Oxygen partial pressure is normalized and displayed but no low-oxygen threshold is applied in this mission.
-
-Atmospheric composition, local pressure, molar mass, light, habitat, shielding column mass, geochemical energy, and electron acceptors remain validated and visible in the World Lab. Unless a named rule above consumes them, they do not silently add pressure scores or adaptation candidates. Explanatory UI text describes potential biological relevance and must not imply that ruleset 0.2.0 already models every relationship.
-
-## Planet visual interpretation
-
-The interactive planet is a deterministic SVG presentation derived from validated world inputs. Gravity changes visual compression; atmosphere inputs alter halo and haze; temperature changes palette; variation changes rim contrast; radiation changes incident activity; light changes illumination; water changes coverage; habitat changes styling; shielding changes an explicit overlay; and geochemical inputs change a subsurface glow.
-
-These mappings are aesthetic and smoothly interpolated. They are not climate, geology, fluid-dynamics, radiation-transport, or habitability calculations. In particular, the shielding overlay does not reduce radiation dose, habitat styling does not create protection, and geochemical glow does not establish an energy pathway unless the explicit redox inputs are valid.
-
-## Simplifications
-
-Current simplifications may include:
-
-- one dominant organism rather than a complete ecosystem
-- fixed environmental values rather than long-term climate cycles
-- broad atmospheric chemistry categories
-- no full genetic simulation
-- no detailed fluid dynamics
-- no population model
-- no natural-selection timeline
-- simplified metabolism categories
-- no radiation-spectrum, material, or depth attenuation calculation
-- no inferred molar mass for broad inert- or toxic-gas categories
-- no universal flight-density threshold
-
-Each simplification should be visible in the application or documentation
-where relevant.
-
-## Edge cases
-
-The model must handle:
-
-- vacuum or near-vacuum
-- extreme heat
-- extreme cold
-- very high gravity
-- very low gravity
-- no accessible water
-- no visible light
-- extreme radiation
-- contradictory inputs
-- environments where complex surface life is implausible
-
-The system may return:
-
-- extremophile life
-- microbial-only plausibility
-- protected subterranean life
-- suspended or dormant life
-- no plausible complex organism under the current model
-
-It should not force a complex creature into every environment.
-
-## Ruleset version
-
-Current version:
+Simulator 1.0.0 uses the explicit magnetic field as a simplified incident-radiation protection convention:
 
 ```text
-Ruleset: 0.2.0
+effectiveDose = normalizedDose / (1 + 1.6 × EarthRelativeMagneticField)
+radiationSafety = exp(-effectiveDose / 0.55) + radiationTraitModifiers
 ```
 
-Versioning rules:
+This is not spectrum-specific magnetosphere or material transport. It is a named game-model convention.
 
-- patch version for coefficient corrections
-- minor version for new compatible rules
-- major version for changed interpretation or incompatible output
+`shieldingColumnMassKgM2` is retained but does not attenuate dose because spectrum and material are not supplied. Cave, deep-ocean, and underground labels never reduce radiation. The underground regional score uses the same global radiation-safety input and therefore cannot invent protection.
 
-Each simulation result must include the ruleset version.
+### Biological energy
 
-## Sources for model conventions
+Combines stellar energy (`0.30`), explicit geochemical energy (`0.23`), liquid-water support (`0.18`), humidity (`0.09`), and a saturating carbon-availability proxy (`0.10`), then applies selected photosynthetic/chemosynthetic modifiers and high-carbon-dioxide cost.
 
-- [NASA radiation analysis and shielding design](https://ddtrb.larc.nasa.gov/radiation/)
-  describes multiple space-radiation sources and material-dependent shielding,
-  supporting the decision not to apply a universal cave or water attenuation
-  factor.
-- [USGS terminal electron acceptor table](https://pubs.usgs.gov/wri/wri994285/datatab/table1.html)
-  lists oxygen, nitrate, manganese, iron, sulfate, and carbon dioxide pathways
-  with differing energy efficiency; the MVP represents only the documented
-  acceptor categories above.
-- [NASA ideal-gas derivation](https://www.grc.nasa.gov/WWW/K-12/Numbers/Math/Mathematical_Thinking/ideal_gases_under_constant.htm)
-  supports the ideal-gas density relationship used as a deterministic local
-  atmosphere calculation.
-- [Thermal-fluctuation meta-analysis](https://pubmed.ncbi.nlm.nih.gov/36750193/)
-  reports context-dependent effects of thermal variability, supporting the
-  model's extreme-based evaluation rather than a flat variability penalty.
+Carbon dioxide therefore affects both the model and atmosphere visualization; it is not a display-only slider.
+
+### Metabolic viability
+
+The selected respiration pathway is scored continuously:
+
+- oxygen respiration: bell curve centered at `0.20 atm` oxygen partial pressure;
+- low-oxygen metabolism: bell curve centered at `0.075 atm`;
+- anaerobic metabolism: `0.82 × explicit geochemical energy`;
+- a low `0.18` background score represents simple low-yield metabolism, not an invented anaerobic pathway.
+
+The strongest available pathway contributes `0.72`; biological energy contributes `0.28`; compatible trait modifiers add bounded support. Low oxygen constrains aerobic complexity but does not automatically make all life impossible.
+
+### Physical, hydration, and movement fitness
+
+Gravity and pressure use broad bell curves plus selected tolerance modifiers. Hydration combines liquid-water support, humidity, and water-conservation modifiers. Aquatic, terrestrial, and aerial movement have different benefits. Aerial movement specifically gains from derived density and loses value as gravity rises.
+
+## Trait system
+
+The life designer currently defines 33 traits in five categories. Every trait has:
+
+- an integer biological energy cost;
+- one or more continuous modifiers;
+- documented advantages and tradeoffs;
+- explicit conflicts where combinations are incompatible.
+
+The budget is `100`. Simulator input above the budget or containing a conflict is rejected, including server-side recalculation. Trait costs and modifiers are model conventions, not measured universal energy values.
+
+Complex traits increase adaptability or complexity but may reduce oxygen efficiency, reproduction, or both. Rapid reproduction trades against complexity; large bodies trade against oxygen demand; flight trades against gravity and density; insulation trades against heat tolerance.
+
+## Representative regional variation
+
+The first model evaluates six representative habitat aggregates rather than treating the entire planet uniformly:
+
+| Region | Main inputs |
+| --- | --- |
+| Coastal | water, thermal stability, biological energy, hydration |
+| Equatorial | shifted temperature, light, atmosphere, radiation safety |
+| Polar | cold-shifted temperature, water, radiation safety, insulation |
+| Deep ocean | water, aquatic movement, pressure, geochemistry, global radiation safety |
+| Underground | global radiation safety, geochemistry, pressure, hydration, chemosynthesis |
+| High altitude | atmosphere, global radiation safety, gravity, movement, flight, oxygen efficiency |
+
+A regional score of `0.50` or above is labelled habitable under the model. This is not a procedural latitude/elevation climate grid. Planet markers map these aggregate scores to representative locations for communication only.
+
+## Combined biological scores
+
+Organism compatibility combines gravity, pressure, thermal, radiation, hydration, metabolism, movement, and the best regional refuge. Reproduction potential combines compatibility, biological energy, hydration, reproduction traits, and complexity cost. Population stability then combines compatibility, reproduction, best-region support, and adaptability.
+
+Ecosystem potential combines population stability, energy, water, atmosphere, and thermal stability. Advanced-life potential combines ecosystem potential (`0.33`), metabolic viability (`0.17`), adaptability (`0.22`), and trait-derived complexity (`0.28`).
+
+## Population model
+
+The model runs generations `0–40` from an initial population of `120` in the current mission.
+
+```text
+K = 80,000 × ecosystemPotential
+    × max(0.02, bestRegion)^1.35
+    × (0.45 + 0.55 × biologicalEnergy)
+
+r = 0.04 + 0.38 × reproductionPotential + 0.08 × adaptability
+m = 0.22 × (1 − organismCompatibility)
+
+N(t+1) = max(0, N(t) + rN(t)(1 − N(t)/K) − mN(t))
+```
+
+Very low organism compatibility adds a documented collapse multiplier. The chart represents a population trend, not simulated individuals or evolutionary generations with mutation.
+
+## Mission evaluation and outcomes
+
+Genesis mission success requires all three visible model conventions:
+
+```text
+advancedLifePotential >= 0.67
+ecosystemPotential >= 0.55
+finalPopulation >= 1,000
+```
+
+The ordered outcome evaluation can return:
+
+1. immediate extinction;
+2. temporary survival;
+3. regional refuge;
+4. advanced adaptable life;
+5. stable multicellular ecosystem;
+6. unstable ecological dominance;
+7. expanding population;
+8. stable simple population.
+
+These labels summarize continuous evidence. The interface exposes scores and population data instead of presenting a binary answer or a checklist of exact target slider values.
+
+## Procedural visual interpretation
+
+The WebGL planet is deterministic for the same seed and shader code. Layered value noise and FBM generate orbital-scale continents, ridges, elevation, local moisture, biomes, ice, ocean masks, clouds, and biosphere patches. Shader uniforms interpolate toward world inputs.
+
+Each exposed slider has a visual consequence:
+
+- gravity changes terrain relief;
+- temperature changes biome, ice, water stability, and heat regions;
+- pressure changes water stability, atmosphere thickness, and clouds;
+- oxygen and carbon dioxide change atmosphere color;
+- water changes ocean masks and clouds;
+- radiation and magnetic field change the optional exposure overlay;
+- light changes illumination;
+- humidity changes moisture, fertile terrain, and clouds.
+
+These mappings are aesthetic explanations, not additional scientific calculations. The temperature and radiation views are overlays. Biosphere patches appear only from the latest non-stale deterministic ecosystem score.
+
+## Known simplifications
+
+- one designed organism rather than a food web;
+- six representative regions rather than a spatial climate grid;
+- fixed environmental inputs rather than long climate cycles;
+- broad gas categories and a supplied mean molar mass;
+- no radiation spectrum or material attenuation;
+- simplified magnetic protection;
+- no detailed ocean, fluid, geological, genetic, or evolutionary simulation;
+- no mutation, inheritance, predation, or ecological collapse dynamics beyond aggregate outcome conventions;
+- no universal oxygen, flight, or pressure biological limit.
+
+## Sources supporting conservative boundaries
+
+- [NASA radiation analysis and shielding design](https://ddtrb.larc.nasa.gov/radiation/) supports spectrum- and material-dependent shielding and the decision not to infer cave/water attenuation.
+- [USGS terminal electron acceptor table](https://pubs.usgs.gov/wri/wri994285/datatab/table1.html) supports explicit alternative electron acceptors with differing energy yields.
+- [NASA ideal-gas relationship](https://www.grc.nasa.gov/WWW/K-12/Numbers/Math/Mathematical_Thinking/ideal_gases_under_constant.htm) supports the local atmospheric-density calculation.
+- [Thermal-fluctuation meta-analysis](https://pubmed.ncbi.nlm.nih.gov/36750193/) supports context-dependent variability instead of a universal flat penalty.
+
+## Versioning
+
+Current version: `1.0.0`.
+
+- Patch: coefficient correction that preserves contract shape.
+- Minor: compatible new metrics, regions, or traits.
+- Major: changed meaning, output contract, or incompatible scoring.
+
+Changing a coefficient requires tests, this document, and a simulator-version decision.

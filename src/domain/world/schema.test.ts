@@ -37,6 +37,8 @@ describe("WorldParametersSchema", () => {
     expect(result.shieldingColumnMassKgM2).toBe(0);
     expect(result.geochemicalEnergyAvailability).toBe("none");
     expect(result.electronAcceptors).toEqual([]);
+    expect(result.humidity).toBe(0.45);
+    expect(result.magneticFieldStrengthEarth).toBe(0.7);
   });
 
   it("rejects atmospheric fractions that do not sum to one", () => {

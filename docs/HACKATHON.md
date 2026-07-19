@@ -1,86 +1,119 @@
-# Xenogenesis Lab — Hackathon Record
+# Xenogenesis Lab — OpenAI Build Week Record
 
-## Event
+## Current event requirements
 
-```text
-OpenAI Build Week
-```
+Checked on **2026-07-19** against the [OpenAI Build Week page](https://openai.com/build-week/) and [Devpost challenge page](https://openai.devpost.com/).
 
-**TODO:** verify the current official deadline, track, and submission requirements before submitting.
+| Item | Official requirement or judging signal |
+| --- | --- |
+| Deadline | 2026-07-21 at 5:00 PM PDT |
+| Selected category | Education |
+| Project | Working project built with Codex using GPT-5.6 |
+| Description | Explain what was created and how it works |
+| Demo | Public YouTube video under three minutes |
+| Demo audio | Explain how Codex and GPT-5.6 were used |
+| Repository | URL available to judges; public with relevant license or private shared with required judging addresses |
+| README | Setup, sample data if needed, and clear run instructions |
+| Development evidence | Highlight Codex acceleration, key decisions, and GPT-5.6/Codex use |
+| Codex record | Primary `/feedback` session ID for the majority of core functionality |
+| Judging | Technical implementation, design/coherent experience, potential impact, and quality/novelty of idea |
+
+Always re-check Devpost before final submission because challenge text may change.
 
 ## Honest project baseline
 
-Before the event, no production application, complete simulation engine, integrated GPT-5.6 workflow, or live image-generation pipeline existed. Early concept notes, branding experiments, and general astrobiology inspiration may be pre-existing material; only eligible work should be represented as hackathon work.
+Before Build Week, no complete production application, procedural WebGL planet, continuous simulation engine, integrated GPT-5.6 workflow, or live image pipeline existed. Early concept notes, branding, and general astrobiology inspiration may be pre-existing. Only eligible work and verifiable session evidence should be represented as event work.
 
-The current repository contains one complete session-only Vespera training mission with an animated boot, Mission Control home, an editable experimental world, a smoothly transitioning code-native planet, tested world normalization, deterministic pressure and adaptation rules, committed multiple-choice decisions, a validated server-only GPT-5.6 instructor path with an honest local fallback, multiple-choice revision, and competency scoring. AI image generation, persistent archive storage, accounts, certification progression, and additional missions are not implemented.
+## Current working build
+
+The repository currently implements:
+
+- a cinematic skippable boot;
+- one continuous Genesis 01 mission;
+- a deterministic seeded planet with layered custom GLSL terrain, water, ice, clouds, atmosphere, scientific overlays, and result-driven biosphere/region markers;
+- ten reactive planet parameters;
+- 33 biological traits with costs, conflicts, modifiers, advantages, and tradeoffs;
+- simulator 1.0.0 with 11 continuous metrics, six representative regions, eight outcomes, stable hashing, and a 40-generation population model;
+- deterministic organism morphology;
+- a server-only GPT-5.6 consultant route with Zod structured output and honest local fallback;
+- a server-only `gpt-image-2` route with controlled server-built prompt and procedural fallback;
+- reviewed English and Polish UI;
+- one repeatable no-reload `Observe → Modify → Design → Simulate → Adapt` loop.
+
+The local deterministic workflow and both fallback routes work without external credentials. Live GPT-5.6 and `gpt-image-2` calls have not been executed in this Codex session and must not be shown or claimed as verified until tested in deployment.
 
 ## Evidence record
 
-Add a dated entry for meaningful work. Do not invent evidence.
+### 2026-07-18 — Deterministic world foundations
 
-```text
-Date:
-Area:
-Work completed:
-Relevant commit or pull request:
-Codex session or evidence:
-Human decision or review:
-Verification:
-```
+- **Area:** scientific data contract.
+- **Work:** validated world schema, units, radiation normalization, oxygen partial pressure, ideal-gas density, symmetric temperature range, explicit shielding column mass, and conservative geochemical pathway detection.
+- **Human decisions:** habitat does not attenuate radiation; alternative energy needs a supplied redox pathway; local atmospheric values are authoritative; English/Polish translation review is required.
+- **Evidence:** repository tests and current Codex task history.
 
-Preserve the primary `/feedback` session ID, dated commits, meaningful diffs, tests, refactors, implementation or debugging moments, and human product, engineering, scientific-boundary, and design decisions.
+### 2026-07-19 — Procedural life simulator transformation
 
-### 2026-07-19 — Single-mission vertical slice
-
-- **Area:** deterministic training loop and Mission Instructor boundary
-- **Work completed:** fixed Vespera briefing, committed hypothesis, ruleset 0.2.0, pressure/adaptation inspection, validated GPT-5.6 route with local fallback, evidence-based revision, session competency progress, English/Polish interface, and aligned documentation
-- **Relevant commit or pull request:** **TODO:** changes are uncommitted in the current workspace
-- **Codex session or evidence:** current Codex task; primary `/feedback` session remains **TODO**
-- **Human decision or review:** the user defined the product as an AI-guided mission-training simulator and requested the smallest complete mission
-- **Verification:** 14 Vitest tests passed; TypeScript, scoped and repository lint, production build, English/Polish browser flow, fallback API path, and mobile layout checked on 2026-07-19
-
-### 2026-07-19 — Experimental-world mission flow
-
-- **Area:** onboarding, learner experimentation, planet visualisation, and structured decisions
-- **Work completed:** skippable animated boot, Mission Control home, guided first-mission instructions, immutable Vespera baseline, resettable validated variants, all current parameter groups with bilingual influence explanations, smooth deterministic SVG planet mapping, locked-world visibility during multiple-choice decisions, server recalculation of the committed variant, and multiple-choice revision
-- **Relevant commit or pull request:** **TODO:** changes are uncommitted in the current workspace
-- **Codex session or evidence:** current Codex task; primary `/feedback` session remains **TODO**
-- **Human decision or review:** the user selected learner freedom, all parameter groups, a hybrid scientific/cinematic continuously changing planet, multiple-choice decisions, and an animated boot
-- **Verification:** 17 Vitest tests, TypeScript, repository lint, and production build passed on 2026-07-19; the full English local-fallback mission, Polish debrief and revision, animated boot, smooth visual transition timing, browser console, mobile layout, and stage scroll reset were verified in the browser
+- **Area:** product, rendering, deterministic biology, AI boundaries, and documentation.
+- **Work:** replaced the hypothesis/quiz architecture with the continuous life-engineering loop; added Three.js/R3F/Drei and custom planet shaders; added environment controls, trait designer, centralized simulator coefficients, regional and population analysis, procedural organism, consultant and image routes, cinematic boot, responsive laboratory, and aligned documentation.
+- **Human decisions:** learner freedom, broad mission outcomes, real-time smooth planet changes, meaningful traits with tradeoffs, an animation-led boot, on-demand AI, and one polished mission.
+- **Codex evidence:** current Codex task; **TODO:** capture the final `/feedback` session ID.
+- **Relevant commit or pull request:** **TODO:** current transformation is uncommitted.
+- **Verification:** 19 Vitest tests passed; `npx tsc --noEmit`, full `npm run lint`, and `npm run build` passed. The production build was smoke-tested locally: planet and designer loaded without dev tools, the deterministic outcome/population/hash rendered, consultant and image fallbacks rendered with correct provenance, Polish fallback copy exposed no internal enum IDs, `html[lang="pl"]` updated, and a language change discarded an in-flight response from the previous language. Cinematic boot and full desktop interaction were also inspected. A real narrow/mobile device and deployed OpenAI calls remain TODOs.
+- **Dependency audit:** `npm audit --omit=dev` reports two moderate findings in Next.js's bundled PostCSS dependency (`GHSA-qx2v-qp2m-jg93`) and reports no fix available. Monitor upstream; do not claim a clean audit.
 
 ## Codex and GPT-5.6 roles
 
-Codex has assisted with repository analysis, architecture and documentation, schema and test work, prototype implementation, verification, and review. The human owns the final product direction, scientific assumptions, architecture decisions, design review, and submitted implementation.
+Codex accelerated repository analysis, architecture refactoring, deterministic modeling, shader and UI implementation, bilingual content, test design, browser QA, science-boundary corrections, and documentation. The human selected the product direction and owns the scientific conventions, educational goal, design review, deployment, and submitted claims.
 
-The Mission Instructor route is implemented with the Responses API, the `gpt-5.6` alias, Zod Structured Outputs, server-side credentials, and a deterministic fallback. A live GPT-5.6 request was not executed in the current Codex session because no API credential was available. Submission material must claim live GPT behavior only after deployment-to-HEAD and an end-to-end response are verified.
+In the app, GPT-5.6 is an optional scientific consultant. It receives validated planet state, selected traits, and server-recalculated deterministic output. It explains tradeoffs and suggests one controlled experiment. It also selects four constrained art-direction enums. The server—not GPT—constructs the final image prompt. GPT-5.6 never calculates the result.
 
-## Demo target
+The fallback is local deterministic text and is visibly labelled. It is not evidence of a live GPT call.
 
-The eventual demo should show, in under three minutes: the boot animation, Mission Control home, a guided briefing, a visibly changing experimental world, committed multiple-choice decisions, a deterministic simulation whose output changes with environmental input, visible provenance, a live GPT-5.6 Mission Instructor debrief, and evidence-based revision.
+## Demo target: under three minutes
 
-Do not show or claim mocked, manually prepared, or pre-generated content as live output.
+The demo should visibly prove:
+
+1. cinematic boot and clear objective;
+2. a real seeded WebGL planet that changes as inputs change;
+3. temperature/radiation overlays and planet interaction;
+4. meaningful life traits, budget, and tradeoffs;
+5. a deterministic run with regional scores and population chart;
+6. a second controlled change or comparison;
+7. a live GPT-5.6 consultant result with provenance;
+8. a live generated organism image only if the route is verified;
+9. where Codex accelerated the build and where the human made key decisions.
+
+Never show mocked, manually prepared, local-fallback, or pre-generated output as a live model response.
 
 ## Submission record
 
-| Item | Value |
+| Item | Current value |
 | --- | --- |
+| Category | Education |
 | Production URL | https://www.danielwaleczek.com |
 | Repository URL | https://github.com/IDanielWaleczek/Xenogenesis-Lab |
-| Primary Codex `/feedback` session | **TODO:** capture before submission. |
-| Public video | **TODO:** add before submission. |
-| Deployment-to-HEAD check | **TODO:** verify before submission. |
+| License | MIT |
+| Primary Codex `/feedback` session ID | **TODO** |
+| Public YouTube demo under three minutes | **TODO** |
+| Deployment matches repository HEAD | **TODO** |
+| Live GPT-5.6 consultant verified | **TODO** |
+| Live `gpt-image-2` illustration verified | **TODO** |
 
-## Completion checklist
+## Final checklist
 
-- [x] One complete mission loop works with the local validated fallback.
-- [x] Boot, Mission Control home, experimental world setup, and structured decisions are implemented.
-- [x] Deterministic rules visibly produce calculated pressures and adaptations.
-- [x] Hypothesis, calculated facts, AI interpretation, and fallback review have distinct provenance.
-- [ ] GPT-5.6 integration is live, validated, and has safe error handling.
-- [ ] Image generation is live only if shown in the demo.
-- [ ] Mobile and desktop layouts are verified.
-- [ ] README setup and claims match the submitted build.
-- [ ] Relevant tests and production build have run successfully.
-- [ ] No secrets or generated junk files are committed.
-- [ ] Primary `/feedback` ID and meaningful Codex evidence are recorded.
-- [ ] Demo video, licence, repository, and official submission metadata are complete.
+- [x] One complete deterministic mission loop works without AI credentials.
+- [x] The planet is procedural, seeded, interactive, and controlled by live inputs.
+- [x] Life traits have costs, conflicts, and visible tradeoffs.
+- [x] Results include continuous metrics, regional survival, population, and multiple outcomes.
+- [x] Deterministic facts, visual interpretation, AI interpretation, and fallbacks have distinct provenance.
+- [x] README includes exact repository commands and architecture.
+- [x] English and Polish interface structures match.
+- [x] Run and record final tests, type check, repository lint, and production build.
+- [ ] Verify desktop and real narrow/mobile device behavior in the production build.
+- [ ] Configure and verify live GPT-5.6 and `gpt-image-2` routes.
+- [ ] Add rate limiting or document the controlled judging environment.
+- [ ] Verify production deploy equals repository HEAD.
+- [ ] Capture primary `/feedback` session ID.
+- [ ] Record and publish the narrated sub-three-minute YouTube demo.
+- [ ] Re-check official rules, eligibility, repository access, and final Devpost fields.
+- [ ] Confirm no secrets or generated junk are committed.

@@ -1,59 +1,85 @@
-# Xenogenesis Lab — 2:30 Working-Build Demo
+# Xenogenesis Lab — 2:45 Working-Build Demo Script
 
 ## Recording rule
 
-Record only the deployed build that matches repository HEAD. Before recording, verify the production route and note whether the debrief provenance label says **GPT-5.6 interpretation** or **Local training review**. Use the matching narration below. Do not show AI image generation, persistent accounts, a mission library, or durable certification; those features are not implemented. The interactive planet is a code-rendered visual interpretation, not an AI-generated scientific illustration.
+Record only the deployed build that matches repository HEAD. Keep the video public on YouTube and under three minutes. Audio must explain both Codex and GPT-5.6 usage.
 
-## 0:00–0:18 — Boot and Mission Control
+Before recording:
 
-Show the animated boot, enter Mission Control, and pause on the mission card.
+- verify the live URL, desktop layout, and both OpenAI routes;
+- decide whether the consultant label is **GPT-5.6 analysis** or **Local scientific fallback** and read only the matching narration;
+- show a generated field illustration only if `gpt-image-2` succeeds live during the recording;
+- do not call shader visuals scientific measurements or fallbacks live AI.
 
-> Xenogenesis Lab is an astrobiology mission-training simulator. It behaves like a mission computer: the learner boots the system, enters Mission Control, and receives a clear training objective before touching the science.
+## 0:00–0:16 — Cinematic boot
 
-## 0:18–0:38 — Guided briefing
+Show startup from a fresh reload and let the system enter the lab.
 
-Open Mission 01 and show the baseline telemetry and five-step instruction strip.
+> Xenogenesis Lab is a procedural astrobiology simulator. It begins like a real research computer, then gives the learner one broad goal: engineer a planet and design stable, advanced life.
 
-> Vespera b starts with verified baseline telemetry. The interface explains exactly what to do, and makes clear that learner changes create a separate experiment rather than overwriting mission data.
+## 0:16–0:34 — Mission and experimental loop
 
-## 0:38–1:05 — World Lab
+Pause on the objective and point to the five-step loop.
 
-Change gravity, temperature, water, atmosphere, and habitat. Show the planet transitioning smoothly, the parameter explanations, derived temperature range, oxygen partial pressure, and reset action. Lock the variant.
+> This is not a quiz with one hidden answer. The loop is observe, modify, design, simulate, and adapt. The first instruction tells a new learner exactly what to do without asking them to write a hypothesis.
 
-> In the World Lab, every current parameter group is available. Each control explains how it could shape a world or its life, and every change produces continuous visual feedback. The planet is explicitly labelled as visual interpretation; scientific conclusions remain hidden until the deterministic simulation runs.
+## 0:34–1:02 — Procedural planet
 
-## 1:05–1:25 — Commit decisions
+Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and magnetic field. Switch briefly to Temperature and Radiation, then return to Realistic.
 
-Keep the locked planet visible. Select predicted pressures, adaptations, and one survival strategy, then commit.
+> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. The scene keeps one terrain mesh while water, ice, clouds, atmosphere, light, radiation, and biome uniforms move smoothly toward every parameter change. Each control also feeds the local science model; none is decorative.
 
-> The first mission uses multiple-choice decisions instead of asking a new learner to write scientific prose. The learner commits pressure, adaptation, and strategy predictions before seeing the model result.
+## 1:02–1:28 — Design life
 
-## 1:25–1:48 — Deterministic simulation
+Open Design life. Show the organism, budget, one selected trait, one incompatibility, and two categories. Add or remove one affordable trait.
 
-Run the simulation. Show normalized facts, pressure and adaptation cards, and comparison.
+> The organism designer offers 33 biological traits with costs, advantages, vulnerabilities, and conflicts. High complexity improves adaptation but consumes energy. Radiation repair can slow reproduction. Flight depends on atmosphere and gravity. The procedural field model changes immediately from the seed, planet, and anatomy.
 
-> Ruleset 0.2.0 recalculates the locked world and gives the same output for identical validated input. It currently scores four documented conventions for gravity, thermal range, radiation, and water. Other controls never gain hidden rules.
+## 1:28–1:55 — Deterministic simulation
 
-## 1:48–2:08 — Mission Instructor
+Run the simulation. Keep the animation and then show the outcome, state hash, scores, region markers, and population graph.
 
-Request the debrief and keep the provenance label visible.
+> Simulator 1.0.0 runs locally and reproducibly for 40 generations. It combines 11 continuous suitability scores rather than checking one correct threshold. It can produce extinction, a regional refuge, simple stability, ecological dominance, a multicellular ecosystem, or advanced adaptable life. Here the same result is tied to a stable state hash.
 
-If the label says **GPT-5.6 interpretation**:
+## 1:55–2:13 — Adapt and compare
 
-> The server validates and recalculates the committed variant, sends the structured decisions and deterministic result to GPT-5.6, and validates the returned debrief with Zod. The model explains; it cannot change the calculated facts.
+Return to the planet or life designer, change one variable, rerun, and show the comparison delta.
 
-If the label says **Local training review**:
+> The evidence identifies the strongest and limiting systems, so the learner can run a controlled experiment. Multiple strategies work: an aerobic surface organism and a geochemically powered aquatic organism can survive for different reasons.
 
-> This run has no verified live GPT-5.6 response, so the application shows its validated deterministic fallback. The provenance label makes clear that this text is not AI-generated.
+## 2:13–2:32 — GPT-5.6 consultant and illustration
 
-## 2:08–2:22 — Revision and progress
+Request the consultant and keep its provenance label visible.
 
-Select evidence, choose a multiple-choice conclusion, and complete the mission.
+If the label says **GPT-5.6 analysis**:
 
-> The learner revises from calculated evidence without a writing barrier. Progress reflects decision alignment, adaptation recall, and evidence coverage; the archive remains session-only.
+> GPT-5.6 receives only validated state and a server-recalculated result. It explains tradeoffs and suggests one experiment; it cannot change a score. Its image direction is restricted to four enums, and the server builds the final organism prompt from deterministic facts.
 
-## 2:22–2:30 — Close
+If the label says **Local scientific fallback**:
 
-Show the competency screen, then return to Mission Control.
+> This environment did not return a verified live GPT-5.6 response, so the app clearly labels its deterministic local fallback. I would not submit this recording as proof of the required live model path.
 
-> Codex accelerated the contracts, deterministic engine, bilingual experience, tests, and documentation. The human directed the product, science boundary, experimental freedom, and final interaction choices.
+If a live generated image appears:
+
+> `gpt-image-2` now visualizes the validated organism. The image is representation, never simulation evidence.
+
+If the procedural fallback remains:
+
+> Image generation was unavailable, so the deterministic field model remains intact and honestly labelled.
+
+## 2:32–2:45 — Codex development story
+
+Return to a strong three-panel view.
+
+> Codex accelerated the repository refactor, deterministic contracts, continuous population model, custom shaders, bilingual interface, tests, browser QA, and documentation. I directed the product shift, scientific boundaries, learner freedom, and final design decisions. Together they produced one complete educational experiment instead of disconnected AI features.
+
+## Capture checklist
+
+- [ ] Total duration is below three minutes.
+- [ ] Audio mentions Codex and GPT-5.6.
+- [ ] A real world-control change visibly affects the planet.
+- [ ] Trait cost and tradeoff are readable.
+- [ ] Deterministic score, state hash, regions, and population appear.
+- [ ] Consultant provenance is visible and narration matches it.
+- [ ] Generated image is shown only if created live.
+- [ ] No local dev tools, keys, prompts, console errors, or TODO UI appears.
