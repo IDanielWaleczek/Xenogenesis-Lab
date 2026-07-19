@@ -57,7 +57,7 @@ The simulator has no React, Three.js, OpenAI, route, or persistence dependency.
 
 ### Procedural rendering — `src/components/planet/` and `src/shaders/`
 
-The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, biome masks, ice, water masks, clouds, radiation heatmaps, and biosphere patches.
+The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, biome masks, ice, water masks, clouds, radiation heatmaps, biosphere patches, and a shared sun direction for day/night shading. The water layer maps zero available water to no visible surface water and full available water to an aquatic shell; the atmosphere shell fades out at zero local pressure.
 
 React state changes only update target values. `useFrame` interpolates external Three.js shader uniforms and rotation without React state updates. Terrain geometry is not regenerated for slider changes. Water, cloud, and atmosphere are separate coordinated layers. Region markers visualize deterministic result scores.
 
@@ -65,7 +65,7 @@ This layer owns presentation only. It cannot produce habitability or population 
 
 ### Presentation — `src/app/page.tsx` and `src/components/life/`
 
-The client keeps one mission’s current state: language, phase, planet, traits, visualization mode, inspection, latest result, previous result, AI states, and fallback image. It provides non-authoritative interaction validation and runs the same pure deterministic simulator for immediate results.
+The client keeps one mission’s current state: language, phase, planet, traits, visualization mode, inspection, latest result, previous result, AI states, and fallback image. It caps editable humidity by available water and runs the same pure deterministic simulator for immediate results. The phase layout centers the planet, organism, or analysis according to the current task while retaining a contextual planet view.
 
 `src/app/copy.ts` is a compile-time checked English/Polish dictionary covering visible and accessible text. New UI text must be added and reviewed in both languages.
 

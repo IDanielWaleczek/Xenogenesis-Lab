@@ -44,9 +44,7 @@ export type LabCopy = {
     eyebrow: string;
     title: string;
     subtitle: string;
-    steps: Array<{ title: string; detail: string }>;
-    systemCheck: string;
-    ready: string;
+    sceneLabel: string;
     skip: string;
     enter: string;
   };
@@ -90,6 +88,10 @@ export type LabCopy = {
     oxygenPartialPressure: string;
     atmosphericDensity: string;
     temperatureRange: string;
+    legends: {
+      temperature: { title: string; cold: string; temperate: string; hot: string };
+      radiation: { title: string; protected: string; elevated: string; severe: string };
+    };
   };
   parameters: Record<ParameterId, ParameterCopy>;
   life: {
@@ -191,16 +193,8 @@ const english: LabCopy = {
     eyebrow: "Xenogenesis research platform · remote node 07",
     title: "XENOGENESIS LAB",
     subtitle: "Procedural astrobiology simulation environment",
-    steps: [
-      { title: "Power lattice", detail: "Stabilizing orbital laboratory systems" },
-      { title: "Planet renderer", detail: "Compiling terrain, water, cloud, and atmosphere shaders" },
-      { title: "Science core", detail: "Loading deterministic simulator 1.0.0" },
-      { title: "Biology archive", detail: "Validating trait costs and compatibility rules" },
-      { title: "Mission channel", detail: "Synchronizing Vespera-7A telemetry" },
-    ],
-    systemCheck: "System integrity check",
-    ready: "LABORATORY ONLINE",
-    skip: "Skip startup",
+    sceneLabel: "From orbit to organism",
+    skip: "Skip animation",
     enter: "Enter laboratory",
   },
   header: {
@@ -247,6 +241,10 @@ const english: LabCopy = {
     oxygenPartialPressure: "Oxygen partial pressure",
     atmosphericDensity: "Atmospheric density",
     temperatureRange: "Configured temperature range",
+    legends: {
+      temperature: { title: "Temperature", cold: "Frozen", temperate: "Temperate", hot: "Extreme heat" },
+      radiation: { title: "Radiation exposure", protected: "Protected", elevated: "Elevated", severe: "Severe" },
+    },
   },
   parameters: {
     gravity: { label: "Gravity", unit: "g", influence: "Higher gravity favors compact, strongly supported bodies and makes flight more expensive." },
@@ -254,10 +252,10 @@ const english: LabCopy = {
     pressure: { label: "Local pressure", unit: "atm", influence: "Changes atmospheric density, water stability, cloud formation, and movement options." },
     oxygen: { label: "Atmospheric oxygen", unit: "%", influence: "Sets oxygen partial pressure and the energy available to aerobic organisms." },
     carbonDioxide: { label: "Atmospheric carbon dioxide", unit: "%", influence: "Changes atmospheric color and supplies carbon while high levels impose a model cost." },
-    water: { label: "Available water", unit: "%", influence: "Fills low terrain first and supports hydration, oceans, clouds, and biological energy." },
+    water: { label: "Available water", unit: "%", influence: "0% removes surface water; 100% creates an aquatic world. It also caps possible humidity." },
     radiation: { label: "Radiation dose rate", unit: "mSv/h", influence: "Raises biological damage unless explicit defenses or magnetic protection compensate." },
     light: { label: "Stellar energy", unit: "%", influence: "Changes illumination and the energy available to photosynthetic strategies." },
-    humidity: { label: "Humidity", unit: "%", influence: "Influences clouds, surface moisture, hydration, and fertile terrain." },
+    humidity: { label: "Humidity", unit: "%", influence: "Requires available water, so its maximum follows the water setting. It shapes clouds, moisture, and fertile terrain." },
     magneticField: { label: "Magnetic field", unit: "Earth", influence: "Reduces the modeled incoming radiation exposure and changes the radiation overlay." },
   },
   life: {
@@ -427,16 +425,8 @@ const polish: LabCopy = {
     eyebrow: "Platforma badawcza Xenogenesis · zdalny węzeł 07",
     title: "XENOGENESIS LAB",
     subtitle: "Środowisko proceduralnych symulacji astrobiologicznych",
-    steps: [
-      { title: "Sieć zasilania", detail: "Stabilizacja systemów laboratorium orbitalnego" },
-      { title: "Renderer planety", detail: "Kompilacja shaderów terenu, wody, chmur i atmosfery" },
-      { title: "Rdzeń naukowy", detail: "Ładowanie deterministycznego symulatora 1.0.0" },
-      { title: "Archiwum biologiczne", detail: "Weryfikacja kosztów cech i reguł zgodności" },
-      { title: "Kanał misji", detail: "Synchronizacja telemetrii Vespera-7A" },
-    ],
-    systemCheck: "Kontrola integralności systemu",
-    ready: "LABORATORIUM ONLINE",
-    skip: "Pomiń uruchamianie",
+    sceneLabel: "Od orbity do organizmu",
+    skip: "Pomiń animację",
     enter: "Wejdź do laboratorium",
   },
   header: {
@@ -483,6 +473,10 @@ const polish: LabCopy = {
     oxygenPartialPressure: "Ciśnienie parcjalne tlenu",
     atmosphericDensity: "Gęstość atmosfery",
     temperatureRange: "Ustawiony zakres temperatury",
+    legends: {
+      temperature: { title: "Temperatura", cold: "Zamarznięte", temperate: "Umiarkowane", hot: "Skrajne gorąco" },
+      radiation: { title: "Ekspozycja na promieniowanie", protected: "Chronione", elevated: "Podwyższone", severe: "Silne" },
+    },
   },
   parameters: {
     gravity: { label: "Grawitacja", unit: "g", influence: "Większa grawitacja sprzyja zwartym, silnie podpartym ciałom i podnosi koszt lotu." },
@@ -490,10 +484,10 @@ const polish: LabCopy = {
     pressure: { label: "Ciśnienie lokalne", unit: "atm", influence: "Zmienia gęstość atmosfery, stabilność wody, powstawanie chmur i możliwości ruchu." },
     oxygen: { label: "Tlen w atmosferze", unit: "%", influence: "Określa ciśnienie parcjalne tlenu i energię dostępną dla organizmów tlenowych." },
     carbonDioxide: { label: "Dwutlenek węgla w atmosferze", unit: "%", influence: "Zmienia kolor atmosfery i dostarcza węgla, lecz wysokie stężenie generuje koszt modelowy." },
-    water: { label: "Dostępna woda", unit: "%", influence: "Najpierw wypełnia niziny oraz wspiera nawodnienie, oceany, chmury i energię biologiczną." },
+    water: { label: "Dostępna woda", unit: "%", influence: "0% usuwa wodę powierzchniową, a 100% tworzy świat wodny. Ustawienie ogranicza też możliwą wilgotność." },
     radiation: { label: "Dawka promieniowania", unit: "mSv/h", influence: "Zwiększa uszkodzenia biologiczne, jeśli nie równoważą ich jawne mechanizmy ochronne lub pole magnetyczne." },
     light: { label: "Energia gwiazdy", unit: "%", influence: "Zmienia oświetlenie i energię dostępną dla strategii fotosyntetycznych." },
-    humidity: { label: "Wilgotność", unit: "%", influence: "Wpływa na chmury, wilgoć powierzchni, nawodnienie i żyzne obszary." },
+    humidity: { label: "Wilgotność", unit: "%", influence: "Wymaga dostępnej wody, więc jej maksimum zależy od ustawienia wody. Kształtuje chmury, wilgoć i żyzne obszary." },
     magneticField: { label: "Pole magnetyczne", unit: "Ziemi", influence: "Zmniejsza modelowaną ekspozycję na promieniowanie i zmienia nakładkę radiacyjną." },
   },
   life: {

@@ -84,7 +84,7 @@ export const RadiationDoseRateSchema = z
 export const WorldParametersSchema = z
   .object({
     gravityG: z.number().finite().min(0.05).max(5),
-    atmosphericPressureAtm: z.number().finite().min(0.05).max(20),
+    atmosphericPressureAtm: z.number().finite().min(0).max(20),
     atmosphereComposition: AtmosphereCompositionSchema,
     averageTemperatureC: z.number().finite().min(-100).max(150),
     temperatureVariationC: z.number().finite().min(0).max(100),

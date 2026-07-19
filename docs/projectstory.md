@@ -26,9 +26,9 @@ There is no single planet recipe. A high-energy aerobic surface strategy and a l
 
 ## What the learner sees
 
-The planet is not a static asset. Custom shaders use a deterministic seed and layered noise to generate orbital-scale terrain, ridges, oceans, ice, moisture, clouds, atmosphere, and biosphere patches. Each major world parameter affects both this presentation and the internal model. Temperature and radiation overlays let the learner switch from the cinematic world to a scientific view without recoloring the planet permanently.
+The planet is not a static asset. Custom shaders use a deterministic seed and layered noise to generate orbital-scale terrain, ridges, oceans, ice, moisture, clouds, atmosphere, and biosphere patches. A visible sun gives the world a readable day and night side; zero pressure removes the visual atmosphere and zero/full water create dry/aquatic extremes. Temperature and radiation overlays include labels so their colors remain interpretable.
 
-The organism is not a paragraph. Its immediate procedural field model responds to the current seed and selected body, movement, support, sensory, thermal, radiation, and energy traits. An optional AI-generated field illustration can replace it only after the server grounds the prompt in validated facts.
+The organism is not a paragraph. Its immediate procedural field model responds to the current seed and selected body, movement, support, sensory, thermal, radiation, and energy traits. During Design life it becomes the central visual while a smaller live planet remains in view. An optional AI-generated field illustration can replace it only after the server grounds the prompt in validated facts.
 
 The survival result is not just success or failure. It includes 11 interacting scores, six representative habitat regions, a population curve, carrying capacity, strongest systems, limiting systems, and one of eight outcomes. The learner can change one variable and compare the next run without restarting.
 

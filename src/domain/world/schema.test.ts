@@ -98,6 +98,17 @@ describe("normalizeWorldParameters", () => {
     expect(result.atmosphericDensityKgM3).toBeCloseTo(1.204, 3);
   });
 
+  it("accepts vacuum pressure and derives no oxygen partial pressure or atmospheric density", () => {
+    const result = normalizeWorldParameters({
+      ...createReferenceWorld(),
+      atmosphericPressureAtm: 0,
+      atmosphericMeanMolarMassKgPerMol: 0.028_97,
+    });
+
+    expect(result.oxygenPartialPressureAtm).toBe(0);
+    expect(result.atmosphericDensityKgM3).toBe(0);
+  });
+
   it("requires both a redox gradient and an electron acceptor for an alternative pathway", () => {
     const result = normalizeWorldParameters({
       ...createReferenceWorld(),

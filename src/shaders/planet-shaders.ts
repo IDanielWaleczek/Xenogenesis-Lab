@@ -112,19 +112,24 @@ void main() {
     color = mix(vec3(0.08, 0.2, 0.45), vec3(0.96, 0.2, 0.17), exposure);
   }
 
-  float diffuse = 0.18 + uLightLevel * 0.2 + max(dot(normalize(vNormalDirection), normalize(uLightDirection)), 0.0) * (0.42 + uLightLevel * 0.38);
+  float directLight = max(dot(normalize(vNormalDirection), normalize(uLightDirection)), 0.0);
+  float diffuse = 0.055 + uLightLevel * 0.09 + directLight * (0.32 + uLightLevel * 0.64);
   float rim = pow(1.0 - max(dot(normalize(vNormalDirection), vec3(0.0, 0.0, 1.0)), 0.0), 2.0);
   gl_FragColor = vec4(color * diffuse + rim * vec3(0.035, 0.08, 0.11), 1.0);
 }
 `;
 
 export const PLANET_WATER_VERTEX_SHADER = `
+uniform float uSeed;
+uniform float uWater;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
+${GLSL_NOISE}
 void main() {
   vObjectPosition = normalize(position);
   vNormalDirection = normalize(normalMatrix * normal);
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  float seaLevel = mix(0.002, 0.115, smoothstep(0.0, 1.0, uWater));
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 + seaLevel), 1.0);
 }
 `;
 
@@ -135,15 +140,20 @@ uniform float uTemperature;
 uniform float uPressure;
 uniform float uBiosphere;
 uniform float uTime;
+uniform vec3 uLightDirection;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
 ${GLSL_NOISE}
 void main() {
-  float terrain = fbm(vObjectPosition * 2.7 + vec3(uSeed * 0.017));
-  float threshold = mix(0.28, 0.74, 1.0 - uWater);
+  if (uWater < 0.002) discard;
+  vec3 samplePoint = vObjectPosition * 2.7 + vec3(uSeed * 0.017);
+  float warped = fbm(samplePoint * 0.75 + fbm(samplePoint * 1.8));
+  float terrain = fbm(samplePoint + vec3(warped * 1.4));
+  float threshold = mix(-0.05, 1.05, uWater);
   float stableHeat = 1.0 - smoothstep(0.82, 1.0, uTemperature);
   float pressureStability = smoothstep(0.02, 0.18, uPressure);
-  float oceanMask = (1.0 - smoothstep(threshold - 0.045, threshold + 0.045, terrain)) * stableHeat * pressureStability;
+  float waterAbundance = mix(stableHeat * pressureStability, 1.0, smoothstep(0.94, 1.0, uWater));
+  float oceanMask = (1.0 - smoothstep(threshold - 0.045, threshold + 0.045, terrain)) * waterAbundance;
   if (oceanMask < 0.02) discard;
   float wave = fbm(vObjectPosition * 18.0 + vec3(uTime * 0.025, 0.0, 0.0));
   float fresnel = pow(1.0 - abs(dot(normalize(vNormalDirection), vec3(0.0, 0.0, 1.0))), 2.2);
@@ -154,14 +164,18 @@ void main() {
   vec3 color = mix(deep, shallow, wave * 0.58 + fresnel * 0.42);
   color = mix(color, vec3(0.06, 0.42, 0.31), bloom * 0.68);
   color = mix(color, vec3(0.74, 0.88, 0.93), freeze * (0.72 + wave * 0.18));
-  gl_FragColor = vec4(color, oceanMask * 0.86);
+  float directLight = max(dot(normalize(vNormalDirection), normalize(uLightDirection)), 0.0);
+  color *= 0.08 + directLight * 0.92;
+  gl_FragColor = vec4(color, oceanMask * 0.9);
 }
 `;
 
 export const PLANET_CLOUD_VERTEX_SHADER = `
 varying vec3 vObjectPosition;
+varying vec3 vNormalDirection;
 void main() {
   vObjectPosition = normalize(position);
+  vNormalDirection = normalize(normalMatrix * normal);
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
@@ -170,14 +184,17 @@ export const PLANET_CLOUD_FRAGMENT_SHADER = `
 uniform float uSeed;
 uniform float uClouds;
 uniform float uTime;
+uniform vec3 uLightDirection;
 varying vec3 vObjectPosition;
+varying vec3 vNormalDirection;
 ${GLSL_NOISE}
 void main() {
   vec3 moving = vObjectPosition * 7.5 + vec3(uSeed * 0.023, uTime * 0.018, 0.0);
   float cloud = fbm(moving);
   float mask = smoothstep(0.68 - uClouds * 0.23, 0.78 - uClouds * 0.12, cloud);
   if (mask < 0.015) discard;
-  gl_FragColor = vec4(vec3(0.78, 0.88, 0.92), mask * (0.28 + uClouds * 0.48));
+  float directLight = max(dot(normalize(vNormalDirection), normalize(uLightDirection)), 0.0);
+  gl_FragColor = vec4(vec3(0.45 + directLight * 0.42, 0.56 + directLight * 0.34, 0.64 + directLight * 0.28), mask * (0.2 + uClouds * 0.5));
 }
 `;
 
@@ -196,13 +213,16 @@ export const ATMOSPHERE_FRAGMENT_SHADER = `
 uniform vec3 uAtmosphereColor;
 uniform float uDensity;
 uniform float uDaylight;
+uniform vec3 uLightDirection;
 varying vec3 vNormalDirection;
 varying vec3 vViewDirection;
 void main() {
+  if (uDensity < 0.004) discard;
   float fresnel = pow(1.0 - max(dot(vNormalDirection, vViewDirection), 0.0), 2.7);
-  float daySide = 0.35 + uDaylight * 0.65;
-  float alpha = fresnel * (0.22 + uDensity * 0.68);
-  vec3 color = uAtmosphereColor * daySide + vec3(0.08, 0.14, 0.28) * (1.0 - daySide);
+  float sunlight = max(dot(normalize(vNormalDirection), normalize(uLightDirection)), 0.0);
+  float daySide = 0.1 + sunlight * (0.25 + uDaylight * 0.75);
+  float alpha = fresnel * (0.08 + uDensity * 0.82) * (0.45 + sunlight * 0.55);
+  vec3 color = uAtmosphereColor * daySide + vec3(0.03, 0.06, 0.14) * (1.0 - daySide);
   gl_FragColor = vec4(color, alpha);
 }
 `;

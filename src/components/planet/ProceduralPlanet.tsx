@@ -69,6 +69,9 @@ const REGION_MARKERS: Record<RegionId, [number, number, number]> = {
   highAltitude: [-0.6, 0.57, -0.58],
 };
 
+const SUN_POSITION: [number, number, number] = [1.8, 1.15, 5.2];
+const SUN_DIRECTION = new Vector3(...SUN_POSITION).normalize();
+
 /** Maps a stable text seed to a shader-friendly number. */
 function seedToFloat(seed: string): number {
   let hash = 2_166_136_261;
@@ -97,9 +100,9 @@ function deriveVisualTargets(
   const carbonDioxide = world.atmosphereComposition.carbonDioxideFraction;
   const dust = MathUtils.clamp(carbonDioxide * 4 + Math.max(0, temperature - 0.68), 0, 1);
   const atmosphereColor = new Color().setRGB(
-    0.18 + dust * 0.48,
-    0.48 + oxygen * 0.9 - dust * 0.18,
-    0.82 - dust * 0.42,
+    0.1 + oxygen * 0.7 + dust * 0.4,
+    0.2 + oxygen * 1.05 - dust * 0.08,
+    0.34 + oxygen * 1.45 - dust * 0.26,
   );
   const clouds = MathUtils.clamp(
     world.waterAvailability * 0.38 +
@@ -120,7 +123,7 @@ function deriveVisualTargets(
     biosphere: MathUtils.clamp(biosphereLevel, 0, 1),
     mode: mode === "realistic" ? 0 : mode === "temperature" ? 1 : 2,
     clouds,
-    atmosphereDensity: pressure,
+    atmosphereDensity: MathUtils.clamp(world.atmosphericPressureAtm / 1.35, 0, 1),
     atmosphereColor,
     daylight: MathUtils.clamp(world.lightLevel, 0.15, 1),
     terrainScale: MathUtils.clamp(1.28 - world.gravityG * 0.22, 0.48, 1.22),
@@ -194,7 +197,7 @@ function PlanetScene({
           uBiosphere: { value: 0 },
           uMode: { value: 0 },
           uLightLevel: { value: 0.7 },
-          uLightDirection: { value: new Vector3(0.7, 0.35, 1) },
+          uLightDirection: { value: SUN_DIRECTION },
         },
         vertexShader: PLANET_TERRAIN_VERTEX_SHADER,
         fragmentShader: PLANET_TERRAIN_FRAGMENT_SHADER,
@@ -211,6 +214,7 @@ function PlanetScene({
           uPressure: { value: 0.2 },
           uBiosphere: { value: 0 },
           uTime: { value: 0 },
+          uLightDirection: { value: SUN_DIRECTION },
         },
         vertexShader: PLANET_WATER_VERTEX_SHADER,
         fragmentShader: PLANET_WATER_FRAGMENT_SHADER,
@@ -226,6 +230,7 @@ function PlanetScene({
           uSeed: { value: seed },
           uClouds: { value: 0.4 },
           uTime: { value: 0 },
+          uLightDirection: { value: SUN_DIRECTION },
         },
         vertexShader: PLANET_CLOUD_VERTEX_SHADER,
         fragmentShader: PLANET_CLOUD_FRAGMENT_SHADER,
@@ -242,6 +247,7 @@ function PlanetScene({
           uAtmosphereColor: { value: new Color("#45bce2") },
           uDensity: { value: 0.2 },
           uDaylight: { value: 0.7 },
+          uLightDirection: { value: SUN_DIRECTION },
         },
         vertexShader: ATMOSPHERE_VERTEX_SHADER,
         fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
@@ -301,8 +307,13 @@ function PlanetScene({
 
   return (
     <>
-      <ambientLight intensity={0.32} />
-      <directionalLight intensity={1.8} position={[3.5, 2.4, 4.5]} />
+      <ambientLight intensity={0.14} />
+      <directionalLight intensity={1.5} position={SUN_POSITION} />
+      <pointLight color="#ffe4a3" distance={16} intensity={2.2} position={SUN_POSITION} />
+      <mesh position={SUN_POSITION}>
+        <sphereGeometry args={[0.18, 24, 24]} />
+        <meshBasicMaterial color="#fff3bf" />
+      </mesh>
       <Stars count={1_200} depth={45} factor={2.4} fade radius={38} speed={0.12} />
       <group ref={planetGroup} rotation={[0.08, -0.5, 0.03]}>
         <mesh material={terrainMaterial} onClick={inspect}>

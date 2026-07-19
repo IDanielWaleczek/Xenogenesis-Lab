@@ -15,7 +15,7 @@ Before recording:
 
 Show startup from a fresh reload and let the system enter the lab.
 
-> Xenogenesis Lab is a procedural astrobiology simulator. It begins like a real research computer, then gives the learner one broad goal: engineer a planet and design stable, advanced life.
+> Xenogenesis Lab is a procedural astrobiology simulator. This is a cinematic introduction to a world, its orbit, and the life we might engineer there. Then the lab gives the learner one broad goal: design stable, advanced life.
 
 ## 0:16–0:34 — Mission and experimental loop
 
@@ -27,7 +27,7 @@ Pause on the objective and point to the five-step loop.
 
 Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and magnetic field. Switch briefly to Temperature and Radiation, then return to Realistic.
 
-> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. The scene keeps one terrain mesh while water, ice, clouds, atmosphere, light, radiation, and biome uniforms move smoothly toward every parameter change. Each control also feeds the local science model; none is decorative.
+> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. The scene keeps one terrain mesh while water, ice, clouds, atmosphere, sun-driven day/night light, radiation, and biome uniforms move smoothly toward every parameter change. Zero water dries the world, full water creates an aquatic shell, and the two scientific overlays have labels. Each control also feeds the local science model; none is decorative.
 
 ## 1:02–1:28 — Design life
 

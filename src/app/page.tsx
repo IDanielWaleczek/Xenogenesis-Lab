@@ -82,7 +82,7 @@ const PARAMETER_CONFIG: Array<{
 }> = [
   { id: "gravity", min: 0.2, max: 3, step: 0.01, read: (world) => world.gravityG },
   { id: "temperature", min: -70, max: 100, step: 1, read: (world) => world.averageTemperatureC },
-  { id: "pressure", min: 0.1, max: 5, step: 0.01, read: (world) => world.atmosphericPressureAtm },
+  { id: "pressure", min: 0, max: 5, step: 0.01, read: (world) => world.atmosphericPressureAtm },
   { id: "oxygen", min: 0, max: 32, step: 0.1, read: (world) => world.atmosphereComposition.oxygenFraction * 100 },
   { id: "carbonDioxide", min: 0, max: 12, step: 0.1, read: (world) => world.atmosphereComposition.carbonDioxideFraction * 100 },
   { id: "water", min: 0, max: 100, step: 1, read: (world) => world.waterAvailability * 100 },
@@ -232,7 +232,6 @@ function PopulationChart({
 /** Full application surface for one repeatable procedural life-engineering mission. */
 export default function Home() {
   const [screen, setScreen] = useState<SystemScreen>("boot");
-  const [bootStep, setBootStep] = useState(0);
   const [language, setLanguage] = useState<Language>("en");
   const [phase, setPhase] = useState<LabPhase>("planet");
   const [planet, setPlanet] = useState<PlanetState>(createBaselinePlanet);
@@ -266,18 +265,9 @@ export default function Home() {
 
   useEffect(() => {
     if (screen !== "boot") return;
-    const timeout = window.setTimeout(
-      () => {
-        if (bootStep < copy.boot.steps.length) {
-          setBootStep((current) => current + 1);
-        } else {
-          setScreen("lab");
-        }
-      },
-      bootStep < copy.boot.steps.length ? 570 : 950,
-    );
+    const timeout = window.setTimeout(() => setScreen("lab"), 5_200);
     return () => window.clearTimeout(timeout);
-  }, [bootStep, copy.boot.steps.length, screen]);
+  }, [screen]);
 
   const invalidateCalculatedState = () => {
     stateEpoch.current += 1;
@@ -334,7 +324,11 @@ export default function Home() {
                     : id === "humidity"
                       ? { humidity: value / 100 }
                       : { magneticFieldStrengthEarth: value };
-      return PlanetStateSchema.parse({ ...current, world: { ...world, ...patch } });
+      const nextWorld = { ...world, ...patch };
+      if (id === "water") {
+        nextWorld.humidity = Math.min(nextWorld.humidity, value / 100);
+      }
+      return PlanetStateSchema.parse({ ...current, world: nextWorld });
     });
   };
 
@@ -465,42 +459,31 @@ export default function Home() {
   };
 
   if (screen === "boot") {
-    const complete = bootStep >= copy.boot.steps.length;
-    const progress = Math.min(100, (bootStep / copy.boot.steps.length) * 100);
     return (
       <main className="boot-screen">
+        <div aria-hidden="true" className="boot-nebula" />
         <div aria-hidden="true" className="boot-grid" />
         <div aria-hidden="true" className="boot-horizon" />
+        <div aria-hidden="true" className="boot-starfield" />
+        <div aria-hidden="true" className="boot-planet boot-planet-far" />
+        <div aria-hidden="true" className="boot-planet boot-planet-near"><span /><i /></div>
+        <div aria-hidden="true" className="boot-life-orbit"><span /><span /><span /><i /></div>
         <div className="boot-language">
           <span>{copy.language.label}</span>
           <button aria-pressed={language === "en"} onClick={() => changeLanguage("en")} type="button">EN</button>
           <button aria-pressed={language === "pl"} onClick={() => changeLanguage("pl")} type="button">PL</button>
         </div>
-        <section className="boot-console">
+        <section className="boot-hero">
           <div className="boot-identity">
             <OrbitMark large />
             <p>{copy.boot.eyebrow}</p>
             <h1>{copy.boot.title}</h1>
             <span>{copy.boot.subtitle}</span>
           </div>
-          <div className="boot-readout">
-            <div className="boot-readout-heading">
-              <span>{complete ? copy.boot.ready : copy.boot.systemCheck}</span>
-              <output>{Math.round(progress).toString().padStart(3, "0")}%</output>
-            </div>
-            <div className="boot-progress"><span style={{ width: `${progress}%` }} /></div>
-            <ol>
-              {copy.boot.steps.map((step, index) => (
-                <li className={index < bootStep ? "complete" : index === bootStep ? "active" : ""} key={step.title}>
-                  <span aria-hidden="true">{index < bootStep ? "✓" : String(index + 1).padStart(2, "0")}</span>
-                  <div><strong>{step.title}</strong><small>{step.detail}</small></div>
-                </li>
-              ))}
-            </ol>
-          </div>
+          <p className="boot-scene-label"><span aria-hidden="true" />{copy.boot.sceneLabel}</p>
           <div className="boot-actions">
-            <button className="button-quiet" onClick={() => setScreen("lab")} type="button">{copy.boot.skip}</button>
-            {complete && <button className="button-primary" onClick={() => setScreen("lab")} type="button">{copy.boot.enter} <span aria-hidden="true">→</span></button>}
+            <button className="button-primary" onClick={() => setScreen("lab")} type="button">{copy.boot.enter} <span aria-hidden="true">→</span></button>
+            <button className="text-button" onClick={() => setScreen("lab")} type="button">{copy.boot.skip}</button>
           </div>
         </section>
       </main>
@@ -539,7 +522,7 @@ export default function Home() {
         ))}
       </nav>
 
-      <div className="lab-grid">
+      <div className={`lab-grid phase-${phase}`}>
         <aside className={`lab-panel environment-panel ${phase !== "planet" ? "mobile-hidden" : ""}`}>
           <section className="mission-card">
             <p className="eyebrow">{copy.mission.eyebrow}</p>
@@ -571,7 +554,7 @@ export default function Home() {
                     key={parameter.id}
                     label={parameterCopy.label}
                     language={language}
-                    max={parameter.max}
+                    max={parameter.id === "humidity" ? planet.world.waterAvailability * 100 : parameter.max}
                     min={parameter.min}
                     onChange={(value) => updateParameter(parameter.id, value)}
                     step={parameter.step}
@@ -584,7 +567,7 @@ export default function Home() {
           </section>
         </aside>
 
-        <section className="planet-stage">
+        <section className={`planet-stage planet-stage-${phase}`}>
           <div className="planet-stage-header">
             <div>
               <p className="eyebrow">{copy.planet.liveView}</p>
@@ -597,16 +580,82 @@ export default function Home() {
             </div>
           </div>
 
-          <ProceduralPlanet
-            autoRotate={autoRotate}
-            biosphereLevel={biosphereLevel}
-            cameraResetSignal={cameraResetSignal}
-            label={copy.planet.liveView}
-            onInspect={setInspectedRegion}
-            planet={planet}
-            regionScores={visibleResult?.regionScores}
-            visualizationMode={visualizationMode}
-          />
+          {phase === "life" ? (
+            <div className="lifeform-stage">
+              <div className="lifeform-stage-hero">
+                <OrganismPreview imageDataUrl={null} label={copy.organism.alt} planet={planet} traitIds={traitIds} />
+                <p className="lifeform-stage-caption"><span className="status-dot" />{copy.organism.procedural} · {copy.life.previewHint}</p>
+              </div>
+              <div className="planet-inset">
+                <ProceduralPlanet
+                  autoRotate={autoRotate}
+                  biosphereLevel={biosphereLevel}
+                  cameraResetSignal={cameraResetSignal}
+                  label={copy.planet.liveView}
+                  onInspect={setInspectedRegion}
+                  planet={planet}
+                  regionScores={visibleResult?.regionScores}
+                  visualizationMode={visualizationMode}
+                />
+              </div>
+            </div>
+          ) : phase === "results" ? (
+            <div className="analysis-stage">
+              <section className={`analysis-stage-hero ${result?.missionSuccess ? "success" : "continue"}`}>
+                <p className="eyebrow">{copy.phases.results.label}</p>
+                {result ? (
+                  <>
+                    <span>{result.missionSuccess ? copy.simulation.success : copy.simulation.continue}</span>
+                    <h2>{copy.outcomes[result.outcome].title}</h2>
+                    <p>{copy.outcomes[result.outcome].description}</p>
+                    <div className="objective-score"><div><span>{copy.simulation.objective}</span><strong>{Math.round(result.objectiveScore * 100)}%</strong></div><span><i style={{ width: `${result.objectiveScore * 100}%` }} /></span></div>
+                  </>
+                ) : (
+                  <>
+                    <h2>{copy.simulation.emptyTitle}</h2>
+                    <p>{copy.simulation.emptyDescription}</p>
+                  </>
+                )}
+              </section>
+              <div className="planet-inset">
+                <ProceduralPlanet
+                  autoRotate={autoRotate}
+                  biosphereLevel={biosphereLevel}
+                  cameraResetSignal={cameraResetSignal}
+                  label={copy.planet.liveView}
+                  onInspect={setInspectedRegion}
+                  planet={planet}
+                  regionScores={visibleResult?.regionScores}
+                  visualizationMode={visualizationMode}
+                />
+              </div>
+            </div>
+          ) : (
+            <ProceduralPlanet
+              autoRotate={autoRotate}
+              biosphereLevel={biosphereLevel}
+              cameraResetSignal={cameraResetSignal}
+              label={copy.planet.liveView}
+              onInspect={setInspectedRegion}
+              planet={planet}
+              regionScores={visibleResult?.regionScores}
+              visualizationMode={visualizationMode}
+            />
+          )}
+
+          {visualizationMode !== "realistic" && (
+            <aside aria-label={copy.planet.legends[visualizationMode].title} className={`planet-legend ${visualizationMode}`}>
+              <strong>{copy.planet.legends[visualizationMode].title}</strong>
+              <div className="planet-legend-scale" aria-hidden="true" />
+              <div className="planet-legend-labels">
+                {visualizationMode === "temperature" ? (
+                  <><span>{copy.planet.legends.temperature.cold}</span><span>{copy.planet.legends.temperature.temperate}</span><span>{copy.planet.legends.temperature.hot}</span></>
+                ) : (
+                  <><span>{copy.planet.legends.radiation.protected}</span><span>{copy.planet.legends.radiation.elevated}</span><span>{copy.planet.legends.radiation.severe}</span></>
+                )}
+              </div>
+            </aside>
+          )}
 
           {isSimulating && (
             <div aria-live="polite" className="simulation-overlay">
@@ -671,8 +720,6 @@ export default function Home() {
                 <span><i style={{ width: `${Math.min(100, traitCost)}%` }} /></span>
                 <small>{copy.life.budgetExplanation}</small>
               </div>
-              <OrganismPreview imageDataUrl={null} label={copy.organism.alt} planet={planet} traitIds={traitIds} />
-              <p className="organism-caption"><span className="status-dot" />{copy.organism.procedural} · {copy.life.previewHint}</p>
               <div className="category-tabs" role="tablist">
                 {CATEGORIES.map((category) => (
                   <button aria-selected={activeCategory === category} key={category} onClick={() => setActiveCategory(category)} role="tab" type="button">{copy.categories[category]}</button>

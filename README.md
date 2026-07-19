@@ -18,11 +18,11 @@ There is no single hidden correct configuration. The tested model supports disti
 
 ## Main features
 
-- Cinematic, skippable computer boot into a single-screen astrobiology laboratory.
+- Cinematic, skippable space-and-life introduction into a single-screen astrobiology laboratory.
 - One complete Genesis mission with a broad goal: create stable advanced multicellular life on Vespera 7A.
 - Deterministic seeded WebGL planet rendered with Three.js, React Three Fiber, layered FBM/value noise, and custom GLSL shaders.
-- Persistent terrain geometry with smoothly interpolated terrain, water, ice, cloud, atmosphere, illumination, radiation-overlay, and biosphere uniforms.
-- Interactive orbit camera, zoom, reset, automatic-rotation control, surface inspection, and realistic/temperature/radiation modes.
+- Persistent terrain geometry with smoothly interpolated terrain, water, ice, cloud, atmosphere, sun-driven day/night illumination, radiation-overlay, and biosphere uniforms.
+- Interactive orbit camera, zoom, reset, automatic-rotation control, surface inspection, and realistic/temperature/radiation modes with labelled legends.
 - Ten live environmental controls; each affects both the visualization and deterministic simulation.
 - Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, and a 100-point biological energy budget.
 - Deterministic simulator 1.0.0 with 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
@@ -30,7 +30,7 @@ There is no single hidden correct configuration. The tested model supports disti
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
 - Optional server-only `gpt-image-2` field illustration. GPT selects only validated art-direction enums; the server constructs the final prompt from calculated facts and selected traits.
 - Complete reviewed English and Polish interface copy, including accessible labels and failure states.
-- Responsive desktop-first layout; the planet remains central while panels scroll independently on desktop.
+- Responsive desktop-first layout; planet engineering, life design, and analysis each center their important visual, while mobile keeps a phase visual visible during scrolling.
 
 ## How it works for the learner
 
@@ -137,7 +137,7 @@ Detailed evidence and the final checklist live in [docs/HACKATHON.md](docs/HACKA
 
 ## Verified in the current change
 
-- 19 Vitest tests passed.
+- 20 Vitest tests passed.
 - TypeScript passed with `npx tsc --noEmit`.
 - Full repository lint passed with `npm run lint`.
 - The optimized Next.js build passed with `npm run build`.

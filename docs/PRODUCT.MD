@@ -68,13 +68,13 @@ GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy, re
 
 ## Current implementation status
 
-The working local build implements the boot, one Vespera mission, ten environment controls, a deterministic seeded 3D planet, custom terrain/water/cloud/atmosphere shaders, scientific overlays, region inspection, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.0.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
+The working local build implements a cinematic space-and-life boot, one Vespera mission, ten environment controls, a deterministic seeded 3D planet, custom terrain/water/cloud/atmosphere shaders, a visible sun/day-night treatment, labelled scientific overlays, region inspection, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.0.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
 
 The local deterministic loop and fallback paths were browser-verified. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed server credentials**. Accounts, persistence, sharing, a campaign, and durable caching are not implemented.
 
 ## Experience requirements
 
-Desktop uses a full-screen laboratory with independently scrolling side panels and a dominant planet. The learner’s next action remains visible. Mobile keeps the planet visible and exposes the three phases as tabs with natural page scrolling.
+Desktop uses a full-screen laboratory with independently scrolling side panels. Planet engineering centers the planet, Design life centers the organism with a smaller planet inset, and Analyze centers the evidence with a smaller contextual planet. Mobile keeps the phase visual sticky: the planet remains visible in every phase and the organism remains central during life design.
 
 Prioritize immediate comprehension, keyboard access, touch-safe controls, readable contrast, visible provenance, reduced-motion support, graceful failure, and reviewed English/Polish text.
 

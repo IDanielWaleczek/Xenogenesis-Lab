@@ -21,7 +21,7 @@ Identical validated input and simulator version must produce identical output an
 | Input | Unit or range |
 | --- | --- |
 | Gravity | Earth gravity, `g`; schema range `0.05–5` |
-| Local atmospheric pressure | `atm`; schema range `0.05–20` |
+| Local atmospheric pressure | `atm`; schema range `0–20` |
 | Atmospheric gases | fractions in `[0,1]` summing to `1` |
 | Mean temperature | `°C`; schema range `−100–150` |
 | Temperature variation | symmetric half-range, `°C`; `0–100` |
@@ -233,10 +233,13 @@ Each exposed slider has a visual consequence:
 - temperature changes biome, ice, water stability, and heat regions;
 - pressure changes water stability, atmosphere thickness, and clouds;
 - oxygen and carbon dioxide change atmosphere color;
-- water changes ocean masks and clouds;
+- water changes ocean masks and clouds; `0%` renders no surface water and `100%` renders an aquatic shell across the planet;
 - radiation and magnetic field change the optional exposure overlay;
-- light changes illumination;
-- humidity changes moisture, fertile terrain, and clouds.
+- light changes illumination; a visible scene sun establishes the shared day/night direction;
+- humidity changes moisture, fertile terrain, and clouds, and is capped by supplied water in the UI;
+- pressure controls atmosphere density; zero pressure removes the visual atmosphere shell.
+
+Temperature and radiation views include labelled low/mid/high legends so their colors are never the only interpretation aid.
 
 These mappings are aesthetic explanations, not additional scientific calculations. The temperature and radiation views are overlays. Biosphere patches appear only from the latest non-stale deterministic ecosystem score.
 

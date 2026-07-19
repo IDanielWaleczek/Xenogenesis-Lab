@@ -12,16 +12,16 @@ Avoid excessive neon, generic cyberpunk ornament, oversized mobile cards, long o
 Cinematic boot
 └── Single-screen laboratory
     ├── Left: mission objective + environmental engineering
-    ├── Center: dominant interactive procedural planet
-    ├── Right: Engineer planet / Design life / Analyze
+    ├── Center: planet while engineering; organism while designing; analysis while interpreting
+    ├── Right: phase-specific secondary visual or controls
     └── Floating actions: camera, rotation, simulate, adapt
 ```
 
-The planet remains the dominant visual object. The interface does not navigate through briefing, hypothesis, quiz, debrief, archive, and competency screens. It keeps one continuous experiment visible and lets the learner repeat the core loop.
+The important object changes with the phase. Planet engineering centers the procedural planet. Design life centers the organism while retaining a smaller live planet inset. Analyze centers calculated evidence while keeping the planet as a smaller contextual view. The interface does not navigate through briefing, hypothesis, quiz, debrief, archive, and competency screens.
 
 ## Startup
 
-The application begins on a real startup state, not directly inside a mission. The skippable animation shows five truthful initialization steps, progress, system identity, and a final online state. It may transition automatically after completion. Reduced-motion preferences collapse its motion without blocking entry.
+The application begins on a real startup state, not directly inside a mission. The skippable animation presents the Xenogenesis mark in a field of stars, orbiting planets, and a small life-like orbital signal before entering the lab automatically. It is an atmospheric introduction, not a fake loading or remote-system diagnostic. Reduced-motion preferences collapse its motion without blocking entry.
 
 Do not imply a remote service is contacted during local shader or rules initialization.
 
@@ -30,7 +30,7 @@ Do not imply a remote service is contacted during local shader or rules initiali
 At widths above `1080px`, use a full-screen `100svh` shell without global page scrolling:
 
 - the left and right panels scroll independently;
-- the center planet stays visible;
+- the phase's primary visual stays centered;
 - the current phase and next action stay visible;
 - scientific overlays appear above the same persistent scene;
 - the simulation animation overlays the planet without rebuilding it.
@@ -39,7 +39,7 @@ The central globe supports drag rotation, wheel zoom, camera reset, and paused/r
 
 ## Responsive behavior
 
-At narrower widths, phase navigation becomes a sticky three-tab control. The planet remains first and visible; the relevant control or analysis panel follows with natural page scrolling. Environment controls may use two columns on tablet and one on phone. Do not horizontally compress all three desktop columns.
+At narrower widths, phase navigation becomes a sticky three-tab control and the visual stage remains sticky below it. The planet therefore remains visible while the learner scrolls controls or results; during Design life, the organism is the persistent central visual and a smaller planet remains visible beside it. Environment controls may use two columns on tablet and one on phone. Do not horizontally compress all three desktop columns.
 
 ## Visual system
 
@@ -66,7 +66,7 @@ The planet is not a static image or pre-rendered texture. It is a deterministic 
 
 All environment controls update shader targets. Uniforms ease toward those targets, so ice, water, cloud, atmosphere, illumination, relief, and biome changes appear as a process rather than a texture swap. Geometry remains allocated across changes.
 
-The realistic view is an orbital visual interpretation. Temperature and radiation views are scientific communication overlays, not physical sensor products.
+Water coverage maps `0%` to no visible surface water and maps `100%` to an aquatic shell covering the planet. Humidity is capped by supplied water, so a dry world cannot retain `100%` humidity through the UI. At zero local pressure, the atmosphere shell fades out entirely. A visible sun supplies the shared lighting direction: the day side is bright and the night side stays dimly visible. Temperature and radiation overlays have labelled three-point legends and remain scientific communication overlays, not physical sensor products.
 
 ## Environment controls
 
