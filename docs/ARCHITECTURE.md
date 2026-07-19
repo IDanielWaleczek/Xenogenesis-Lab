@@ -1,189 +1,75 @@
 # Xenogenesis Lab — Architecture
 
-## Current stack
+## Current implementation
 
-- Application: a single full-stack Next.js project using the App Router
-- Frontend: Next.js 16.2.10 with React 19.2.4
-- Backend: Next.js server-side route handlers in the same application
-- Language: TypeScript
-- Styling: Tailwind CSS 4
-- Validation: Zod 4 at all external boundaries
-- Testing: Vitest 4 for deterministic domain and schema tests
-- AI: OpenAI API with GPT-5.6, called only from server-side route handlers
-- Image generation: OpenAI Image API, called only from server-side route handlers
-- Deployment: Vercel
-- Source control and automatic deployments: GitHub connected to Vercel
-- Domain and DNS: may remain with GreenGeeks or OVH
-- Runtime constraint: GreenGeeks EcoSite Lite must never host the Node.js runtime
-- Package manager: npm
+The repository currently contains a Next.js 16.2.10 / React 19.2.4 prototype, Tailwind CSS 4, TypeScript, Zod 4 world-parameter validation and normalization, and Vitest domain tests. It does not currently contain a viability engine, route handlers, OpenAI SDK integration, image generation, persistence, or progression.
 
-Update this section whenever a major dependency or platform changes.
+Planned server-side capabilities must be implemented in the same Next.js App Router application. OpenAI credentials must remain server-side.
 
-## System overview
-
-Xenogenesis Lab separates deterministic scientific logic from AI-generated
-interpretation.
-
-Main pipeline:
+## Target mission flow
 
 ```text
-World parameters
-→ input validation
+Mission definition + world parameters
+→ Zod validation
+→ committed learner hypothesis
 → deterministic rules engine
-→ structured organism constraints
-→ GPT-5.6 organism dossier
-→ image prompt generation
-→ scientific illustration
-→ user interface
+→ validated SimulationResult
+→ pressure and organism inspection
+→ GPT-5.6 instructor request
+→ validated MissionDebrief
+→ evidence-based revision and competency update
+→ research-archive record
 ```
 
-## Main modules
+Image generation is a separate, optional representation flow from validated organism data. It must not modify the simulation result or instructor assessment.
 
-### World configuration
+## Module boundaries
 
-Responsible for:
+### Mission and world input
 
-- collecting environmental parameters
-- validating input ranges
-- normalizing units
-- loading example worlds
+Owns scenario objectives, parameter collection, example worlds, hypothesis validation, and client-side non-authoritative validation.
 
-### Rules engine
+### Deterministic rules engine
 
-Responsible for:
+Owns environmental calculations, biological constraints, adaptation scoring, scientific coefficients, ruleset versioning, and reproducible `SimulationResult` output. It must not call model or image services.
 
-- calculating environmental pressures
-- deriving biological constraints
-- scoring plausible adaptations
-- producing reproducible structured output
+### Instructor integration
 
-This module must not call GPT or image-generation services.
+Receives only validated mission context, the learner’s committed hypothesis, and deterministic output. It builds a versioned structured request for GPT-5.6, validates the response with Zod, and returns instructional—not authoritative scientific—content.
 
-### Organism schema
+### Illustration integration
 
-Defines the shared structure for:
+Builds a controlled visual prompt from validated organism data. It handles service failures separately and cannot add or change calculated adaptations.
 
-- environmental analysis
-- adaptation constraints
-- organism traits
-- GPT-generated dossier
-- image-generation prompt
+### Progress and archive
 
-### GPT integration
+Stores completed exercise data, evidence-based revisions, competency measurements, and provenance. It must not award progress for unrelated clicks or decorative activity.
 
-Responsible for:
+### Presentation
 
-- receiving validated rules-engine output
-- constructing a controlled prompt
-- requesting structured output
-- validating the response
-- returning an educational organism dossier
+Renders Mission Control, briefing, hypothesis entry, simulation state, provenance-labelled results, debrief, revision, archive, and accessible recovery states. UI components must not contain scientific calculations or privileged credentials.
 
-### Image generation
+## Validation and provenance
 
-Responsible for:
+Validate every external boundary with Zod: world input, mission definition, hypothesis, simulation request and result, GPT request and response, illustration request, and persisted archive record.
 
-- converting validated organism data into a visual prompt
-- calling the image-generation API
-- returning the generated illustration
-- handling refusals and generation errors
+Every displayed claim must retain one of these sources:
 
-### User interface
+- **User hypothesis:** the learner’s committed prediction.
+- **Calculated result:** deterministic output with a ruleset version.
+- **AI interpretation:** GPT-5.6 instructional content tied to that output.
+- **Visual representation:** a generated image grounded in validated organism data.
 
-Responsible for:
-
-- world configuration
-- simulation progress
-- displaying environmental pressures
-- displaying the organism dossier
-- displaying the illustration
-- presenting clear errors and recovery actions
-
-## Data flow
-
-1. The user configures the world.
-2. The client validates basic input.
-3. The server validates the request again.
-4. The deterministic rules engine processes the environment.
-5. The server sends validated constraints to GPT-5.6.
-6. GPT-5.6 returns structured organism data.
-7. The server validates the model output.
-8. A separate request creates the image prompt and illustration.
-9. The client displays the complete result.
-
-## Client and server boundaries
-
-### Client
-
-The client may:
-
-- collect user input
-- perform non-authoritative validation
-- display simulation results
-- manage local interface state
-
-The client must not:
-
-- contain OpenAI API keys
-- call privileged OpenAI endpoints directly
-- define authoritative scientific rules
-- trust model output without server validation
-
-### Server
-
-The server owns:
-
-- final request validation
-- deterministic calculations
-- OpenAI API communication
-- structured-output validation
-- rate limiting and error handling
-- secret management
-
-Server-side capabilities must be implemented as Next.js route handlers in
-this project. They must import server-only code and read OpenAI credentials
-only from server environment variables. Client components may call these
-handlers, but must never import the OpenAI SDK or receive credentials.
-
-## Input schema
-
-The simulation input should include:
+## Target data contracts
 
 ```ts
-type WorldParameters = {
-  gravityG: number;
-  atmosphericPressureAtm: number;
-  atmosphereComposition: {
-    oxygenFraction: number;
-    carbonDioxideFraction: number;
-    nitrogenFraction: number;
-    inertGasFraction: number;
-    toxicGasFraction: number;
-  };
-  averageTemperatureC: number;
-  temperatureVariationC: number;
-  radiationDoseRate: { value: number; unit: "mSv/h" | "Sv/h" };
-  lightLevel: number;
-  waterAvailability: number;
-  habitat: Habitat;
-  shieldingColumnMassKgM2: number;
-  geochemicalEnergyAvailability: "none" | "low" | "moderate" | "high";
-  electronAcceptors: ElectronAcceptor[];
-  atmosphericMeanMolarMassKgPerMol?: number;
+type CommittedHypothesis = {
+  missionId: string;
+  reasoning: string;
+  predictedAdaptations: string[];
+  committedAt: string;
 };
-```
 
-The source radiation value and unit are retained. The server derives
-`radiationDoseRateMilliSvPerHour`, the symmetric temperature range, oxygen
-partial pressure, and—when a mean molar mass is supplied—local atmospheric
-density. Exact ranges and scientific conventions are defined in
-`SCIENCE_RULES.md`.
-
-## Output schema
-
-The deterministic engine should return:
-
-```ts
 type SimulationResult = {
   rulesetVersion: string;
   normalizedEnvironment: NormalizedWorldParameters;
@@ -193,64 +79,28 @@ type SimulationResult = {
   adaptationCandidates: AdaptationCandidate[];
   warnings: string[];
 };
+
+type MissionDebrief = {
+  assessment: string;
+  evidence: string[];
+  tradeOffs: string[];
+  followUpQuestion?: string;
+  recommendedExperiment?: string;
+};
 ```
 
-The GPT layer should return a validated organism dossier containing:
+`SimulationResult`, `ViabilityAssessment`, `EnvironmentalPressure`, `BiologicalConstraint`, and `AdaptationCandidate` are target contracts until their implementation exists. Do not present them as exported code.
 
-- name
-- overview
-- habitat
-- morphology
-- metabolism
-- locomotion
-- senses
-- reproduction
-- adaptations
-- limitations
-- environmental explanation
+## Client and server boundary
 
-## Error handling
+The client may collect input, provide non-authoritative validation, show results, and manage local state. It must not define scientific rules, contain API keys, call privileged endpoints directly, or trust raw model output.
 
-Errors should be divided into:
+The server owns final validation, deterministic calculations, model and image calls, output validation, rate limiting, error handling, and secret management. Route handlers must import server-only code.
 
-- invalid user input
-- unsupported environmental combination
-- deterministic simulation failure
-- GPT request failure
-- malformed GPT response
-- image-generation failure
-- rate-limit or quota failure
-- network failure
+## Failure handling
 
-The user should receive:
-
-- a clear explanation
-- a safe retry action
-- preserved input where possible
-- no raw stack trace or secret information
+Keep input after a failure. Distinguish invalid input, unsupported conditions, deterministic simulation failure, GPT failure, malformed model response, image failure, rate limit, and network failure. Explain the failed stage without exposing stack traces, prompts, or secrets, and allow a safe retry only where appropriate.
 
 ## Deployment
 
-Vercel is the production runtime for the Next.js application. GitHub is the
-source-control system and the source of automatic deployments. GreenGeeks or
-OVH may provide DNS and domain management only; GreenGeeks EcoSite Lite is
-not a supported Node.js hosting target for this application.
-
-Deployment must provide:
-
-- secure server-side environment variables
-- production build verification
-- HTTPS
-- request logging without sensitive prompt data
-- API rate limiting
-- health-check endpoint if supported
-- reproducible environment configuration
-
-Current deployment target:
-
-```text
-Platform: Vercel
-Source control and deployments: GitHub → Vercel
-Domain and DNS: GreenGeeks
-Production URL: [add URL]
-```
+Vercel and GitHub deployment integration are documented as intended infrastructure, not confirmed current deployment configuration. **TODO:** verify the production target, environment variables, rate limiting, logging, and deployment-to-HEAD status before submission.

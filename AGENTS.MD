@@ -1,16 +1,42 @@
 # Xenogenesis Lab — Agent Instructions
 
-## Purpose
+## Xenogenesis Lab Product North Star
 
-Xenogenesis Lab is an interactive astrobiology application that demonstrates how environmental conditions can constrain and shape plausible alien organisms.
+Xenogenesis Lab is an AI-guided astrobiology mission training simulator.
+
+The core user fantasy is: "I am a candidate training to reason like a
+xenobiology mission specialist."
+
+Do not reduce the product to a generic dashboard, chatbot, parameter
+playground, organism generator, or decorative gamification layer.
 
 The product must prioritize:
 
 1. scientific coherence
 2. clear educational communication
-3. an engaging visual experience
-4. a strong sub-three-minute demo
-5. maintainable implementation without unnecessary complexity
+3. one reliable mission-training loop
+4. an engaging, accessible visual experience
+5. a strong sub-three-minute demo
+6. maintainable implementation without unnecessary complexity
+
+## Required Core Loop
+
+Every meaningful implementation should support or strengthen this loop:
+
+```text
+mission briefing
+→ environmental analysis
+→ committed hypothesis
+→ deterministic simulation
+→ organism / pressure inspection
+→ GPT-5.6 instructor debrief
+→ evidence-based revision
+→ competency progress
+→ next mission
+```
+
+Prioritize one complete, reliable mission loop over many disconnected
+features.
 
 ## Sources of truth
 
@@ -37,15 +63,19 @@ The deterministic rules engine owns:
 
 GPT-5.6 owns:
 
-* explanation
-* educational narration
-* organism dossier composition
-* controlled creative elaboration inside supplied constraints
+* mission framing and educational narration
+* evaluation of reasoning against structured deterministic output
+* targeted questions, debriefs, and recommended experiments
+* organism dossier composition and controlled creative elaboration inside supplied constraints
 * construction of image-generation prompts
 
 GPT-5.6 must not be the source of truth for physical calculations or environmental constraints.
 
 Image generation owns only visual representation. It must not change simulation facts.
+
+Validate structured inputs and outputs with Zod. Preserve provenance in the
+UI: calculated result, user hypothesis, and AI interpretation must remain
+distinguishable.
 
 ## Engineering principles
 
@@ -70,6 +100,7 @@ Image generation owns only visual representation. It must not change simulation 
 Keep these concerns separate, regardless of the final folder names:
 
 * world parameter input and validation
+* mission briefing and hypothesis input
 * deterministic environmental analysis
 * biological adaptation rules
 * organism data schema
@@ -111,15 +142,38 @@ Use language such as “plausible,” “predicted,” or “under this model”
 * Do not represent pre-generated assets as live generation.
 * Clearly separate deterministic facts from model-written interpretation.
 
+## Product language
+
+Prefer mission-training terminology:
+
+* Begin Training
+* Mission Control
+* Mission Briefing
+* Training Exercise
+* Commit Hypothesis
+* Run Simulation
+* Mission Instructor
+* Mission Debrief
+* Research Archive
+* Competency Profile
+* Certification
+* Mission Ready
+
+Use generic labels only when they are clearer for accessibility.
+
+## Gamification rule
+
+Progression must measure meaningful learning behavior. Good measures include
+mission completion, competency growth, improved hypothesis quality,
+evidence-based revision, research-archive entries, and certification stages.
+
+Avoid arbitrary coins, unrelated streaks, decorative badges, rewards for
+meaningless clicks, and systems that distract from scientific reasoning.
+
 ## User experience
 
-The primary journey should remain obvious:
-
-1. configure a world
-2. run the simulation
-3. understand environmental pressures
-4. inspect the resulting organism
-5. generate or view its illustration
+The mission loop should remain obvious: briefing, hypothesis, simulation,
+inspection, instructor debrief, revision, and progression.
 
 Prioritize:
 
@@ -133,6 +187,21 @@ Prioritize:
 * a polished default example suitable for the demo
 
 Do not add interface elements that do not strengthen this journey.
+
+Desktop uses a full-screen `100dvh` application shell without global page
+scrolling; panels may scroll locally when necessary. Mobile must reflow into a
+readable single-column workflow with natural page scrolling and touch-friendly
+controls. Accessibility and clarity take priority over visual immersion.
+
+## Implementation and documentation integrity
+
+Inspect the current codebase, active Codex session, documentation, package
+scripts, tests, and configuration before editing. Do not invent implemented
+features, commands, environment variables, scientific rules, Codex
+contributions, GPT-5.6 integration, test results, or deployment behavior.
+
+Use `TODO` markers when a required fact cannot be verified. Keep README, demo
+copy, and submission copy aligned with the working build.
 
 ## Tests and verification
 
@@ -206,5 +275,12 @@ The demo must visibly prove:
 * clear real-world educational value
 
 Track event-specific work and evidence in `docs/HACKATHON.md`.
+
+Preserve concrete Codex evidence: the primary `/feedback` session ID, dated
+commits, meaningful diffs, tests and refactors, key implementation or
+debugging moments, and human-made product, engineering, scientific-boundary,
+and design decisions. The final repository must explain where Codex
+accelerated the workflow and how Codex and GPT-5.6 contributed to the final
+result.
 
 Do not claim incomplete, mocked, or manually prepared functionality is live.

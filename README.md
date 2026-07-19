@@ -1,173 +1,97 @@
 # Xenogenesis Lab
 
-> An interactive astrobiology lab for exploring how environmental conditions can constrain plausible alien life.
+> An AI-guided astrobiology mission-training simulator for practising scientific reasoning about plausible alien life.
 
 [Live application](https://www.danielwaleczek.com) · [Source repository](https://github.com/IDanielWaleczek/Xenogenesis-Lab) · [MIT License](LICENSE)
 
-## Project status
+## Product identity
 
-**Current build:** a polished, responsive interface prototype plus a tested world-parameter validation and normalization layer.
+Xenogenesis Lab is not primarily a planet configurator or organism generator. It places a learner in a fictional xenobiology mission-training programme: they assess an alien world, commit to a hypothesis, inspect a deterministic result, and receive an adaptive scientific debrief.
 
-The interface supports local control changes and navigation through Configure, Constraints, Dossier, and Illustration screens. It does **not** yet execute a deterministic viability engine, call GPT-5.6, call an image API, or generate a scientific illustration. The constraint cards and organism dossier are clearly labelled preview content.
+Its core user fantasy is: **“I am a candidate training to reason like a xenobiology mission specialist.”**
 
-This distinction is intentional: Xenogenesis Lab must never present static content as a live scientific or AI result.
+The primary audience is students, educators, and science and space enthusiasts. Astrobiology and planetary habitability are difficult to learn from static material alone: learners need a chance to make a scientific decision, see its consequences, and revise their reasoning with feedback.
 
-## What it does
+## Current build status
 
-Astrobiology is often communicated as either inaccessible science or unconstrained fiction. Xenogenesis Lab turns environmental inputs—gravity, atmosphere, temperature, radiation, light, water, and habitat—into an educational explanation of the pressures that could shape an organism.
+**Current build:** a responsive mission-console prototype plus a tested world-parameter validation and normalization layer.
 
-The guiding question is: **How could life adapt to this world?** The project uses the language of plausibility, constraints, and scientific simplification; it does not present speculative organisms as discoveries.
+The interface has local, keyboard-accessible environmental controls and preview stages for pressure analysis, an organism dossier, and an illustration. It does **not** yet run a deterministic viability engine, collect or assess a committed hypothesis, call GPT-5.6, call an image API, save a research archive, or calculate competency progress. Preview cards and specimen content are explicitly labelled as non-live samples.
 
-## Current features
+This distinction is intentional: the project must never present placeholder content, a prepared asset, or AI-free UI state as a calculated or generated result.
 
-- Responsive scientific-instrument-style interface with the Xenogenesis Lab banner artwork.
-- Local, keyboard-accessible controls for gravity, atmospheric pressure, temperature, radiation, light, water, and habitat.
-- Navigable prototype screens for environmental constraints, organism dossier, and scientific illustration stages.
-- Strict Zod world-parameter contract with validated ranges and atmospheric-composition checks.
-- Deterministic normalization helpers for radiation units, temperature extremes, oxygen partial pressure, atmospheric density, and conservative alternative-energy eligibility.
+## The mission-training loop
+
+The intended complete mission is:
+
+```text
+Mission briefing
+→ environmental analysis
+→ committed hypothesis
+→ deterministic simulation
+→ pressure and organism inspection
+→ GPT-5.6 Mission Instructor debrief
+→ evidence-based revision
+→ competency progress
+→ next mission
+```
+
+The smallest complete demo must implement that whole loop for at least one mission. Progression is meaningful only when it records learning behaviour—such as completed missions, improved hypotheses, evidence-based revisions, research-archive entries, competency growth, and certification stages. The project will not use unrelated currencies, click rewards, or decorative streaks.
+
+## What is implemented
+
+- Responsive English and Polish mission-console prototype with a desktop and narrow-screen layout.
+- Local controls for gravity, atmospheric pressure, temperature, radiation, light, water, and habitat.
+- Preview navigation through environment, pressure, organism, and illustration stages.
+- Strict Zod world-parameter contract, including atmospheric-composition checks.
+- Deterministic normalization for radiation units, temperature extremes, oxygen partial pressure, atmospheric density, and conservative alternative-energy eligibility.
 - Vitest coverage for the validation and normalization boundary.
 
-## Intended MVP
+## Planned scientific and AI boundary
 
-```text
-World parameters
-→ validated deterministic rules
-→ biological constraints
-→ GPT-5.6 organism dossier
-→ controlled image prompt
-→ scientific illustration
-```
+The deterministic rules layer will own environmental calculations, causal constraints, adaptation scores, scientific coefficients, and reproducible simulation facts. GPT-5.6 will receive validated structured context to frame missions, evaluate the trainee’s reasoning, explain results and trade-offs, ask targeted follow-up questions, produce a mission debrief, recommend an experiment, and compose constrained dossier content.
 
-The deterministic rules engine is the source of truth for environmental calculations. GPT-5.6 will explain and elaborate only within validated constraints; image generation will represent those facts without changing them.
+GPT-5.6 must not overwrite calculated values or turn unsupported invention into a simulation fact. Zod will validate external input and structured model output. The UI will visibly distinguish the learner’s hypothesis, deterministic result, and AI interpretation. Image generation will only represent validated organism data; it will not determine scientific outcomes.
 
-## How the current prototype works
+See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), [Science Rules](docs/SCIENCE_RULES.md), [Design](docs/DESIGN.md), and [Decision Log](docs/DECISIONS.md) for the detailed constraints.
 
-1. Open the application and adjust the local world controls.
-2. Select **Explore preview** or a journey stage.
-3. Inspect the presentational Constraints, Dossier, and Illustration screens.
-4. Use **Reset world** to restore the default visual scenario.
-
-No account, API key, model call, or scientific computation is required for the current interface prototype.
-
-## Architecture
-
-Xenogenesis Lab is a single full-stack Next.js App Router application. The implemented boundary is deliberately independent of the UI and model providers:
-
-```text
-src/app/                 Presentation and local prototype state
-src/domain/world/        Zod schema and deterministic normalization helpers
-docs/                    Product, science, design, architecture, and decisions
-```
-
-The domain contract validates full atmospheric composition, retains the source radiation value and unit, normalizes radiation to `mSv/h`, derives temperature limits and oxygen partial pressure, and derives local atmospheric density only when an explicit mean molar mass is supplied.
-
-Server-side route handlers, the viability engine, GPT-5.6 requests, image generation, and persistence are planned but not implemented. See [Architecture](docs/ARCHITECTURE.md), [Science Rules](docs/SCIENCE_RULES.md), and [Decision Log](docs/DECISIONS.md).
-
-## Technology stack
-
-| Area | Technology |
-| --- | --- |
-| Framework | Next.js 16.2.10, App Router |
-| UI | React 19.2.4, Tailwind CSS 4 |
-| Language | TypeScript (strict mode) |
-| Validation | Zod 4.4.3 |
-| Tests | Vitest 4.1.10 |
-| Linting | ESLint 9 with `eslint-config-next` |
-| Package manager | npm |
-| Planned deployment | Vercel with GitHub-driven deployments |
-| Planned AI boundary | OpenAI API through server-only Next.js route handlers |
-
-## Run locally
+## Local development
 
 ### Prerequisites
 
-- Node.js. The repository does not currently pin an `engines` version. **TODO:** pin the supported Node.js version before submission/deployment.
+- Node.js. This repository does not currently pin a supported version; **TODO:** define one before deployment or submission.
 - npm.
 
-### Install and start the development server
+### Try it yourself
 
-```bash
-npm install
-npm run dev
+https://www.danielwaleczek.com
+
+## Repository layout
+
+```text
+src/app/                 Prototype presentation and localisation
+src/domain/world/        Zod world-input contract and normalization helpers
+docs/                    Product, scientific, design, architecture, and event records
 ```
 
-Open [http://localhost:3000](http://localhost:3000). `next dev` uses port `3000` by default when that port is available.
-
-### Production build and local production server
-
-```bash
-npm run build
-npm run start
-```
-
-Open [http://localhost:3000](http://localhost:3000) after starting the production server.
-
-### Available commands
-
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the Next.js development server. |
-| `npm run build` | Create an optimized production build. |
-| `npm run start` | Run the production build locally. |
-| `npm test` | Run Vitest once. |
-| `npm run test:watch` | Run Vitest in watch mode. |
-| `npm run lint` | Run the repository ESLint command. |
-
-### Verification note
-
-The focused checks for the implemented application and domain contract pass: TypeScript, `src/app` linting, Vitest, and the production build. At the time of writing, repository-wide `npm run lint` reports existing lint errors in generated `types/routes.d.ts` and `types/validator.ts`; resolve these before final submission.
-
-## AI development process
-
-### How Codex accelerated development
-
-Codex was used throughout the current Build Week development session to:
-
-- inspect the starter repository and establish the product, science, and architecture documentation;
-- translate the scientific input specification into a strict, testable Zod contract and deterministic normalization functions;
-- add focused Vitest coverage for validation, unit conversion, temperature ranges, oxygen partial pressure, atmospheric density, and the rule that habitat labels do not silently attenuate radiation;
-- design and implement the responsive prototype interface, including local screen switching and accessibility-oriented controls;
-- run type checks, focused linting, unit tests, production builds, and local visual checks; and
-- review and maintain hackathon-facing documentation, including this README.
-
-### Key technical and product decisions
-
-1. **Deterministic science before AI interpretation.** Environmental analysis, constraints, scores, and coefficients belong to the rules engine, not the model.
-2. **No false precision in the input model.** Cave/deep-ocean labels do not reduce radiation exposure; shielding remains a recorded input until a spectrum-aware model exists. Alternative metabolism requires declared geochemical energy and electron acceptors.
-3. **A single Next.js application.** Server-only route handlers will protect OpenAI credentials and keep the MVP deployment path simple.
-4. **One demonstrable vertical slice first.** The project prioritizes the world-to-illustration journey over accounts, ecosystem simulation, or other non-essential scope.
-5. **Controlled image prompts.** Future image prompts will be built from a validated dossier, never directly from raw world inputs.
-
-The full rationale and tradeoffs are recorded in [DECISIONS.md](docs/DECISIONS.md).
-
-### GPT-5.6 status and intended role
-
-GPT-5.6 is **not integrated in the current codebase**. Its intended role is to compose a structured educational organism dossier from validated deterministic constraints: overview, morphology, physiology, behaviour, adaptations, limitations, and trait-to-environment explanations. Its response will be validated before display.
-
-Codex has contributed to the implemented architecture, schema, tests, UI, verification, and documentation. The future GPT-5.6 integration will be clearly demonstrated only once it is live and validated.
+Server-side route handlers, the viability engine, GPT-5.6 integration, image generation, persistence, and training progression are planned but are not yet implemented.
 
 ## OpenAI Build Week 2026
 
-**Recommended track:** Education. **TODO:** confirm the selected Devpost category before submission.
+The project is aimed at the Education track. **TODO:** confirm the final Devpost category and current official requirements before submission.
 
-The official rules require a functioning project built with Codex and GPT-5.6, a clear project description, a public YouTube demo under three minutes with audio explaining Codex and GPT-5.6 usage, a testable code repository, and the primary `/feedback` Codex session ID. They also require the README to explain Codex collaboration and key decisions. See the [official rules](https://openai.devpost.com/rules) and [OpenAI Build Week page](https://openai.com/build-week/).
+### Honest contribution record
 
-### Submission record
+Codex has assisted with the currently implemented repository structure, scientific-boundary documentation, Zod schema and normalization helpers, focused unit tests, prototype UI, and documentation review. The human retains responsibility for the product direction, scientific assumptions, architecture decisions, design review, and final implementation choices.
 
-| Item | Status |
+GPT-5.6 is not integrated into the current build, so it must not be described as a live application capability. Once connected, the repository should document the exact structured request and response boundary, validation, fallbacks, and a reproducible demo path.
+
+| Item | Current record |
 | --- | --- |
-| Live application | [https://www.danielwaleczek.com](https://www.danielwaleczek.com) |
-| Source repository | [IDanielWaleczek/Xenogenesis-Lab](https://github.com/IDanielWaleczek/Xenogenesis-Lab) |
-| License | MIT ([LICENSE](LICENSE)) |
-| Project status | Prototype UI and tested world-data foundation; live AI pipeline is not yet implemented. |
-| Primary Codex `/feedback` session ID | **TODO:** capture and add before submission. |
-| Public YouTube demo URL | **TODO:** add before submission. |
-| Demo duration | **TODO:** keep below three minutes. |
-| Deployment-to-HEAD confirmation | **TODO:** confirm the live application reflects the submitted commit. |
-
-### Build Week evidence
-
-The repository was initialized during the event period. The project history records the schema and normalization foundation in commit `5b0d71e` and the interactive prototype in commit `4301ae0`. The detailed work record and submission checklist live in [docs/HACKATHON.md](docs/HACKATHON.md).
+| Primary Codex `/feedback` session ID | **TODO:** capture before submission. |
+| Public demo video | **TODO:** add before submission. |
+| Deployment-to-HEAD confirmation | **TODO:** verify before submission. |
+| Event work and evidence | [docs/HACKATHON.md](docs/HACKATHON.md) |
 
 ## License
 

@@ -61,6 +61,57 @@ Follow-up work:
 
 ## Initial decisions
 
+### 2026-07-19 — Frame the product as mission training, not a generator
+
+**Status:** Accepted
+
+**Decision**
+
+Xenogenesis Lab will be designed as an AI-guided astrobiology mission-training
+simulator. The first complete experience will require a mission briefing, a
+committed hypothesis, deterministic inspection, a GPT-5.6 instructor debrief,
+evidence-based revision, and meaningful competency progress.
+
+**Context**
+
+An environment configurator or organism generator can be visually engaging,
+but does not by itself require learners to make and evaluate scientific
+decisions. The product needs a clearer educational role and a focused demo
+loop.
+
+**Options considered**
+
+1. Keep a general world-to-organism exploration experience.
+2. Add decorative gamification to increase engagement.
+3. Build a focused mission-training loop with learning-relevant progression.
+
+**Rationale**
+
+The training loop makes the educational objective explicit and gives GPT-5.6
+a bounded instructional role. It also prioritizes a coherent vertical slice
+over disconnected features.
+
+**Consequences**
+
+Positive consequences:
+
+- hypothesis quality and revision become visible learning outcomes
+- calculated facts, user reasoning, and AI interpretation have clear provenance
+- progression can reflect competencies rather than arbitrary rewards
+
+Tradeoffs:
+
+- the product needs mission, hypothesis, debrief, archive, and progression data
+- the current UI prototype does not yet implement the full loop
+
+Follow-up work:
+
+- define and validate mission, hypothesis, debrief, archive, and competency contracts
+- implement one end-to-end training exercise before adding a mission library
+- update demo copy only as those capabilities become live
+
+---
+
 ### 2026-07-18 — Use local physics inputs without invented protection or energy
 
 **Status:** Accepted

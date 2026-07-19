@@ -110,8 +110,8 @@ type Copy = {
 /** Complete English copy used by the visual prototype. */
 const english: Copy = {
   document: {
-    title: "Xenogenesis Lab | Interactive Astrobiology",
-    description: "Explore how planetary conditions shape plausible alien life.",
+    title: "Xenogenesis Lab | Astrobiology Mission Training",
+    description: "Train scientific reasoning for fictional xenobiology missions.",
   },
   language: {
     label: "Language",
@@ -119,27 +119,27 @@ const english: Copy = {
     switchToPolish: "Switch to Polish",
   },
   header: {
-    subtitle: "Astrobiology console",
-    prototypeMode: "Prototype mode",
-    resetWorld: "Reset world",
+    subtitle: "Mission Control",
+    prototypeMode: "Training prototype",
+    resetWorld: "Reset exercise",
   },
   hero: {
     imageAlt: "Xenogenesis Lab: a planet with an orbital DNA motif against a star field",
-    eyebrow: "Interactive astrobiology laboratory",
-    titleStart: "Configure a world.",
-    titleHighlight: "Discover its pressures.",
+    eyebrow: "AI-guided astrobiology mission training",
+    titleStart: "Begin training.",
+    titleHighlight: "Analyse a world.",
     description:
-      "Explore how planetary conditions can shape a plausible organism. This visual prototype demonstrates the journey before live simulation and AI generation are connected.",
+      "Train for fictional xenobiology missions by forming and testing scientific reasoning. This visual prototype previews the training flow before live simulation and AI instruction are connected.",
   },
   screens: {
-    configure: "Configure",
-    constraints: "Constraints",
-    dossier: "Dossier",
-    illustration: "Illustration",
+    configure: "Briefing",
+    constraints: "Pressure preview",
+    dossier: "Organism preview",
+    illustration: "Visual preview",
   },
   controls: {
-    title: "World parameters",
-    subtitle: "Local UI controls · no run yet",
+    title: "Exercise parameters",
+    subtitle: "Local prototype controls · no run yet",
     gravity: "Gravity",
     pressure: "Atmospheric pressure",
     averageTemperature: "Average temperature",
@@ -150,7 +150,7 @@ const english: Copy = {
     habitat: "Dominant habitat",
     visualOnly:
       "Controls are visual only. No deterministic calculation or external request is performed.",
-    explorePreview: "Explore preview",
+    explorePreview: "Preview exercise",
   },
   units: { relative: "rel." },
   habitats: {
@@ -160,29 +160,29 @@ const english: Copy = {
     cloudLayer: "High-atmosphere cloud layer",
   },
   configure: {
-    eyebrow: "World briefing",
-    heading: "Build the environment.",
-    status: "Configuration view",
-    selectedWorld: "Selected world",
+    eyebrow: "Mission briefing preview",
+    heading: "Assess the target world.",
+    status: "Briefing view",
+    selectedWorld: "Target world",
     canvasDescription:
-      "A preview canvas for the environmental story. Parameters on the left change this display only.",
+      "A preview canvas for the mission environment. Parameters on the left change this display only.",
     gravityAbbreviation: "GRAV",
     temperatureAbbreviation: "TEMP",
     waterAbbreviation: "WATER",
-    journeyMap: "Journey map",
+    journeyMap: "Training loop",
     journey: [
-      { title: "Set conditions", description: "Choose a plausible planetary environment." },
-      { title: "Read pressures", description: "Reveal deterministic constraints." },
-      { title: "Inspect organism", description: "Connect traits to the model." },
+      { title: "Commit hypothesis", description: "Predict plausible survival adaptations." },
+      { title: "Run simulation", description: "Reveal deterministic pressures and constraints." },
+      { title: "Mission debrief", description: "Review evidence with the Mission Instructor." },
     ],
-    previewFlow: "See the preview flow",
+    previewFlow: "Preview pressure analysis",
     integrityTitle: "Prototype integrity",
     integrityDescription:
-      "The interface is ready for the complete demo journey, but its readings and organism are deliberate presentation samples until the rules engine and API routes are connected.",
-    continue: "Continue",
+      "The target experience includes a committed hypothesis and Mission Instructor debrief. This prototype contains deliberate presentation samples until the rules engine and API routes are connected.",
+    continue: "Continue preview",
   },
   constraints: {
-    eyebrow: "Environmental readout",
+    eyebrow: "Calculated pressure preview",
     heading: "A world of useful constraints.",
     status: "Preview only",
     description:
@@ -209,12 +209,12 @@ const english: Copy = {
         tone: "blue",
       },
     ],
-    readyTitle: "Ready to interpret the constraints?",
-    readyDescription: "The next screen previews the validated organism dossier.",
-    dossierPreview: "View dossier preview",
+    readyTitle: "Ready to inspect the predicted organism?",
+    readyDescription: "The next screen previews the organism-inspection stage.",
+    dossierPreview: "View organism preview",
   },
   dossier: {
-    eyebrow: "Organism dossier",
+    eyebrow: "Organism inspection preview",
     previewSuffix: "preview",
     status: "No model call made",
     plausibilityLabel: "Plausibility statement",
@@ -234,11 +234,11 @@ const english: Copy = {
       { title: "Dawn-and-dusk activity", category: "Thermal regulation · Behaviour" },
     ],
     imagePromptDescription:
-      "A controlled image prompt will use validated dossier fields, never raw form values.",
-    illustrationPreview: "Preview illustration stage",
+      "A controlled visual request will use validated dossier fields, never raw form values.",
+    illustrationPreview: "Preview visual stage",
   },
   illustration: {
-    eyebrow: "Scientific illustration",
+    eyebrow: "Visual representation preview",
     heading: "The visual specimen stage.",
     status: "Awaiting generation",
     queueLabel: "Illustration queue",
@@ -247,15 +247,15 @@ const english: Copy = {
       "This frame establishes the specimen presentation and loading space. Image generation is intentionally not connected yet.",
     stages: ["Validated dossier", "Controlled prompt", "Scientific composition"],
   },
-  navigationLabel: "Simulation journey",
-  footer: "Xenogenesis Lab · Educational plausibility model · Interface prototype",
+  navigationLabel: "Training exercise preview",
+  footer: "Xenogenesis Lab · Astrobiology mission-training prototype",
 };
 
 /** Complete Polish translation of every visible prototype string. */
 const polish: Copy = {
   document: {
-    title: "Xenogenesis Lab | Interaktywna astrobiologia",
-    description: "Odkrywaj, jak warunki planetarne kształtują prawdopodobne formy obcego życia.",
+    title: "Xenogenesis Lab | Trening misji astrobiologicznych",
+    description: "Ćwicz rozumowanie naukowe dla fikcyjnych misji ksenobiologicznych.",
   },
   language: {
     label: "Język",
@@ -263,27 +263,27 @@ const polish: Copy = {
     switchToPolish: "Przełącz na język polski",
   },
   header: {
-    subtitle: "Konsola astrobiologiczna",
-    prototypeMode: "Tryb prototypu",
-    resetWorld: "Resetuj świat",
+    subtitle: "Centrum misji",
+    prototypeMode: "Prototyp treningu",
+    resetWorld: "Resetuj ćwiczenie",
   },
   hero: {
     imageAlt: "Xenogenesis Lab: planeta z orbitalnym motywem DNA na tle gwiazd",
-    eyebrow: "Interaktywne laboratorium astrobiologiczne",
-    titleStart: "Skonfiguruj świat.",
-    titleHighlight: "Poznaj jego presje środowiskowe.",
+    eyebrow: "Astrobiologiczny trening misji wspierany przez AI",
+    titleStart: "Rozpocznij trening.",
+    titleHighlight: "Przeanalizuj świat.",
     description:
-      "Sprawdź, jak warunki planetarne mogą kształtować prawdopodobny organizm. Ten prototyp wizualny pokazuje ścieżkę przed podłączeniem symulacji i generowania przez AI.",
+      "Ćwicz rozumowanie dla fikcyjnych misji ksenobiologicznych przez tworzenie i sprawdzanie hipotez. Ten prototyp wizualny pokazuje ścieżkę przed podłączeniem symulacji i instruktażu AI.",
   },
   screens: {
-    configure: "Konfiguracja",
-    constraints: "Ograniczenia",
-    dossier: "Profil",
-    illustration: "Ilustracja",
+    configure: "Odprawa",
+    constraints: "Podgląd presji",
+    dossier: "Podgląd organizmu",
+    illustration: "Podgląd wizualny",
   },
   controls: {
-    title: "Parametry świata",
-    subtitle: "Lokalne sterowanie interfejsem · bez uruchamiania analizy",
+    title: "Parametry ćwiczenia",
+    subtitle: "Lokalne sterowanie prototypem · bez uruchamiania analizy",
     gravity: "Grawitacja",
     pressure: "Ciśnienie atmosferyczne",
     averageTemperature: "Średnia temperatura",
@@ -294,7 +294,7 @@ const polish: Copy = {
     habitat: "Dominujące siedlisko",
     visualOnly:
       "Elementy sterujące są wyłącznie wizualne. Nie wykonano obliczeń deterministycznych ani zewnętrznego żądania.",
-    explorePreview: "Zobacz podgląd",
+    explorePreview: "Zobacz ćwiczenie",
   },
   units: { relative: "wzgl." },
   habitats: {
@@ -304,29 +304,29 @@ const polish: Copy = {
     cloudLayer: "Warstwa chmur wysokiej atmosfery",
   },
   configure: {
-    eyebrow: "Opis świata",
-    heading: "Zbuduj środowisko.",
-    status: "Widok konfiguracji",
-    selectedWorld: "Wybrany świat",
+    eyebrow: "Podgląd odprawy misyjnej",
+    heading: "Oceń docelowy świat.",
+    status: "Widok odprawy",
+    selectedWorld: "Docelowy świat",
     canvasDescription:
-      "Podglądowa przestrzeń dla historii środowiska. Parametry po lewej zmieniają tylko ten widok.",
+      "Podglądowa przestrzeń dla środowiska misji. Parametry po lewej zmieniają tylko ten widok.",
     gravityAbbreviation: "GRAW",
     temperatureAbbreviation: "TEMP",
     waterAbbreviation: "WODA",
-    journeyMap: "Mapa ścieżki",
+    journeyMap: "Pętla treningowa",
     journey: [
-      { title: "Ustaw warunki", description: "Wybierz prawdopodobne środowisko planetarne." },
-      { title: "Odczytaj presje", description: "Pokaż deterministyczne ograniczenia." },
-      { title: "Poznaj organizm", description: "Połącz cechy z modelem." },
+      { title: "Zatwierdź hipotezę", description: "Przewidź prawdopodobne adaptacje przetrwania." },
+      { title: "Uruchom symulację", description: "Pokaż deterministyczne presje i ograniczenia." },
+      { title: "Odprawa misyjna", description: "Omów dowody z Instruktorem Misji." },
     ],
-    previewFlow: "Zobacz ścieżkę podglądu",
+    previewFlow: "Zobacz analizę presji",
     integrityTitle: "Rzetelność prototypu",
     integrityDescription:
-      "Interfejs jest gotowy na pełną ścieżkę demonstracyjną, ale jego odczyty i organizm są celowo przykładowe do czasu podłączenia silnika reguł i tras API.",
-    continue: "Dalej",
+      "Docelowa ścieżka obejmuje zatwierdzoną hipotezę i odprawę z Instruktorem Misji. Ten prototyp zawiera celowo przykładowe treści do czasu podłączenia silnika reguł i tras API.",
+    continue: "Kontynuuj podgląd",
   },
   constraints: {
-    eyebrow: "Odczyt środowiska",
+    eyebrow: "Podgląd obliczonych presji",
     heading: "Świat pełen istotnych ograniczeń.",
     status: "Tylko podgląd",
     description:
@@ -353,12 +353,12 @@ const polish: Copy = {
         tone: "blue",
       },
     ],
-    readyTitle: "Gotowy, aby zinterpretować ograniczenia?",
-    readyDescription: "Kolejny ekran pokazuje podgląd zweryfikowanego profilu organizmu.",
-    dossierPreview: "Zobacz podgląd profilu",
+    readyTitle: "Gotowy, aby zbadać przewidywany organizm?",
+    readyDescription: "Kolejny ekran pokazuje podgląd etapu badania organizmu.",
+    dossierPreview: "Zobacz podgląd organizmu",
   },
   dossier: {
-    eyebrow: "Profil organizmu",
+    eyebrow: "Podgląd badania organizmu",
     previewSuffix: "podgląd",
     status: "Nie wykonano wywołania modelu",
     plausibilityLabel: "Ocena prawdopodobieństwa",
@@ -378,11 +378,11 @@ const polish: Copy = {
       { title: "Aktywność o świcie i zmierzchu", category: "Termoregulacja · Zachowanie" },
     ],
     imagePromptDescription:
-      "Kontrolowany prompt obrazu użyje zweryfikowanych pól profilu, nigdy surowych wartości formularza.",
-    illustrationPreview: "Zobacz etap ilustracji",
+      "Kontrolowane żądanie wizualne użyje zweryfikowanych pól profilu, nigdy surowych wartości formularza.",
+    illustrationPreview: "Zobacz etap wizualny",
   },
   illustration: {
-    eyebrow: "Ilustracja naukowa",
+    eyebrow: "Podgląd reprezentacji wizualnej",
     heading: "Etap wizualnego okazu.",
     status: "Oczekuje na generowanie",
     queueLabel: "Kolejka ilustracji",
@@ -391,8 +391,8 @@ const polish: Copy = {
       "Ta ramka wyznacza prezentację okazu i miejsce na ładowanie. Generowanie obrazu nie jest jeszcze podłączone.",
     stages: ["Zweryfikowany profil", "Kontrolowany prompt", "Kompozycja naukowa"],
   },
-  navigationLabel: "Ścieżka symulacji",
-  footer: "Xenogenesis Lab · Edukacyjny model prawdopodobieństwa · Prototyp interfejsu",
+  navigationLabel: "Podgląd ćwiczenia treningowego",
+  footer: "Xenogenesis Lab · Prototyp treningu misji astrobiologicznych",
 };
 
 /** Maps each supported language to a complete, compile-time-checked copy set. */

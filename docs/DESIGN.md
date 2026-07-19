@@ -2,216 +2,62 @@
 
 ## Design direction
 
-Xenogenesis Lab should feel like a modern scientific instrument rather than
-a fantasy creature generator.
+Xenogenesis Lab should feel like focused scientific mission-training software: precise, atmospheric, readable, and quietly futuristic. It is not a fantasy creature generator, generic dashboard, or cluttered spaceship interface.
 
-Desired qualities:
+Avoid excessive neon, game-like stat overload, imitation of established science-fiction franchises, and decorative gamification.
 
-- futuristic
-- scientific
-- precise
-- atmospheric
-- readable
-- visually memorable
+## Mission-console hierarchy
 
-Avoid:
-
-- cluttered spaceship interfaces
-- excessive neon
-- fantasy styling
-- game-like stat overload
-- imitation of established science-fiction franchises
-
-## Colors
-
-Primary palette:
-
-- deep navy or near-black background
-- cyan or teal scientific accents
-- cool white text
-- muted blue-gray secondary text
-
-Semantic colors:
-
-- green: viable or favorable
-- amber: demanding or uncertain
-- red: dangerous or incompatible
-- blue: neutral scientific information
-
-Exact values:
+The UI should make the learner’s place in the training loop obvious:
 
 ```text
-Background: #030817
-Surface: #0F1A34 with translucent glass panels
-Primary accent: #67E8F9
-Secondary accent: #0E7490
-Main text: #E5F4FF
-Muted text: #94A3B8
-Success: #86EFAC
-Warning: #FDE68A
-Error: #FCA5A5
+Mission Control
+├── Mission Briefing and objective
+├── Environmental analysis and hypothesis entry
+├── Run Simulation and calculated pressures
+├── Organism / adaptation inspection
+├── Mission Instructor debrief and revision
+└── Research Archive and Competency Profile
 ```
 
-## Typography
+Always label provenance in the result area: **Your hypothesis**, **Calculated result**, and **Mission Instructor interpretation**. Never style generated prose or a prepared illustration as a measured fact.
 
-Use:
+## Responsive behaviour
 
-- one clear display typeface for headings
-- one highly readable interface typeface
-- limited font weights
-- short line lengths for scientific explanations
+Desktop uses a full-screen `100dvh` application shell. Avoid global page scrolling; permit local scrolling only in panels that need it, such as a long debrief, archive, or parameter form. Maintain a clear mission-control hierarchy with the primary next action visible.
 
-Avoid decorative fonts for body text.
+Mobile reflows to a readable single-column training workflow with natural page scrolling. Do not merely scale down desktop panels. Controls, dialogs, charts, and debriefs must remain touch-friendly and readable.
 
-## Main screen layout
+Accessibility and clarity take priority over immersion.
 
-Recommended structure:
+## Core states
 
-```text
-Header
-├── logo
-├── project name
-└── reset or example action
-
-Main content
-├── world configuration panel
-├── environment preview
-├── simulation action
-└── organism result
-
-Result section
-├── generated illustration
-├── organism summary
-├── adaptation cards
-├── environmental connections
-└── scientific limitations
-```
-
-On desktop:
-
-- parameters on the left
-- visualization and results on the right
-
-On mobile:
-
-- stacked sections
-- primary action always easy to find
-
-## Loading states
-
-Use distinct progress stages:
+Before a mission begins, show a clear briefing and a polished default exercise. Before simulation, make the hypothesis commitment explicit. During work, use truthful progress states:
 
 ```text
+Validating mission input
 Analyzing environment
 Deriving biological constraints
-Generating organism dossier
-Creating scientific illustration
+Preparing Mission Instructor debrief
+Creating validated visual representation
 ```
 
-Loading states should:
+Do not show a stage that is not actually running. Preserve the configured world, hypothesis, and completed deterministic output when a later request fails. Each error should identify the failed stage, avoid jargon, and offer a safe recovery action.
 
-- explain what is happening
-- avoid fake precision
-- preserve the configured world
-- allow recovery after failure
+## Progression
 
-## Empty state
+The archive and competency interface must show meaningful scientific learning: mission completion, quality of evidence-based revision, and relevant competencies. Do not introduce coins, unrelated streaks, arbitrary badges, or rewards for meaningless clicks.
 
-Before the first simulation:
+## Visual system
 
-- show a short explanation
-- provide a visually interesting example
-- include one-click example-world presets
-- make the primary action obvious
+Use a deep navy or near-black background, cyan or teal scientific accents, cool-white text, and muted blue-gray secondary text. Green, amber, red, and blue must carry a textual or iconographic meaning in addition to colour.
 
-## Error states
-
-Errors should:
-
-- explain the failed stage
-- avoid technical jargon
-- preserve completed results
-- allow retrying only the failed stage where possible
-
-Example:
-
-```text
-The environmental simulation completed, but the illustration could not be
-generated. You can retry the image without running the simulation again.
-```
-
-## Accessibility
-
-Minimum requirements:
-
-- keyboard-accessible controls
-- visible focus states
-- semantic labels
-- sufficient contrast
-- no information conveyed only by color
-- descriptive image alternative text
-- reduced-motion support
-- readable text at browser zoom
-- accessible slider values and units
-- initial interface languages: English and Polish
-- every new visible string added to the interface must have reviewed translations for every supported language
+Use a readable interface typeface, restrained display typography, short line lengths for scientific explanations, visible focus states, semantic labels, descriptive image alternatives, reduced-motion support, and reviewed English and Polish strings for every visible UI addition.
 
 ## Illustration rules
 
-Illustrations should look like:
+Illustrations should resemble neutral astrobiology field documentation or scientific concept art. A generated illustration may depict only validated habitat, posture, atmosphere, thermal and radiation adaptations, locomotion, scale, and sensory traits. It must not contradict the dossier, add unsupported anatomy, imitate protected franchises or artists, or present speculative details as measured facts.
 
-- scientific concept art
-- astrobiology field documentation
-- neutral specimen presentation
-- a plausible organism inside its habitat
+## Current prototype note
 
-Illustrations should not:
-
-- imitate known franchises or artists
-- include recognizable copyrighted creatures
-- add unsupported anatomical features
-- contradict the organism dossier
-- contain random interface text
-- present speculative details as measured facts
-
-The image prompt should include:
-
-- habitat
-- gravity-related posture
-- atmosphere-related adaptations
-- thermal adaptations
-- radiation adaptations
-- locomotion
-- scale reference where useful
-- scientific illustration composition
-
-## Logo and branding
-
-Project name:
-
-```text
-Xenogenesis Lab
-```
-
-The logo combines:
-
-- planetary science
-- biology
-- evolution
-- an orbital or DNA-inspired motif
-
-Use the full logo for:
-
-- project page
-- README
-- opening and closing demo frames
-
-Use the symbol alone for:
-
-- favicon
-- compact navigation
-- loading state
-- social thumbnail where appropriate
-
-Do not modify the logo proportions or add unrelated visual effects without
-documenting a new approved variant.
+The current interface is a responsive preview with local controls and non-live pressure, organism, and illustration samples. Do not describe its preview stages as a functioning Mission Instructor, deterministic simulation, archive, or generated image until those flows are implemented.
