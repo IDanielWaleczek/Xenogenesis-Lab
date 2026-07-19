@@ -26,6 +26,21 @@ export const AdaptationIdSchema = z.enum([
 /** Supported interface and instructor-response languages. */
 export const MissionLanguageSchema = z.enum(["en", "pl"]);
 
+/** Multiple-choice survival strategies available in the first mission. */
+export const SurvivalStrategySchema = z.enum([
+  "surfaceConservation",
+  "shelterSeeking",
+  "mobileForaging",
+  "aerialDispersal",
+]);
+
+/** Multiple-choice conclusions available after the instructor debrief. */
+export const RevisionConclusionSchema = z.enum([
+  "strengthenHypothesis",
+  "changeAdaptations",
+  "changeStrategy",
+]);
+
 /** The fixed, validated mission definition used by the MVP training loop. */
 export const MissionDefinitionSchema = z
   .object({
@@ -38,6 +53,14 @@ export const MissionDefinitionSchema = z
 /** A learner prediction captured before deterministic results are revealed. */
 export const HypothesisSchema = z
   .object({
+    pressureIds: z
+      .array(PressureIdSchema)
+      .min(1)
+      .max(4)
+      .refine(
+        (values) => new Set(values).size === values.length,
+        "Predicted pressures must not contain duplicates.",
+      ),
     adaptationIds: z
       .array(AdaptationIdSchema)
       .min(1)
@@ -46,7 +69,7 @@ export const HypothesisSchema = z
         (values) => new Set(values).size === values.length,
         "Predicted adaptations must not contain duplicates.",
       ),
-    reasoning: z.string().trim().min(20).max(800),
+    strategy: SurvivalStrategySchema,
   })
   .strict();
 
@@ -54,6 +77,7 @@ export const HypothesisSchema = z
 export const CommittedHypothesisSchema = HypothesisSchema.extend({
   missionId: z.literal("vespera-01"),
   committedAt: z.string().datetime(),
+  world: WorldParametersSchema,
 }).strict();
 
 /** A model convention triggered by validated environmental input. */
@@ -85,10 +109,15 @@ export const SimulationResultSchema = z
     viability: z.literal("conditionallyPlausibleComplexLife"),
     normalizedFacts: z
       .object({
+        gravityG: z.number().finite(),
+        atmosphericPressureAtm: z.number().finite(),
         oxygenPartialPressureAtm: z.number().finite(),
         minimumTemperatureC: z.number().finite(),
         maximumTemperatureC: z.number().finite(),
         radiationDoseRateMilliSvPerHour: z.number().finite(),
+        lightLevel: z.number().finite(),
+        waterAvailability: z.number().finite(),
+        atmosphericDensityKgM3: z.number().finite().nullable(),
       })
       .strict(),
     pressures: z.array(EnvironmentalPressureSchema),
@@ -99,6 +128,9 @@ export const SimulationResultSchema = z
 /** Comparison between the committed prediction and deterministic candidates. */
 export const HypothesisComparisonSchema = z
   .object({
+    supportedPressurePredictions: z.array(PressureIdSchema),
+    missedPressures: z.array(PressureIdSchema),
+    unsupportedPressurePredictions: z.array(PressureIdSchema),
     supportedPredictions: z.array(AdaptationIdSchema),
     missedAdaptations: z.array(AdaptationIdSchema),
     unsupportedPredictions: z.array(AdaptationIdSchema),
@@ -138,10 +170,10 @@ export const MissionInstructorResponseSchema = z
 /** Evidence-based revision submitted after the debrief. */
 export const MissionRevisionSchema = z
   .object({
-    reasoning: z.string().trim().min(20).max(800),
+    conclusion: RevisionConclusionSchema,
     evidencePressureIds: z
       .array(PressureIdSchema)
-      .min(1)
+      .max(4)
       .refine(
         (values) => new Set(values).size === values.length,
         "Evidence pressure identifiers must not contain duplicates.",
@@ -163,6 +195,8 @@ export const CompetencyProgressSchema = z
 export type PressureId = z.infer<typeof PressureIdSchema>;
 export type AdaptationId = z.infer<typeof AdaptationIdSchema>;
 export type MissionLanguage = z.infer<typeof MissionLanguageSchema>;
+export type SurvivalStrategy = z.infer<typeof SurvivalStrategySchema>;
+export type RevisionConclusion = z.infer<typeof RevisionConclusionSchema>;
 export type MissionDefinition = z.infer<typeof MissionDefinitionSchema>;
 export type Hypothesis = z.infer<typeof HypothesisSchema>;
 export type CommittedHypothesis = z.infer<typeof CommittedHypothesisSchema>;

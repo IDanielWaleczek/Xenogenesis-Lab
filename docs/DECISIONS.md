@@ -61,9 +61,48 @@ Follow-up work:
 
 ## Initial decisions
 
-### 2026-07-19 — Ship one fixed mission with an honest instructor fallback
+### 2026-07-19 — Add learner-controlled variants with a code-native planet preview
 
 **Status:** Accepted
+
+**Decision**
+
+Mission 01 starts from immutable Vespera telemetry but lets learners create a resettable experimental variant using all current parameter groups. A deterministic SVG planet maps validated input to continuously transitioning visual states, and learners commit multiple-choice pressure, adaptation, and strategy decisions after locking the variant.
+
+**Context**
+
+The previous build opened directly on the briefing, did not provide a Mission Control home, hid environmental data during hypothesis work, and required written reasoning. It also gave learners no playful way to manipulate a planet before making a prediction.
+
+**Options considered**
+
+1. Keep one fixed world and add clearer text.
+2. Add unrestricted world editing and treat the visual as scientific output.
+3. Preserve an immutable baseline, create separate validated variants, and label the smoothly animated planet as visual interpretation.
+
+**Rationale**
+
+The selected approach gives learners freedom and immediate feedback while preserving provenance and the deterministic science boundary. Multiple-choice decisions reduce first-mission friction and keep the exercise testable. A code-native SVG adds no dependency or image-service cost.
+
+**Consequences**
+
+- the application now boots into a dedicated Mission Control home
+- the briefing explicitly explains the exercise before opening the World Lab
+- every current parameter group is visible with a potential biological influence
+- committed variants are sent to the server and recalculated instead of trusting client results
+- visual changes are not evidence and do not create undocumented science rules
+- ruleset 0.2.0 still scores only gravity, thermal range, radiation, and water
+
+Follow-up work:
+
+- validate parameter ranges and explanations with an educator
+- add new deterministic rules only with named coefficients and boundary tests
+- user-test the full parameter set for first-mission cognitive load
+
+---
+
+### 2026-07-19 — Ship one fixed mission with an honest instructor fallback
+
+**Status:** Replaced by learner-controlled variants; instructor fallback remains accepted
 
 **Decision**
 

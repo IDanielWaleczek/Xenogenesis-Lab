@@ -12,8 +12,10 @@ The UI should make the learner’s place in the training loop obvious:
 
 ```text
 Mission Control
-├── Mission Briefing and objective
-├── Environmental analysis and hypothesis entry
+├── Animated system boot and Mission Control home
+├── Mission Briefing with explicit first-mission instructions
+├── World Lab with resettable variant controls and live planet preview
+├── Multiple-choice pressure, adaptation, and strategy decisions
 ├── Run Simulation and calculated pressures
 ├── Organism / adaptation inspection
 ├── Mission Instructor debrief and revision
@@ -32,7 +34,7 @@ Accessibility and clarity take priority over immersion.
 
 ## Core states
 
-Before a mission begins, show a clear briefing and a polished default exercise. Before simulation, make the hypothesis commitment explicit. During work, use truthful progress states:
+Before a mission begins, show a short skippable boot animation, a real Mission Control home, a clear briefing, and a polished default exercise. Before simulation, make the decision commitment explicit. During work, use truthful progress states:
 
 ```text
 Validating mission input
@@ -58,8 +60,14 @@ Use a readable interface typeface, restrained display typography, short line len
 
 Illustrations should resemble neutral astrobiology field documentation or scientific concept art. A generated illustration may depict only validated habitat, posture, atmosphere, thermal and radiation adaptations, locomotion, scale, and sensory traits. It must not contradict the dossier, add unsupported anatomy, imitate protected franchises or artists, or present speculative details as measured facts.
 
+## Interactive planet preview
+
+The World Lab uses a code-native SVG planet with continuous transitions between deterministic visual states. Every editable input must create visible feedback through atmosphere, palette, illumination, water, shape, radiation activity, shielding overlay, habitat styling, or geochemical glow. These mappings are cinematic communication, not physical rendering or habitability evidence, and always carry a **Visual interpretation** label.
+
+Mission baseline telemetry remains visually distinct from the learner's experimental variant. Restoring the baseline must be one action. The locked variant remains visible while multiple-choice decisions are made.
+
 ## Current implementation note
 
-The current interface implements one responsive mission loop. Hypothesis content, deterministic results, GPT-5.6 interpretation, and the local instructor fallback have visibly different provenance labels. The Research Archive and competency profile are session-only and reset on reload.
+The current interface implements one responsive mission loop with boot, Mission Control home, guided briefing, experimental World Lab, continuously transitioning planet, structured decisions, simulation, debrief, revision, and progress. Learner decisions, visual interpretation, deterministic results, GPT-5.6 interpretation, and the local instructor fallback have visibly different provenance labels. The Research Archive and competency profile are session-only and reset on reload.
 
 Do not describe the adaptation analysis as a generated organism, the session record as persistent, the fallback as AI-generated, or the disabled next-mission state as a mission library. Image generation is not implemented.

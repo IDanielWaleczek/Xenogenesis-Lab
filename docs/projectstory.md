@@ -3,12 +3,15 @@
 ## Submission-integrity note
 
 This is a product-story draft, not evidence that every described capability is
-live. The current repository implements one fixed mission with committed
-reasoning, deterministic pressure analysis, an instructor route with a clearly
-labelled local fallback, evidence-based revision, and session-only progress.
+live. The current repository implements one mission with an immutable baseline,
+learner-controlled experimental variants, a smooth code-rendered planet,
+committed multiple-choice decisions, deterministic pressure analysis, an
+instructor route with a clearly labelled local fallback, multiple-choice
+revision, and session-only progress.
 Live GPT-5.6 behavior remains **TODO: verify end to end with server credentials**.
-Generated visualisation, persistence, certification progression, and a mission
-library are not implemented.
+AI-generated illustration, persistence, certification progression, and a
+mission library are not implemented. The current SVG planet is a visual
+interpretation of inputs, not a scientific image or simulation result.
 
 Update this document, the README, and the demo script together as features
 become testable. Do not submit future-tense product intent as a live feature.
@@ -34,15 +37,16 @@ xenobiology mission specialist.”
 
 ## Intended training exercise
 
-1. Receive a Mission Briefing with a target world and scientific objective.
-2. Inspect or configure the environmental conditions.
-3. Commit a hypothesis about plausible survival adaptations.
-4. Run the deterministic plausibility simulation.
-5. Inspect calculated pressures and organism adaptations.
-6. Receive a structured GPT-5.6 Mission Instructor debrief.
-7. Improve or defend the original reasoning using evidence.
-8. Record the exercise in the Research Archive.
-9. Progress a Competency Profile toward Mission Ready certification.
+1. Boot the training system and enter Mission Control.
+2. Receive a Mission Briefing with a target world and scientific objective.
+3. Create an experimental variant while observing a live planet interpretation.
+4. Commit multiple-choice pressure, adaptation, and strategy decisions.
+5. Run the deterministic plausibility simulation.
+6. Inspect calculated pressures and organism adaptations.
+7. Receive a structured GPT-5.6 Mission Instructor debrief.
+8. Revise the original decision using calculated evidence.
+9. Record the exercise in the Research Archive.
+10. Progress a Competency Profile toward Mission Ready certification.
 
 ## Scientific integrity and AI roles
 

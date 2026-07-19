@@ -23,5 +23,6 @@ export const VESPERA_MISSION = MissionDefinitionSchema.parse({
     shieldingColumnMassKgM2: 0,
     geochemicalEnergyAvailability: "none",
     electronAcceptors: [],
+    atmosphericMeanMolarMassKgPerMol: 0.02897,
   },
 });

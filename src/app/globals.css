@@ -33,6 +33,10 @@ select {
   font: inherit;
 }
 
+button:disabled {
+  pointer-events: none;
+}
+
 .glass-panel {
   border: 1px solid rgb(148 163 184 / 0.15);
   border-radius: 1rem;
@@ -105,9 +109,125 @@ select {
 
 .button-primary:focus-visible,
 .button-quiet:focus-visible,
-.xl-range:focus-visible {
+.xl-range:focus-visible,
+.selection-card:focus-visible,
+select:focus-visible,
+input[type="checkbox"]:focus-visible {
   outline: 2px solid rgb(103 232 249);
   outline-offset: 3px;
+}
+
+.selection-card {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 0.75rem;
+  background: rgb(2 6 23 / 0.34);
+  padding: 0.85rem;
+  color: rgb(203 213 225);
+  text-align: left;
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.selection-card:hover {
+  border-color: rgb(255 255 255 / 0.2);
+  transform: translateY(-1px);
+}
+
+.selection-card-active {
+  border-color: rgb(103 232 249 / 0.42);
+  background: rgb(34 211 238 / 0.09);
+  color: rgb(236 254 255);
+}
+
+.selection-card strong,
+.selection-card small {
+  display: block;
+}
+
+.selection-card strong {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.selection-card small {
+  margin-top: 0.25rem;
+  color: rgb(148 163 184);
+  font-size: 0.6875rem;
+  line-height: 1.1rem;
+}
+
+.selection-check,
+.selection-radio {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  border: 1px solid rgb(100 116 139);
+  color: rgb(8 47 73);
+  font-size: 0.7rem;
+}
+
+.selection-check {
+  border-radius: 0.25rem;
+}
+
+.selection-radio {
+  border-radius: 9999px;
+  color: rgb(103 232 249);
+}
+
+.selection-card-active .selection-check {
+  border-color: rgb(103 232 249);
+  background: rgb(103 232 249);
+}
+
+.selection-card-active .selection-radio {
+  border-color: rgb(103 232 249);
+}
+
+.planet-transition,
+.planet-transition * {
+  transition:
+    fill 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    stroke 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    stroke-width 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    y 720ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.planet-surface-drift {
+  animation: planet-surface-drift 52s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.planet-cloud-drift {
+  animation: planet-cloud-drift 74s linear infinite;
+}
+
+.boot-grid {
+  background-image:
+    linear-gradient(rgb(34 211 238 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 211 238 / 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, black, transparent 75%);
+}
+
+.boot-screen::before {
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(from 180deg, transparent, rgb(34 211 238 / 0.07), transparent 25%);
+  content: "";
+  animation: boot-scan 8s linear infinite;
+}
+
+.boot-orbit {
+  animation: boot-orbit 2.4s linear infinite;
 }
 
 .xl-range::-webkit-slider-thumb {
@@ -138,6 +258,30 @@ select {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes boot-orbit {
+  to {
+    transform: rotate(360deg) scale(1.08);
+  }
+}
+
+@keyframes boot-scan {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes planet-surface-drift {
+  to {
+    transform: translateX(-440px);
+  }
+}
+
+@keyframes planet-cloud-drift {
+  to {
+    transform: translateX(-48px);
   }
 }
 

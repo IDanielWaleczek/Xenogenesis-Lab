@@ -2,58 +2,58 @@
 
 ## Recording rule
 
-Record only the deployed build that matches repository HEAD. Before recording, verify the production route and note whether the debrief provenance label says **GPT-5.6 interpretation** or **Local training review**. Use the matching narration below. Do not show image generation, persistent accounts, a mission library, or durable certification; those features are not implemented.
+Record only the deployed build that matches repository HEAD. Before recording, verify the production route and note whether the debrief provenance label says **GPT-5.6 interpretation** or **Local training review**. Use the matching narration below. Do not show AI image generation, persistent accounts, a mission library, or durable certification; those features are not implemented. The interactive planet is a code-rendered visual interpretation, not an AI-generated scientific illustration.
 
-## 0:00–0:15 — Mission Control
+## 0:00–0:18 — Boot and Mission Control
 
-Show the opening Vespera briefing and language switch.
+Show the animated boot, enter Mission Control, and pause on the mission card.
 
-> Xenogenesis Lab is an astrobiology mission-training simulator. Instead of generating a creature first, it asks the learner to make a scientific prediction before seeing the model result.
+> Xenogenesis Lab is an astrobiology mission-training simulator. It behaves like a mission computer: the learner boots the system, enters Mission Control, and receives a clear training objective before touching the science.
 
-## 0:15–0:40 — Mission briefing
+## 0:18–0:38 — Guided briefing
 
-Show the mission objective and verified telemetry.
+Open Mission 01 and show the baseline telemetry and five-step instruction strip.
 
-> This first working mission targets Vespera b: 1.7 g gravity, a wide temperature range, elevated radiation, and limited accessible water. The mission asks which adaptations could support a complex surface organism under this educational model.
+> Vespera b starts with verified baseline telemetry. The interface explains exactly what to do, and makes clear that learner changes create a separate experiment rather than overwriting mission data.
 
-## 0:40–1:02 — Commit a hypothesis
+## 0:38–1:05 — World Lab
 
-Select several adaptations, include at least one intentionally unsupported option, enter reasoning, and select **Commit Hypothesis**.
+Change gravity, temperature, water, atmosphere, and habitat. Show the planet transitioning smoothly, the parameter explanations, derived temperature range, oxygen partial pressure, and reset action. Lock the variant.
 
-> The learner must commit a hypothesis before the result is revealed. The important output is the causal reasoning between environmental pressure and biological adaptation.
+> In the World Lab, every current parameter group is available. Each control explains how it could shape a world or its life, and every change produces continuous visual feedback. The planet is explicitly labelled as visual interpretation; scientific conclusions remain hidden until the deterministic simulation runs.
 
-## 1:02–1:28 — Deterministic simulation
+## 1:05–1:25 — Commit decisions
 
-Select **Run Simulation**. Show normalized facts, the four pressure cards, adaptation candidates, and hypothesis comparison.
+Keep the locked planet visible. Select predicted pressures, adaptations, and one survival strategy, then commit.
 
-> Ruleset 0.2.0 calculates the same result for the same validated input. It derives temperature extremes and oxygen partial pressure, then applies four named model conventions for gravity, temperature, radiation, and water. These are model conventions, not universal biological limits.
+> The first mission uses multiple-choice decisions instead of asking a new learner to write scientific prose. The learner commits pressure, adaptation, and strategy predictions before seeing the model result.
 
-## 1:28–1:52 — Mission Instructor
+## 1:25–1:48 — Deterministic simulation
 
-Select **Request Mission Instructor debrief** and keep the provenance label visible.
+Run the simulation. Show normalized facts, pressure and adaptation cards, and comparison.
+
+> Ruleset 0.2.0 recalculates the locked world and gives the same output for identical validated input. It currently scores four documented conventions for gravity, thermal range, radiation, and water. Other controls never gain hidden rules.
+
+## 1:48–2:08 — Mission Instructor
+
+Request the debrief and keep the provenance label visible.
 
 If the label says **GPT-5.6 interpretation**:
 
-> The server re-runs the deterministic simulation, sends only validated mission context and the committed hypothesis to GPT-5.6, and validates the structured debrief with Zod. The model explains the result; it cannot change the calculated facts.
+> The server validates and recalculates the committed variant, sends the structured decisions and deterministic result to GPT-5.6, and validates the returned debrief with Zod. The model explains; it cannot change the calculated facts.
 
 If the label says **Local training review**:
 
-> This environment has no verified live GPT-5.6 response, so the application shows its validated deterministic fallback. The provenance label makes clear that this text is not AI-generated.
+> This run has no verified live GPT-5.6 response, so the application shows its validated deterministic fallback. The provenance label makes clear that this text is not AI-generated.
 
-## 1:52–2:12 — Revision and progress
+## 2:08–2:22 — Revision and progress
 
-Select calculated evidence, enter a revision, and complete the mission. Show the session archive and competency bars.
+Select evidence, choose a multiple-choice conclusion, and complete the mission.
 
-> The learner revises the hypothesis using calculated evidence. Progress reflects hypothesis alignment, adaptation recall, and evidence coverage. The archive is session-only and resets on reload.
+> The learner revises from calculated evidence without a writing barrier. Progress reflects decision alignment, adaptation recall, and evidence coverage; the archive remains session-only.
 
-## 2:12–2:25 — Engineering boundary
+## 2:22–2:30 — Close
 
-Show a short code or test view without secrets.
+Show the competency screen, then return to Mission Control.
 
-> The application uses Next.js, React, TypeScript, Zod, Vitest, and the OpenAI Responses API. Codex accelerated the domain contracts, deterministic engine, bilingual interface, tests, and documentation. The human directed the product, scientific, architecture, and design decisions.
-
-## 2:25–2:30 — Close
-
-Show the progress screen and the explicit next-mission TODO.
-
-> One mission is complete. The next mission remains clearly marked as future work.
+> Codex accelerated the contracts, deterministic engine, bilingual experience, tests, and documentation. The human directed the product, science boundary, experimental freedom, and final interaction choices.

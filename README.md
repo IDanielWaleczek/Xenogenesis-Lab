@@ -6,19 +6,22 @@
 
 ## What it does
 
-Xenogenesis Lab places the learner in a fictional xenobiology training programme. In the working Vespera mission, the learner reviews planetary telemetry, commits an adaptation hypothesis before seeing the result, runs a deterministic simulation, inspects calculated pressures, receives a validated instructor debrief, revises the hypothesis with evidence, and completes a session-only competency record.
+Xenogenesis Lab places the learner in a fictional xenobiology training programme. The working build boots like a mission computer, opens Mission Control, and guides the learner through one Vespera exercise. The learner creates a resettable planetary variant, watches a smoothly changing code-rendered planet, commits multiple-choice pressure, adaptation, and strategy decisions, runs a deterministic simulation, receives a validated instructor debrief, and completes a session-only competency record.
 
-The interface keeps four sources visibly separate: learner hypothesis, calculated result, GPT-5.6 interpretation, and deterministic local fallback.
+The interface keeps provenance visibly separate: mission baseline, learner variant, committed decisions, visual interpretation, calculated result, GPT-5.6 interpretation, and deterministic local fallback.
 
 ## Working features
 
-- One complete English/Polish Vespera b training mission.
-- Committed hypothesis with selectable adaptations and written reasoning.
+- Animated boot sequence and a dedicated Mission Control home screen.
+- One complete English/Polish Vespera b training mission with explicit first-use guidance.
+- Experimental world variants with controls for gravity, local atmosphere, temperature, radiation, light, water, habitat, shielding, and geochemical inputs.
+- Smooth hybrid scientific/cinematic planet visualisation derived deterministically from the current inputs.
+- Committed multiple-choice pressure, adaptation, and survival-strategy decisions; no written hypothesis is required.
 - Deterministic ruleset 0.2.0 covering high gravity, thermal extremes, elevated radiation, and limited water.
 - Reproducible pressure analysis, adaptation candidates, and hypothesis comparison.
 - Server-only Mission Instructor route using the OpenAI Responses API and Zod Structured Outputs.
 - Clearly labelled deterministic instructor fallback when GPT-5.6 is unavailable.
-- Evidence-based revision and session-only competency scoring.
+- Multiple-choice evidence revision and session-only competency scoring.
 - Responsive, keyboard-accessible mission-console interface.
 
 The application does not currently include image generation, persistent accounts or archives, a mission library, durable certification, rate limiting, or production observability. The next mission is explicitly marked `TODO` in the interface.
@@ -26,17 +29,21 @@ The application does not currently include image generation, persistent accounts
 ## How the mission works
 
 ```text
-Mission briefing
-→ committed hypothesis
+Animated boot → Mission Control
+→ mission briefing
+→ experimental world setup and live visual interpretation
+→ committed multiple-choice decisions
 → deterministic simulation
 → pressure and adaptation analysis
 → validated Mission Instructor debrief
-→ evidence-based revision
+→ evidence-based multiple-choice revision
 → session competency progress
 → next mission TODO
 ```
 
-The deterministic engine owns environmental facts and adaptation candidates. GPT-5.6 may evaluate and explain the learner’s reasoning, but it cannot change calculated output. If the API key is absent or the model request fails validation, the route returns a local deterministic review that is never presented as AI output.
+The mission baseline is immutable telemetry; learner changes create a separate locked experiment. The deterministic engine owns environmental facts and adaptation candidates. GPT-5.6 may evaluate and explain the learner’s structured decisions, but it cannot change calculated output. If the API key is absent or the model request fails validation, the route returns a local deterministic review that is never presented as AI output.
+
+The animated planet is a visual interpretation, not a photograph, simulation result, or habitability claim. It changes with the validated inputs but does not add scientific rules.
 
 ## Technology
 
@@ -100,16 +107,16 @@ The integration uses the `gpt-5.6` alias with low reasoning effort and a strict 
 
 ## Scientific scope
 
-Ruleset 0.2.0 is an educational model convention for one fixed mission, not a universal habitability or evolutionary model. Its thresholds, simplifications, provenance, and sources are documented in [Science Rules](docs/SCIENCE_RULES.md). Identical validated input produces identical deterministic output.
+Ruleset 0.2.0 is an educational model convention for one mission and its validated experimental variants, not a universal habitability or evolutionary model. It currently scores only high gravity, thermal extremes, elevated radiation, and limited water. Other inputs remain visible and affect the preview and derived facts but do not silently gain undocumented biological rules. Its thresholds, simplifications, provenance, and sources are documented in [Science Rules](docs/SCIENCE_RULES.md). Identical validated input produces identical deterministic output.
 
 ## AI Development Process
 
-Codex accelerated repository analysis, domain-contract design, deterministic-rule implementation, bilingual UI work, focused tests, verification, and documentation alignment. The human directed the product shift to mission training and owns the scientific assumptions, product decisions, architecture approval, design review, and submission claims.
+Codex accelerated repository analysis, domain-contract design, deterministic-rule implementation, the boot and experimental-world flow, bilingual UI work, focused tests, verification, and documentation alignment. The human selected learner-controlled variants, all parameter groups, a hybrid smoothly animated planet, multiple-choice decisions, and an animated boot sequence, and owns the scientific assumptions and submission claims.
 
 GPT-5.6 has two distinct roles:
 
 1. In development, it supports the Codex engineering workflow.
-2. In the application, the server-only Mission Instructor can evaluate a learner’s committed reasoning against validated deterministic output.
+2. In the application, the server-only Mission Instructor can evaluate a learner’s committed structured decisions against validated deterministic output.
 
 The application role is implemented but remains **TODO: live deployment verification**. The fallback is local deterministic content and is explicitly labelled as such.
 

@@ -2,24 +2,26 @@
 
 ## Current implementation
 
-The repository contains a Next.js 16.2.10 / React 19.2.4 application, Tailwind CSS 4, TypeScript, Zod 4, the official OpenAI JavaScript SDK, and Vitest domain tests. One fixed Vespera mission implements world normalization, four deterministic pressure rules, hypothesis comparison, adaptation candidates, a server-only Mission Instructor route, evidence-based revision, and session-only competency progress.
+The repository contains a Next.js 16.2.10 / React 19.2.4 application, Tailwind CSS 4, TypeScript, Zod 4, the official OpenAI JavaScript SDK, and Vitest domain tests. One Vespera baseline supports validated learner variants, deterministic visual-state mapping, four deterministic pressure rules, structured-decision comparison, adaptation candidates, a server-only Mission Instructor route, multiple-choice revision, and session-only competency progress.
 
-`POST /api/instructor` re-runs the deterministic simulation on the server and validates the request and response. With `OPENAI_API_KEY`, it requests a structured response from the `gpt-5.6` alias through the Responses API. Without a usable live response, it returns a Zod-validated local fallback with explicit provenance. No credentials are sent to the client.
+`POST /api/instructor` validates the committed world variant and decisions, re-runs that exact deterministic simulation on the server, and validates the response. With `OPENAI_API_KEY`, it requests a structured response from the `gpt-5.6` alias through the Responses API. Without a usable live response, it returns a Zod-validated local fallback with explicit provenance. No credentials are sent to the client.
 
 Image generation, database persistence, accounts, a mission library, and durable certification are not implemented.
 
 ## Target mission flow
 
 ```text
-Mission definition + world parameters
+System boot → Mission Control → mission briefing
+→ immutable mission baseline + learner world variant
 → Zod validation
-→ committed learner hypothesis
+→ deterministic visual-state mapping for the live planet preview
+→ committed learner pressure, adaptation, and strategy decisions
 → deterministic rules engine
 → validated SimulationResult
 → pressure and organism inspection
 → GPT-5.6 instructor request
 → validated MissionDebrief
-→ evidence-based revision and competency update
+→ multiple-choice evidence revision and competency update
 → research-archive record
 ```
 
@@ -29,7 +31,11 @@ Image generation is a separate, optional representation flow from validated orga
 
 ### Mission and world input
 
-Owns scenario objectives, parameter collection, example worlds, hypothesis validation, and client-side non-authoritative validation.
+Owns scenario objectives, immutable baseline telemetry, experimental parameter collection, structured-decision validation, and client-side non-authoritative validation.
+
+### Planet visualisation
+
+`src/domain/mission/visualization.ts` maps every validated world input to deterministic presentation values used by the SVG planet. It owns aesthetic interpolation only. It is not the science engine and cannot emit pressures, adaptations, viability, shielding attenuation, or energy-pathway conclusions.
 
 ### Deterministic rules engine
 
@@ -37,7 +43,7 @@ Owns environmental calculations, biological constraints, adaptation scoring, sci
 
 ### Instructor integration
 
-Receives only validated mission context, the learner’s committed hypothesis, and deterministic output. It builds a versioned structured request for GPT-5.6, validates the response with Zod, and returns instructional—not authoritative scientific—content.
+Receives only validated mission context, the learner’s committed structured decisions, and deterministic output. It builds a versioned structured request for GPT-5.6, validates the response with Zod, and returns instructional—not authoritative scientific—content.
 
 ### Illustration integration
 
@@ -49,7 +55,7 @@ Stores completed exercise data, evidence-based revisions, competency measurement
 
 ### Presentation
 
-Renders Mission Control, briefing, hypothesis entry, simulation state, provenance-labelled results, debrief, revision, archive, and accessible recovery states. UI components must not contain scientific calculations or privileged credentials.
+Renders boot, Mission Control home, briefing, World Lab, structured decisions, simulation state, provenance-labelled results, debrief, revision, archive, and accessible recovery states. UI components must not contain scientific calculations or privileged credentials.
 
 ## Validation and provenance
 
@@ -57,18 +63,21 @@ Validate every external boundary with Zod: world input, mission definition, hypo
 
 Every displayed claim must retain one of these sources:
 
-- **User hypothesis:** the learner’s committed prediction.
+- **Learner decisions:** the committed pressure, adaptation, and strategy predictions.
 - **Calculated result:** deterministic output with a ruleset version.
 - **AI interpretation:** GPT-5.6 instructional content tied to that output.
-- **Visual representation:** a generated image grounded in validated organism data.
+- **Visual interpretation:** the code-rendered planet mapping derived from world inputs; not scientific evidence.
+- **Generated illustration:** a future image grounded in validated organism data.
 
 ## Implemented data contracts
 
 ```ts
 type CommittedHypothesis = {
-  missionId: string;
-  reasoning: string;
-  predictedAdaptations: string[];
+  missionId: "vespera-01";
+  world: WorldParameters;
+  pressureIds: PressureId[];
+  adaptationIds: AdaptationId[];
+  strategy: SurvivalStrategy;
   committedAt: string;
 };
 
@@ -90,7 +99,7 @@ type MissionDebrief = {
 };
 ```
 
-The exact Zod schemas are exported from `src/domain/mission/schema.ts`. The current viability value is scoped only to the fixed mission; it is not a general viability engine.
+The exact Zod schemas are exported from `src/domain/mission/schema.ts`. The current viability value is scoped only to Mission 01 and its validated variants; it is not a general viability engine.
 
 ## Client and server boundary
 

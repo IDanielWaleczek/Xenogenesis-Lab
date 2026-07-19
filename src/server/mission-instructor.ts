@@ -19,7 +19,7 @@ export async function createMissionInstructorResponse(
   rawRequest: unknown,
 ) {
   const request = MissionInstructorRequestSchema.parse(rawRequest);
-  const simulation = simulateMission(VESPERA_MISSION.world);
+  const simulation = simulateMission(request.hypothesis.world);
   const comparison = compareHypothesis(request.hypothesis, simulation);
   const fallback = buildLocalDebrief(request.language, comparison, simulation);
   const apiKey = process.env.OPENAI_API_KEY;
@@ -44,13 +44,13 @@ export async function createMissionInstructorResponse(
         {
           role: "system",
           content:
-            "You are the Xenogenesis Lab Mission Instructor. Evaluate the learner's reasoning only against the supplied deterministic simulation. Do not alter calculated facts, add unsupported biology, or imply certainty beyond this educational model. Lead with a concise assessment, cite numerical evidence, identify trade-offs, ask one targeted question, and recommend one controlled follow-up experiment. Return the requested language.",
+            "You are the Xenogenesis Lab Mission Instructor. Evaluate the learner's structured mission decisions only against the supplied deterministic simulation. Do not alter calculated facts, add unsupported biology, or imply certainty beyond this educational model. Lead with a concise assessment, cite numerical evidence, identify trade-offs, ask one targeted question, and recommend one controlled follow-up experiment. Return the requested language.",
         },
         {
           role: "user",
           content: JSON.stringify({
             responseLanguage: request.language === "pl" ? "Polish" : "English",
-            mission: VESPERA_MISSION,
+            mission: { ...VESPERA_MISSION, world: request.hypothesis.world },
             committedHypothesis: request.hypothesis,
             deterministicSimulation: simulation,
             hypothesisComparison: comparison,

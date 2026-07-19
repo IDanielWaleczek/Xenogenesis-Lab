@@ -31,7 +31,7 @@ type PressureDefinition = {
   adaptationIds: AdaptationId[];
 };
 
-/** Runs the deterministic ruleset for the fixed mission world. */
+/** Runs the deterministic ruleset for a validated mission world or learner variant. */
 export function simulateMission(world: WorldParameters): SimulationResult {
   const normalized = normalizeWorldParameters(world);
   const pressures: PressureDefinition[] = [];
@@ -106,11 +106,16 @@ export function simulateMission(world: WorldParameters): SimulationResult {
     rulesetVersion: MISSION_RULES.version,
     viability: "conditionallyPlausibleComplexLife",
     normalizedFacts: {
+      gravityG: normalized.gravityG,
+      atmosphericPressureAtm: normalized.atmosphericPressureAtm,
       oxygenPartialPressureAtm: normalized.oxygenPartialPressureAtm,
       minimumTemperatureC: normalized.temperatureRangeC.minimum,
       maximumTemperatureC: normalized.temperatureRangeC.maximum,
       radiationDoseRateMilliSvPerHour:
         normalized.radiationDoseRateMilliSvPerHour,
+      lightLevel: normalized.lightLevel,
+      waterAvailability: normalized.waterAvailability,
+      atmosphericDensityKgM3: normalized.atmosphericDensityKgM3 ?? null,
     },
     pressures,
     adaptationCandidates: [...adaptationMap.entries()].map(
@@ -131,17 +136,45 @@ export function compareHypothesis(
 ): HypothesisComparison {
   const expected = result.adaptationCandidates.map(({ id }) => id);
   const predicted = hypothesis.adaptationIds;
+  const expectedPressures = result.pressures.map(({ id }) => id);
+  const predictedPressures = hypothesis.pressureIds;
+  const supportedPressurePredictions = predictedPressures.filter((id) =>
+    expectedPressures.includes(id),
+  );
+  const missedPressures = expectedPressures.filter(
+    (id) => !predictedPressures.includes(id),
+  );
+  const unsupportedPressurePredictions = predictedPressures.filter(
+    (id) => !expectedPressures.includes(id),
+  );
   const supportedPredictions = predicted.filter((id) => expected.includes(id));
   const missedAdaptations = expected.filter((id) => !predicted.includes(id));
   const unsupportedPredictions = predicted.filter((id) => !expected.includes(id));
-  const precision = supportedPredictions.length / predicted.length;
-  const recall = supportedPredictions.length / expected.length;
-  const alignmentPercent =
-    precision + recall === 0
+  const calculateF1 = (matches: number, predictedCount: number, expectedCount: number) => {
+    if (predictedCount === 0 && expectedCount === 0) return 1;
+    if (predictedCount === 0 || expectedCount === 0) return 0;
+    const precision = matches / predictedCount;
+    const recall = matches / expectedCount;
+    return precision + recall === 0
       ? 0
-      : Math.round((2 * precision * recall * 100) / (precision + recall));
+      : (2 * precision * recall) / (precision + recall);
+  };
+  const adaptationScore = calculateF1(
+    supportedPredictions.length,
+    predicted.length,
+    expected.length,
+  );
+  const pressureScore = calculateF1(
+    supportedPressurePredictions.length,
+    predictedPressures.length,
+    expectedPressures.length,
+  );
+  const alignmentPercent = Math.round((adaptationScore + pressureScore) * 50);
 
   return HypothesisComparisonSchema.parse({
+    supportedPressurePredictions,
+    missedPressures,
+    unsupportedPressurePredictions,
     supportedPredictions,
     missedAdaptations,
     unsupportedPredictions,

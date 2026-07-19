@@ -288,7 +288,7 @@ score += HIGH_GRAVITY_COMPACT_BODY_WEIGHT;
 
 ## Implemented mission ruleset 0.2.0
 
-The first working ruleset is intentionally limited to mission `vespera-01`. Its thresholds are named educational model conventions, not universal biological limits:
+The first working ruleset is intentionally limited to mission `vespera-01` and validated learner-created variants of its world input. Its thresholds are named educational model conventions, not universal biological limits:
 
 | Rule | Trigger | Derived candidates |
 | --- | --- | --- |
@@ -297,9 +297,17 @@ The first working ruleset is intentionally limited to mission `vespera-01`. Its 
 | Elevated radiation | normalized dose `>= 0.1 mSv/h` | radiation protection, cellular repair |
 | Limited water | availability `<= 0.40` | water conservation, protected reproduction |
 
-For Vespera b, the fixed input produces all four pressures. The result `conditionallyPlausibleComplexLife` means only that the mission's four pressures have modelled adaptation candidates. Ruleset 0.2.0 does not establish universal habitability, fitness, evolutionary likelihood, or organism viability outside this exercise.
+The Vespera b baseline produces all four pressures. A learner variant may produce any subset, including none. The result `conditionallyPlausibleComplexLife` remains a mission-scoped label and does not establish universal habitability, fitness, evolutionary likelihood, or organism viability.
 
 The radiation rule uses the supplied dose unchanged. It does not calculate attenuation from habitat or shielding column mass. The thermal rule evaluates the derived `−6°C` and `42°C` extremes instead of penalizing the mean temperature. Oxygen partial pressure is normalized and displayed but no low-oxygen threshold is applied in this mission.
+
+Atmospheric composition, local pressure, molar mass, light, habitat, shielding column mass, geochemical energy, and electron acceptors remain validated and visible in the World Lab. Unless a named rule above consumes them, they do not silently add pressure scores or adaptation candidates. Explanatory UI text describes potential biological relevance and must not imply that ruleset 0.2.0 already models every relationship.
+
+## Planet visual interpretation
+
+The interactive planet is a deterministic SVG presentation derived from validated world inputs. Gravity changes visual compression; atmosphere inputs alter halo and haze; temperature changes palette; variation changes rim contrast; radiation changes incident activity; light changes illumination; water changes coverage; habitat changes styling; shielding changes an explicit overlay; and geochemical inputs change a subsurface glow.
+
+These mappings are aesthetic and smoothly interpolated. They are not climate, geology, fluid-dynamics, radiation-transport, or habitability calculations. In particular, the shielding overlay does not reduce radiation dose, habitat styling does not create protection, and geochemical glow does not establish an energy pathway unless the explicit redox inputs are valid.
 
 ## Simplifications
 
