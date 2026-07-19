@@ -1,97 +1,130 @@
 # Xenogenesis Lab
 
-> An AI-guided astrobiology mission-training simulator for practising scientific reasoning about plausible alien life.
+> An AI-guided astrobiology mission-training simulator for practising evidence-based reasoning about plausible alien life.
 
 [Live application](https://www.danielwaleczek.com) · [Source repository](https://github.com/IDanielWaleczek/Xenogenesis-Lab) · [MIT License](LICENSE)
 
-## Product identity
+## What it does
 
-Xenogenesis Lab is not primarily a planet configurator or organism generator. It places a learner in a fictional xenobiology mission-training programme: they assess an alien world, commit to a hypothesis, inspect a deterministic result, and receive an adaptive scientific debrief.
+Xenogenesis Lab places the learner in a fictional xenobiology training programme. In the working Vespera mission, the learner reviews planetary telemetry, commits an adaptation hypothesis before seeing the result, runs a deterministic simulation, inspects calculated pressures, receives a validated instructor debrief, revises the hypothesis with evidence, and completes a session-only competency record.
 
-Its core user fantasy is: **“I am a candidate training to reason like a xenobiology mission specialist.”**
+The interface keeps four sources visibly separate: learner hypothesis, calculated result, GPT-5.6 interpretation, and deterministic local fallback.
 
-The primary audience is students, educators, and science and space enthusiasts. Astrobiology and planetary habitability are difficult to learn from static material alone: learners need a chance to make a scientific decision, see its consequences, and revise their reasoning with feedback.
+## Working features
 
-## Current build status
+- One complete English/Polish Vespera b training mission.
+- Committed hypothesis with selectable adaptations and written reasoning.
+- Deterministic ruleset 0.2.0 covering high gravity, thermal extremes, elevated radiation, and limited water.
+- Reproducible pressure analysis, adaptation candidates, and hypothesis comparison.
+- Server-only Mission Instructor route using the OpenAI Responses API and Zod Structured Outputs.
+- Clearly labelled deterministic instructor fallback when GPT-5.6 is unavailable.
+- Evidence-based revision and session-only competency scoring.
+- Responsive, keyboard-accessible mission-console interface.
 
-**Current build:** a responsive mission-console prototype plus a tested world-parameter validation and normalization layer.
+The application does not currently include image generation, persistent accounts or archives, a mission library, durable certification, rate limiting, or production observability. The next mission is explicitly marked `TODO` in the interface.
 
-The interface has local, keyboard-accessible environmental controls and preview stages for pressure analysis, an organism dossier, and an illustration. It does **not** yet run a deterministic viability engine, collect or assess a committed hypothesis, call GPT-5.6, call an image API, save a research archive, or calculate competency progress. Preview cards and specimen content are explicitly labelled as non-live samples.
-
-This distinction is intentional: the project must never present placeholder content, a prepared asset, or AI-free UI state as a calculated or generated result.
-
-## The mission-training loop
-
-The intended complete mission is:
+## How the mission works
 
 ```text
 Mission briefing
-→ environmental analysis
 → committed hypothesis
 → deterministic simulation
-→ pressure and organism inspection
-→ GPT-5.6 Mission Instructor debrief
+→ pressure and adaptation analysis
+→ validated Mission Instructor debrief
 → evidence-based revision
-→ competency progress
-→ next mission
+→ session competency progress
+→ next mission TODO
 ```
 
-The smallest complete demo must implement that whole loop for at least one mission. Progression is meaningful only when it records learning behaviour—such as completed missions, improved hypotheses, evidence-based revisions, research-archive entries, competency growth, and certification stages. The project will not use unrelated currencies, click rewards, or decorative streaks.
+The deterministic engine owns environmental facts and adaptation candidates. GPT-5.6 may evaluate and explain the learner’s reasoning, but it cannot change calculated output. If the API key is absent or the model request fails validation, the route returns a local deterministic review that is never presented as AI output.
 
-## What is implemented
+## Technology
 
-- Responsive English and Polish mission-console prototype with a desktop and narrow-screen layout.
-- Local controls for gravity, atmospheric pressure, temperature, radiation, light, water, and habitat.
-- Preview navigation through environment, pressure, organism, and illustration stages.
-- Strict Zod world-parameter contract, including atmospheric-composition checks.
-- Deterministic normalization for radiation units, temperature extremes, oxygen partial pressure, atmospheric density, and conservative alternative-energy eligibility.
-- Vitest coverage for the validation and normalization boundary.
+- Next.js 16.2.10 with App Router
+- React 19.2.4
+- TypeScript
+- Tailwind CSS 4
+- Zod 4
+- OpenAI JavaScript SDK and Responses API
+- Vitest
+- Intended deployment: Vercel from GitHub
 
-## Planned scientific and AI boundary
+Domain logic lives under `src/domain/`; the client mission flow lives under `src/app/`; the server-only OpenAI integration lives under `src/server/` and is exposed through `src/app/api/instructor/route.ts`.
 
-The deterministic rules layer will own environmental calculations, causal constraints, adaptation scores, scientific coefficients, and reproducible simulation facts. GPT-5.6 will receive validated structured context to frame missions, evaluate the trainee’s reasoning, explain results and trade-offs, ask targeted follow-up questions, produce a mission debrief, recommend an experiment, and compose constrained dossier content.
-
-GPT-5.6 must not overwrite calculated values or turn unsupported invention into a simulation fact. Zod will validate external input and structured model output. The UI will visibly distinguish the learner’s hypothesis, deterministic result, and AI interpretation. Image generation will only represent validated organism data; it will not determine scientific outcomes.
-
-See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), [Science Rules](docs/SCIENCE_RULES.md), [Design](docs/DESIGN.md), and [Decision Log](docs/DECISIONS.md) for the detailed constraints.
-
-## Local development
+## Run locally
 
 ### Prerequisites
 
-- Node.js. This repository does not currently pin a supported version; **TODO:** define one before deployment or submission.
+- Node.js — **TODO:** pin and document the supported production version.
 - npm.
 
-### Try it yourself
+Install dependencies:
 
-https://www.danielwaleczek.com
-
-## Repository layout
-
-```text
-src/app/                 Prototype presentation and localisation
-src/domain/world/        Zod world-input contract and normalization helpers
-docs/                    Product, scientific, design, architecture, and event records
+```bash
+npm install
 ```
 
-Server-side route handlers, the viability engine, GPT-5.6 integration, image generation, persistence, and training progression are planned but are not yet implemented.
+Start the development server:
 
-## OpenAI Build Week 2026
+```bash
+npm run dev
+```
 
-The project is aimed at the Education track. **TODO:** confirm the final Devpost category and current official requirements before submission.
+Open [http://localhost:3000](http://localhost:3000).
 
-### Honest contribution record
+Run tests and linting:
 
-Codex has assisted with the currently implemented repository structure, scientific-boundary documentation, Zod schema and normalization helpers, focused unit tests, prototype UI, and documentation review. The human retains responsibility for the product direction, scientific assumptions, architecture decisions, design review, and final implementation choices.
+```bash
+npm test
+npm run lint
+```
 
-GPT-5.6 is not integrated into the current build, so it must not be described as a live application capability. Once connected, the repository should document the exact structured request and response boundary, validation, fallbacks, and a reproducible demo path.
+Build and run the production build locally:
+
+```bash
+npm run build
+npm run start
+```
+
+The production server also opens on [http://localhost:3000](http://localhost:3000) unless a different port is supplied externally.
+
+### Optional GPT-5.6 configuration
+
+Set `OPENAI_API_KEY` in the server environment before starting the app. Never expose it through a `NEXT_PUBLIC_` variable or commit it to the repository.
+
+```text
+OPENAI_API_KEY=TODO_ADD_YOUR_SERVER_SIDE_KEY
+```
+
+The integration uses the `gpt-5.6` alias with low reasoning effort and a strict `MissionDebrief` Zod schema. A live model response was not executed in the current Codex session; **TODO:** verify the configured production route end to end before claiming live GPT-5.6 behavior in submission material.
+
+## Scientific scope
+
+Ruleset 0.2.0 is an educational model convention for one fixed mission, not a universal habitability or evolutionary model. Its thresholds, simplifications, provenance, and sources are documented in [Science Rules](docs/SCIENCE_RULES.md). Identical validated input produces identical deterministic output.
+
+## AI Development Process
+
+Codex accelerated repository analysis, domain-contract design, deterministic-rule implementation, bilingual UI work, focused tests, verification, and documentation alignment. The human directed the product shift to mission training and owns the scientific assumptions, product decisions, architecture approval, design review, and submission claims.
+
+GPT-5.6 has two distinct roles:
+
+1. In development, it supports the Codex engineering workflow.
+2. In the application, the server-only Mission Instructor can evaluate a learner’s committed reasoning against validated deterministic output.
+
+The application role is implemented but remains **TODO: live deployment verification**. The fallback is local deterministic content and is explicitly labelled as such.
+
+## OpenAI Build Week record
+
+Event-specific evidence, unresolved requirements, and claim checks are maintained in [docs/HACKATHON.md](docs/HACKATHON.md).
 
 | Item | Current record |
 | --- | --- |
-| Primary Codex `/feedback` session ID | **TODO:** capture before submission. |
-| Public demo video | **TODO:** add before submission. |
-| Deployment-to-HEAD confirmation | **TODO:** verify before submission. |
-| Event work and evidence | [docs/HACKATHON.md](docs/HACKATHON.md) |
+| Production URL | https://www.danielwaleczek.com |
+| Repository | https://github.com/IDanielWaleczek/Xenogenesis-Lab |
+| Primary Codex `/feedback` session | **TODO:** capture before submission |
+| Public demo video | **TODO:** add before submission |
+| Deployment matches repository HEAD | **TODO:** verify before submission |
+| Official deadline, track, and submission fields | **TODO:** verify before submission |
 
 ## License
 

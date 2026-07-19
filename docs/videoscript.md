@@ -1,265 +1,59 @@
-# Xenogenesis Lab — 2:30 Mission Story Demo
+# Xenogenesis Lab — 2:30 Working-Build Demo
 
-## Tone and presentation
+## Recording rule
 
-You are the commander of the Xenogenesis Initiative.
+Record only the deployed build that matches repository HEAD. Before recording, verify the production route and note whether the debrief provenance label says **GPT-5.6 interpretation** or **Local training review**. Use the matching narration below. Do not show image generation, persistent accounts, a mission library, or durable certification; those features are not implemented.
 
-Speak calmly and seriously, as if you are recording an official mission briefing. Avoid parody or exaggerated acting. The experience should feel credible, scientific, and slightly cinematic.
+## 0:00–0:15 — Mission Control
 
-Alternate between:
+Show the opening Vespera briefing and language switch.
 
-* yourself speaking directly to the camera,
-* a screen recording of the working application,
-* short picture-in-picture shots showing you operating the mission console.
+> Xenogenesis Lab is an astrobiology mission-training simulator. Instead of generating a creature first, it asks the learner to make a scientific prediction before seeing the model result.
 
----
+## 0:15–0:40 — Mission briefing
 
-## 0:00–0:12 — Incoming mission
+Show the mission objective and verified telemetry.
 
-**VIDEO**
+> This first working mission targets Vespera b: 1.7 g gravity, a wide temperature range, elevated radiation, and limited accessible water. The mission asks which adaptations could support a complex surface organism under this educational model.
 
-Start with a dark screen and a quiet interface sound.
+## 0:40–1:02 — Commit a hypothesis
 
-Display:
+Select several adaptations, include at least one intentionally unsupported option, enter reasoning, and select **Commit Hypothesis**.
 
-> XENOGENESIS INITIATIVE
-> COMMAND TRANSMISSION
+> The learner must commit a hypothesis before the result is revealed. The important output is the causal reasoning between environmental pressure and biological adaptation.
 
-Cut to you on camera.
+## 1:02–1:28 — Deterministic simulation
 
-**DIALOGUE**
+Select **Run Simulation**. Show normalized facts, the four pressure cards, adaptation candidates, and hypothesis comparison.
 
-> Captain's log.
->
-> Humanity has learned how to reach alien worlds.
-> We have not yet learned how to understand the life we may find there.
->
-> That is what the Xenogenesis Initiative was created to change.
+> Ruleset 0.2.0 calculates the same result for the same validated input. It derives temperature extremes and oxygen partial pressure, then applies four named model conventions for gravity, temperature, radiation, and water. These are model conventions, not universal biological limits.
 
----
+## 1:28–1:52 — Mission Instructor
 
-## 0:12–0:27 — The real problem
+Select **Request Mission Instructor debrief** and keep the provenance label visible.
 
-**VIDEO**
+If the label says **GPT-5.6 interpretation**:
 
-Cut between your camera and the Xenogenesis Lab opening screen.
+> The server re-runs the deterministic simulation, sends only validated mission context and the committed hypothesis to GPT-5.6, and validates the structured debrief with Zod. The model explains the result; it cannot change the calculated facts.
 
-Select:
+If the label says **Local training review**:
 
-> Begin Training
+> This environment has no verified live GPT-5.6 response, so the application shows its validated deterministic fallback. The provenance label makes clear that this text is not AI-generated.
 
-Show the candidate profile or training interface.
+## 1:52–2:12 — Revision and progress
 
-**DIALOGUE**
+Select calculated evidence, enter a revision, and complete the mission. Show the session archive and competency bars.
 
-> Astrobiology is usually taught through articles, lectures, and static diagrams.
->
-> They can explain the science, but they cannot place you inside a mission, force you to make a prediction, and show you the consequences of being wrong.
->
-> Xenogenesis Lab turns that knowledge into training.
+> The learner revises the hypothesis using calculated evidence. Progress reflects hypothesis alignment, adaptation recall, and evidence coverage. The archive is session-only and resets on reload.
 
----
+## 2:12–2:25 — Engineering boundary
 
-## 0:27–0:42 — Mission briefing
+Show a short code or test view without secrets.
 
-**VIDEO**
+> The application uses Next.js, React, TypeScript, Zod, Vitest, and the OpenAI Responses API. Codex accelerated the domain contracts, deterministic engine, bilingual interface, tests, and documentation. The human directed the product, scientific, architecture, and design decisions.
 
-Open a real mission scenario.
+## 2:25–2:30 — Close
 
-Show:
+Show the progress screen and the explicit next-mission TODO.
 
-* target world,
-* mission objective,
-* environmental conditions,
-* training status.
-
-Keep the mission visible long enough to read its central objective.
-
-**DIALOGUE**
-
-> Today, you are the mission candidate.
->
-> Your assignment is to develop a plausible organism for a high-gravity world exposed to intense radiation and limited surface water.
->
-> This is not a creature generator.
->
-> Every adaptation must follow from the environment.
-
----
-
-## 0:42–1:01 — Forming the hypothesis
-
-**VIDEO**
-
-Show yourself adjusting real parameters:
-
-* gravity,
-* atmospheric pressure,
-* temperature,
-* radiation,
-* light,
-* water availability,
-* habitat.
-
-Then enter or select a hypothesis.
-
-Show the action:
-
-> Commit Hypothesis
-
-**DIALOGUE**
-
-> First, we establish the planetary conditions.
->
-> Then you must commit to a hypothesis before seeing the answer.
->
-> Will the organism remain close to the ground?
-> Will it require radiation shielding?
-> Can it conserve enough water to survive?
->
-> The training evaluates your reasoning, not just the final organism.
-
----
-
-## 1:01–1:20 — Deterministic simulation
-
-**VIDEO**
-
-Select:
-
-> Run Simulation
-
-Show the actual calculation taking place.
-
-Then show:
-
-* environmental pressures,
-* calculated traits,
-* survival or plausibility indicators,
-* relationships between conditions and adaptations.
-
-Highlight two or three visible cause-and-effect relationships.
-
-**DIALOGUE**
-
-> A deterministic rules engine now translates the environment into biological pressures.
->
-> High gravity constrains body structure and locomotion.
-> Radiation creates a need for protection and repair.
-> Limited water changes metabolism and resource storage.
->
-> The same inputs produce consistent, inspectable results.
-
----
-
-## 1:20–1:38 — Organism visualization
-
-**VIDEO**
-
-Show the structured organism data being converted into the final visualization.
-
-Reveal the generated organism image.
-
-Briefly highlight that its appearance reflects the calculated traits.
-
-**DIALOGUE**
-
-> GPT-5.6 then transforms the validated organism data into a visual representation.
->
-> Its body plan, proportions, locomotion, protective surface, senses, and habitat come from the simulation.
->
-> The image does not decide the science.
->
-> It makes the scientific result visible.
-
----
-
-## 1:38–1:57 — Mission Instructor
-
-**VIDEO**
-
-Show the GPT-5.6 Mission Instructor debrief.
-
-Highlight:
-
-* evaluation of the hypothesis,
-* a correction or identified weakness,
-* explanation,
-* follow-up question,
-* suggested next experiment.
-
-**DIALOGUE**
-
-> GPT-5.6 also acts as the Mission Instructor.
->
-> It compares your original hypothesis with the validated result, explains where your reasoning succeeded or failed, asks a targeted follow-up question, and recommends the next experiment.
->
-> The model teaches around the simulation instead of inventing its outcome.
-
----
-
-## 1:57–2:10 — Progression
-
-**VIDEO**
-
-Show:
-
-* completed mission,
-* competency update,
-* Research Archive entry,
-* next unlocked exercise or certification progress.
-
-**DIALOGUE**
-
-> Every completed exercise becomes part of your Research Archive.
->
-> Progress is based on real competencies: forming hypotheses, interpreting environmental pressure, designing adaptations, and revising conclusions from evidence.
->
-> Each mission prepares you for a harder one.
-
----
-
-## 2:10–2:26 — How it was built
-
-**VIDEO**
-
-Cut back to yourself.
-
-Then briefly show:
-
-* the primary Codex session,
-* code changes or a meaningful diff,
-* a test running,
-* responsive desktop and mobile views.
-
-Do not expose secrets or private information.
-
-**DIALOGUE**
-
-> I built Xenogenesis Lab with Next.js, React, TypeScript, and Zod.
->
-> Codex with GPT-5.6 accelerated the architecture, interface implementation, scientific rules, AI integration, testing, debugging, refactoring, and documentation.
->
-> I made the key product, scientific-boundary, engineering, and experience-design decisions.
->
-> GPT-5.6 now powers both the adaptive instructor and the data-grounded organism visualization.
-
----
-
-## 2:26–2:30 — Closing
-
-**VIDEO**
-
-Return to camera.
-
-Then cut to the Xenogenesis Lab logo and live address.
-
-Display:
-
-> XENOGENESIS LAB
-> BECOME MISSION READY
-> danielwaleczek.com
-
-**DIALOGUE**
-
-> Candidate, your training begins now.
+> One mission is complete. The next mission remains clearly marked as future work.

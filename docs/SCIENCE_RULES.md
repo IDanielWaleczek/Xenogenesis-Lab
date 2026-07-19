@@ -286,6 +286,21 @@ Prefer:
 score += HIGH_GRAVITY_COMPACT_BODY_WEIGHT;
 ```
 
+## Implemented mission ruleset 0.2.0
+
+The first working ruleset is intentionally limited to mission `vespera-01`. Its thresholds are named educational model conventions, not universal biological limits:
+
+| Rule | Trigger | Derived candidates |
+| --- | --- | --- |
+| High gravity | `gravityG >= 1.5` | compact body, reinforced support tissues |
+| Thermal range | derived minimum `<= 0°C` or maximum `>= 40°C` | thermal buffering |
+| Elevated radiation | normalized dose `>= 0.1 mSv/h` | radiation protection, cellular repair |
+| Limited water | availability `<= 0.40` | water conservation, protected reproduction |
+
+For Vespera b, the fixed input produces all four pressures. The result `conditionallyPlausibleComplexLife` means only that the mission's four pressures have modelled adaptation candidates. Ruleset 0.2.0 does not establish universal habitability, fitness, evolutionary likelihood, or organism viability outside this exercise.
+
+The radiation rule uses the supplied dose unchanged. It does not calculate attenuation from habitat or shielding column mass. The thermal rule evaluates the derived `−6°C` and `42°C` extremes instead of penalizing the mean temperature. Oxygen partial pressure is normalized and displayed but no low-oxygen threshold is applied in this mission.
+
 ## Simplifications
 
 Current simplifications may include:
@@ -335,7 +350,7 @@ It should not force a complex creature into every environment.
 Current version:
 
 ```text
-Ruleset: 0.1.0
+Ruleset: 0.2.0
 ```
 
 Versioning rules:

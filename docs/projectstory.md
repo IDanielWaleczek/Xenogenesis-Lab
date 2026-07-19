@@ -3,10 +3,12 @@
 ## Submission-integrity note
 
 This is a product-story draft, not evidence that every described capability is
-live. The current repository implements a responsive prototype and tested
-world-input validation/normalization. Its deterministic viability engine,
-committed hypothesis, GPT-5.6 Mission Instructor, generated visualisation,
-Research Archive, and competency progression remain planned.
+live. The current repository implements one fixed mission with committed
+reasoning, deterministic pressure analysis, an instructor route with a clearly
+labelled local fallback, evidence-based revision, and session-only progress.
+Live GPT-5.6 behavior remains **TODO: verify end to end with server credentials**.
+Generated visualisation, persistence, certification progression, and a mission
+library are not implemented.
 
 Update this document, the README, and the demo script together as features
 become testable. Do not submit future-tense product intent as a live feature.

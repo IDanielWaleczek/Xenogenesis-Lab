@@ -44,7 +44,11 @@ Zod validates inputs and structured outputs. The interface must make the calcula
 
 ## Current implementation status
 
-The current build is a mission-console **prototype** with local world controls and preview stages. Its Zod world-parameter contract and normalization helpers are implemented and tested. The viability engine, committed hypothesis, GPT-5.6 debrief, image generation, archive, competency scoring, and certification are not yet implemented. Product and demo copy must retain that distinction.
+The current build implements one complete, session-only training exercise for Vespera b: briefing, committed hypothesis, deterministic ruleset 0.2.0, pressure and adaptation inspection, a validated Mission Instructor route, evidence-based revision, a session Research Archive entry, and competency scores.
+
+When `OPENAI_API_KEY` is available server-side, the instructor route requests a structured GPT-5.6 debrief. When credentials are absent or the request fails, the same route returns a visibly labelled deterministic local review. The fallback must never be described as AI output. Live GPT-5.6 behavior has not been verified in the current Codex session.
+
+The mission library, persistent archive, accounts, certification progression, next mission, and image generation are not implemented.
 
 ## Experience requirements
 

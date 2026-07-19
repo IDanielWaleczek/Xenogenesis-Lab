@@ -61,6 +61,45 @@ Follow-up work:
 
 ## Initial decisions
 
+### 2026-07-19 — Ship one fixed mission with an honest instructor fallback
+
+**Status:** Accepted
+
+**Decision**
+
+The first vertical slice uses one fixed Vespera b mission and four named deterministic rules. The server-only Mission Instructor requests a structured GPT-5.6 response when configured and otherwise returns an explicitly labelled deterministic local review so the training loop remains testable without impersonating AI.
+
+**Context**
+
+The repository needed a complete demonstrable learning loop before a mission library or image pipeline. Development and CI environments cannot be assumed to have an OpenAI API key, while submission claims must distinguish live model output from fallback content.
+
+**Options considered**
+
+1. Keep the existing non-functional preview.
+2. Require GPT credentials and leave the mission blocked without them.
+3. Complete one deterministic mission and preserve the same response schema for an honest fallback.
+
+**Rationale**
+
+The fixed mission minimizes scientific and interface scope while proving committed reasoning, reproducible calculation, revision, and meaningful progress. The fallback keeps automated and local testing reliable without making a false GPT claim.
+
+**Consequences**
+
+- the full mission can be completed without external services
+- GPT output and fallback output have explicit provenance
+- the server re-runs deterministic facts instead of trusting client results
+- live GPT-5.6 behavior still requires an API key and end-to-end verification
+- archive data and competency progress remain session-only
+
+Follow-up work:
+
+- verify a live GPT-5.6 response in the deployed environment
+- add rate limiting and observability before public scale
+- evaluate the mission science and scoring with an educator
+- add a second mission only after the first is validated
+
+---
+
 ### 2026-07-19 — Frame the product as mission training, not a generator
 
 **Status:** Accepted

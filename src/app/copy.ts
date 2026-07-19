@@ -1,402 +1,510 @@
-/** Supported interface languages for the initial localization pass. */
+import type { AdaptationId, PressureId } from "@/domain/mission/schema";
+
+/** Supported interface languages. */
 export type Language = "en" | "pl";
 
-/** Stable identifiers for the selectable prototype habitats. */
-export type HabitatId =
-  | "basaltPlains"
-  | "caveNetwork"
-  | "oceanShelf"
-  | "cloudLayer";
-
-/** Stable identifiers for the four stages of the prototype journey. */
-export type Screen = "configure" | "constraints" | "dossier" | "illustration";
+/** Stable stages in the single-mission training loop. */
+export type MissionStage =
+  | "briefing"
+  | "hypothesis"
+  | "simulation"
+  | "debrief"
+  | "progress";
 
 type Copy = {
-  document: {
+  document: { title: string; description: string };
+  language: { label: string; english: string; polish: string };
+  header: { subtitle: string; mission: string; reset: string };
+  stages: Record<MissionStage, string>;
+  stageNavigation: string;
+  provenance: {
+    hypothesis: string;
+    calculated: string;
+    ai: string;
+    local: string;
+  };
+  mission: {
+    eyebrow: string;
     title: string;
-    description: string;
+    planet: string;
+    objectiveLabel: string;
+    objective: string;
+    briefing: string;
+    candidateTask: string;
+    factsTitle: string;
+    facts: Array<{ label: string; value: string }>;
+    ruleset: string;
+    begin: string;
   };
-  language: {
-    label: string;
-    switchToEnglish: string;
-    switchToPolish: string;
-  };
-  header: {
-    subtitle: string;
-    prototypeMode: string;
-    resetWorld: string;
-  };
-  hero: {
-    imageAlt: string;
+  hypothesis: {
     eyebrow: string;
-    titleStart: string;
-    titleHighlight: string;
-    description: string;
-  };
-  screens: Record<Screen, string>;
-  controls: {
     title: string;
-    subtitle: string;
-    gravity: string;
-    pressure: string;
-    averageTemperature: string;
-    temperatureRange: string;
-    radiationDose: string;
-    stellarLight: string;
-    waterAccess: string;
-    habitat: string;
-    visualOnly: string;
-    explorePreview: string;
+    instruction: string;
+    selectionTitle: string;
+    selectionHint: string;
+    reasoningLabel: string;
+    reasoningPlaceholder: string;
+    validation: string;
+    commit: string;
+    committed: string;
   };
-  units: {
-    relative: string;
-  };
-  habitats: Record<HabitatId, string>;
-  configure: {
+  simulation: {
     eyebrow: string;
-    heading: string;
-    status: string;
-    selectedWorld: string;
-    canvasDescription: string;
-    gravityAbbreviation: string;
-    temperatureAbbreviation: string;
-    waterAbbreviation: string;
-    journeyMap: string;
-    journey: Array<{ title: string; description: string }>;
-    previewFlow: string;
-    integrityTitle: string;
-    integrityDescription: string;
-    continue: string;
-  };
-  constraints: {
-    eyebrow: string;
-    heading: string;
-    status: string;
-    description: string;
-    pressures: Array<{ title: string; detail: string; tone: string }>;
-    readyTitle: string;
-    readyDescription: string;
-    dossierPreview: string;
-  };
-  dossier: {
-    eyebrow: string;
-    previewSuffix: string;
-    status: string;
-    plausibilityLabel: string;
-    plausibilityStatement: string;
-    description: string;
-    habitatLabel: string;
-    habitatValue: string;
-    activityLabel: string;
-    activityValue: string;
-    adaptationLinks: string;
-    adaptations: Array<{ title: string; category: string }>;
-    imagePromptDescription: string;
-    illustrationPreview: string;
-  };
-  illustration: {
-    eyebrow: string;
-    heading: string;
-    status: string;
-    queueLabel: string;
     title: string;
-    description: string;
-    stages: string[];
+    ready: string;
+    run: string;
+    running: string;
+    viabilityLabel: string;
+    viability: string;
+    rulesetLabel: string;
+    normalizedFacts: string;
+    facts: Array<{ key: "oxygen" | "temperature" | "radiation"; label: string }>;
+    pressuresTitle: string;
+    organismTitle: string;
+    organismName: string;
+    candidateNotice: string;
+    comparisonTitle: string;
+    alignment: string;
+    supported: string;
+    missed: string;
+    unsupported: string;
+    none: string;
+    instructor: string;
   };
-  navigationLabel: string;
+  debrief: {
+    eyebrow: string;
+    title: string;
+    loading: string;
+    liveSource: string;
+    fallbackSource: string;
+    fallbackNotice: string;
+    evidence: string;
+    tradeOffs: string;
+    question: string;
+    experiment: string;
+    revisionTitle: string;
+    revisionInstruction: string;
+    evidenceLabel: string;
+    revisionLabel: string;
+    revisionPlaceholder: string;
+    revisionValidation: string;
+    submit: string;
+    error: string;
+    retry: string;
+  };
+  progress: {
+    eyebrow: string;
+    title: string;
+    completed: string;
+    archiveTitle: string;
+    archiveEntry: string;
+    sessionOnly: string;
+    competencyTitle: string;
+    hypothesisFormation: string;
+    adaptationAnalysis: string;
+    evidenceUse: string;
+    certification: string;
+    candidate: string;
+    nextTitle: string;
+    nextDescription: string;
+    todo: string;
+    repeat: string;
+  };
+  adaptations: Record<AdaptationId, { title: string; description: string }>;
+  pressures: Record<PressureId, { title: string; description: string }>;
+  severity: { moderate: string; high: string };
   footer: string;
 };
 
-/** Complete English copy used by the visual prototype. */
 const english: Copy = {
   document: {
-    title: "Xenogenesis Lab | Astrobiology Mission Training",
-    description: "Train scientific reasoning for fictional xenobiology missions.",
+    title: "Xenogenesis Lab | Mission 01",
+    description: "Complete one evidence-based astrobiology training mission.",
   },
-  language: {
-    label: "Language",
-    switchToEnglish: "Switch to English",
-    switchToPolish: "Switch to Polish",
-  },
+  language: { label: "Language", english: "English", polish: "Polish" },
   header: {
     subtitle: "Mission Control",
-    prototypeMode: "Training prototype",
-    resetWorld: "Reset exercise",
+    mission: "Training mission 01",
+    reset: "Reset mission",
   },
-  hero: {
-    imageAlt: "Xenogenesis Lab: a planet with an orbital DNA motif against a star field",
-    eyebrow: "AI-guided astrobiology mission training",
-    titleStart: "Begin training.",
-    titleHighlight: "Analyse a world.",
-    description:
-      "Train for fictional xenobiology missions by forming and testing scientific reasoning. This visual prototype previews the training flow before live simulation and AI instruction are connected.",
+  stages: {
+    briefing: "Briefing",
+    hypothesis: "Hypothesis",
+    simulation: "Simulation",
+    debrief: "Debrief",
+    progress: "Progress",
   },
-  screens: {
-    configure: "Briefing",
-    constraints: "Pressure preview",
-    dossier: "Organism preview",
-    illustration: "Visual preview",
+  stageNavigation: "Mission training stages",
+  provenance: {
+    hypothesis: "Your hypothesis",
+    calculated: "Calculated result",
+    ai: "GPT-5.6 interpretation",
+    local: "Local training review",
   },
-  controls: {
-    title: "Exercise parameters",
-    subtitle: "Local prototype controls · no run yet",
-    gravity: "Gravity",
-    pressure: "Atmospheric pressure",
-    averageTemperature: "Average temperature",
-    temperatureRange: "Temperature range",
-    radiationDose: "Radiation dose",
-    stellarLight: "Stellar light",
-    waterAccess: "Water access",
-    habitat: "Dominant habitat",
-    visualOnly:
-      "Controls are visual only. No deterministic calculation or external request is performed.",
-    explorePreview: "Preview exercise",
-  },
-  units: { relative: "rel." },
-  habitats: {
-    basaltPlains: "Storm-worn basalt plains",
-    caveNetwork: "Subsurface cave network",
-    oceanShelf: "Deep ocean shelf",
-    cloudLayer: "High-atmosphere cloud layer",
-  },
-  configure: {
-    eyebrow: "Mission briefing preview",
-    heading: "Assess the target world.",
-    status: "Briefing view",
-    selectedWorld: "Target world",
-    canvasDescription:
-      "A preview canvas for the mission environment. Parameters on the left change this display only.",
-    gravityAbbreviation: "GRAV",
-    temperatureAbbreviation: "TEMP",
-    waterAbbreviation: "WATER",
-    journeyMap: "Training loop",
-    journey: [
-      { title: "Commit hypothesis", description: "Predict plausible survival adaptations." },
-      { title: "Run simulation", description: "Reveal deterministic pressures and constraints." },
-      { title: "Mission debrief", description: "Review evidence with the Mission Instructor." },
+  mission: {
+    eyebrow: "Incoming mission · Vespera-01",
+    title: "Design for survival before you see the model.",
+    planet: "Target: Vespera b",
+    objectiveLabel: "Mission objective",
+    objective:
+      "Predict which adaptations could support a complex surface organism under high gravity, thermal variation, elevated radiation, and limited water.",
+    briefing:
+      "Your survey team has one landing window. Review the measured environment, commit a biological hypothesis, then compare it with ruleset 0.2.0.",
+    candidateTask:
+      "You are evaluated on the causal link between environmental pressure and adaptation—not on inventing the most dramatic organism.",
+    factsTitle: "Verified mission telemetry",
+    facts: [
+      { label: "Gravity", value: "1.7 g" },
+      { label: "Local pressure", value: "1.2 atm" },
+      { label: "Temperature", value: "18°C ± 24°C" },
+      { label: "Radiation", value: "0.4 mSv/h" },
+      { label: "Water access", value: "0.38 relative" },
+      { label: "Habitat", value: "Open basalt surface" },
     ],
-    previewFlow: "Preview pressure analysis",
-    integrityTitle: "Prototype integrity",
-    integrityDescription:
-      "The target experience includes a committed hypothesis and Mission Instructor debrief. This prototype contains deliberate presentation samples until the rules engine and API routes are connected.",
-    continue: "Continue preview",
+    ruleset: "Ruleset 0.2.0 · educational model conventions",
+    begin: "Begin analysis",
   },
-  constraints: {
-    eyebrow: "Calculated pressure preview",
-    heading: "A world of useful constraints.",
-    status: "Preview only",
-    description:
-      "These cards demonstrate how deterministic findings will be presented after a run. They are not calculated from the controls yet.",
-    pressures: [
-      {
-        title: "High gravity",
-        detail: "1.7 g favours a lower centre of mass and reinforced support structures.",
-        tone: "cyan",
-      },
-      {
-        title: "Thermal range",
-        detail: "Wide swings suggest thermal buffering, shelter use, or flexible activity cycles.",
-        tone: "amber",
-      },
-      {
-        title: "Surface radiation",
-        detail: "The selected dose calls for protective pigmentation and reduced exposure.",
-        tone: "violet",
-      },
-      {
-        title: "Limited water",
-        detail: "Water conservation and protected reproduction become important pressures.",
-        tone: "blue",
-      },
+  hypothesis: {
+    eyebrow: "Commit before reveal",
+    title: "Form your survival hypothesis.",
+    instruction:
+      "Select up to six predicted adaptations and explain the environmental evidence behind your choices.",
+    selectionTitle: "Predicted adaptations",
+    selectionHint: "Choose at least one. Unsupported options are intentional.",
+    reasoningLabel: "Scientific reasoning",
+    reasoningPlaceholder:
+      "Example: Because gravity is 1.7 g, I expect a low body profile that reduces structural load...",
+    validation: "Select an adaptation and enter at least 20 characters of reasoning.",
+    commit: "Commit hypothesis",
+    committed: "Hypothesis committed · results were hidden at submission",
+  },
+  simulation: {
+    eyebrow: "Deterministic simulation",
+    title: "Test the committed hypothesis.",
+    ready:
+      "Ruleset 0.2.0 will normalize the mission telemetry and evaluate four named model conventions. Identical input produces identical output.",
+    run: "Run simulation",
+    running: "Calculating pressures",
+    viabilityLabel: "Model outcome",
+    viability: "Conditionally plausible complex life",
+    rulesetLabel: "Ruleset",
+    normalizedFacts: "Normalized facts",
+    facts: [
+      { key: "oxygen", label: "O₂ partial pressure" },
+      { key: "temperature", label: "Temperature extremes" },
+      { key: "radiation", label: "Radiation dose" },
     ],
-    readyTitle: "Ready to inspect the predicted organism?",
-    readyDescription: "The next screen previews the organism-inspection stage.",
-    dossierPreview: "View organism preview",
+    pressuresTitle: "Environmental pressures",
+    organismTitle: "Organism pressure analysis",
+    organismName: "Vespera surface candidate",
+    candidateNotice:
+      "This is structured adaptation analysis, not a generated species or image.",
+    comparisonTitle: "Hypothesis comparison",
+    alignment: "Alignment",
+    supported: "Supported predictions",
+    missed: "Missed adaptations",
+    unsupported: "Unsupported predictions",
+    none: "None",
+    instructor: "Request Mission Instructor debrief",
   },
-  dossier: {
-    eyebrow: "Organism inspection preview",
-    previewSuffix: "preview",
-    status: "No model call made",
-    plausibilityLabel: "Plausibility statement",
-    plausibilityStatement:
-      "A compact, crepuscular organism plausible under this future model.",
-    description:
-      "A dossier will connect validated environmental constraints to every major trait. This specimen is placeholder content for the product flow.",
-    habitatLabel: "Habitat",
-    habitatValue: "Basalt shelf refuges",
-    activityLabel: "Activity",
-    activityValue: "Dawn / dusk",
-    adaptationLinks: "Adaptation links",
-    adaptations: [
-      { title: "Armoured outer layer", category: "Water balance · Radiation defence" },
-      { title: "Four-limbed low stance", category: "Structure · Locomotion" },
-      { title: "Light-scattering crown", category: "Sensory system · Radiation defence" },
-      { title: "Dawn-and-dusk activity", category: "Thermal regulation · Behaviour" },
-    ],
-    imagePromptDescription:
-      "A controlled visual request will use validated dossier fields, never raw form values.",
-    illustrationPreview: "Preview visual stage",
+  debrief: {
+    eyebrow: "Mission Instructor",
+    title: "Review the evidence, then revise.",
+    loading: "Preparing a validated debrief…",
+    liveSource: "Live structured response from GPT-5.6",
+    fallbackSource: "Deterministic local fallback",
+    fallbackNotice:
+      "GPT-5.6 was not available for this run. The debrief below is a validated local training review and is not AI-generated.",
+    evidence: "Evidence",
+    tradeOffs: "Biological trade-offs",
+    question: "Instructor question",
+    experiment: "Recommended experiment",
+    revisionTitle: "Evidence-based revision",
+    revisionInstruction:
+      "Select at least one calculated pressure and explain how it changes or strengthens your original hypothesis.",
+    evidenceLabel: "Evidence used",
+    revisionLabel: "Revised reasoning",
+    revisionPlaceholder:
+      "The calculated thermal extremes change my original proposal because...",
+    revisionValidation: "Select evidence and enter at least 20 characters.",
+    submit: "Complete mission",
+    error: "The debrief could not be loaded. Your simulation and hypothesis are preserved.",
+    retry: "Retry debrief",
   },
-  illustration: {
-    eyebrow: "Visual representation preview",
-    heading: "The visual specimen stage.",
-    status: "Awaiting generation",
-    queueLabel: "Illustration queue",
-    title: "A verified organism will appear here.",
-    description:
-      "This frame establishes the specimen presentation and loading space. Image generation is intentionally not connected yet.",
-    stages: ["Validated dossier", "Controlled prompt", "Scientific composition"],
+  progress: {
+    eyebrow: "Competency progress",
+    title: "Mission 01 complete.",
+    completed: "Training record created for this browser session.",
+    archiveTitle: "Research Archive",
+    archiveEntry: "Vespera b surface-survival assessment",
+    sessionOnly: "Session only · this record resets when the page reloads.",
+    competencyTitle: "Competency Profile",
+    hypothesisFormation: "Hypothesis formation",
+    adaptationAnalysis: "Adaptation analysis",
+    evidenceUse: "Evidence use",
+    certification: "Certification stage",
+    candidate: "Candidate",
+    nextTitle: "Next mission",
+    nextDescription:
+      "A mission library and persistent certification path are outside this vertical slice.",
+    todo: "TODO · Next mission not implemented",
+    repeat: "Repeat mission",
   },
-  navigationLabel: "Training exercise preview",
-  footer: "Xenogenesis Lab · Astrobiology mission-training prototype",
+  adaptations: {
+    compactBody: {
+      title: "Compact body plan",
+      description: "Reduces leverage and structural load under higher gravity.",
+    },
+    reinforcedSupport: {
+      title: "Reinforced support tissues",
+      description: "Increases resistance to sustained gravitational loading.",
+    },
+    thermalBuffering: {
+      title: "Thermal buffering",
+      description: "Moderates exposure to the calculated temperature extremes.",
+    },
+    radiationProtection: {
+      title: "Radiation-protective outer layer",
+      description: "Reduces biological damage from elevated exposure.",
+    },
+    cellularRepair: {
+      title: "Enhanced cellular repair",
+      description: "Supports recovery from radiation-related molecular damage.",
+    },
+    waterConservation: {
+      title: "Closed-loop water conservation",
+      description: "Limits water loss in a water-constrained environment.",
+    },
+    protectedReproduction: {
+      title: "Protected reproduction",
+      description: "Shields water-dependent early development.",
+    },
+    aerialFlight: {
+      title: "Sustained aerial flight",
+      description: "A costly locomotion strategy under the supplied gravity.",
+    },
+    permeableSkin: {
+      title: "Highly permeable skin",
+      description: "Improves exchange but increases water-loss risk.",
+    },
+  },
+  pressures: {
+    highGravity: {
+      title: "High-gravity loading",
+      description: "1.7 g exceeds the 1.5 g ruleset convention.",
+    },
+    thermalRange: {
+      title: "Thermal extremes",
+      description: "The symmetric range reaches −6°C and 42°C.",
+    },
+    radiationExposure: {
+      title: "Elevated radiation",
+      description: "0.4 mSv/h exceeds the 0.1 mSv/h ruleset convention.",
+    },
+    limitedWater: {
+      title: "Limited accessible water",
+      description: "0.38 is below the 0.40 relative-water convention.",
+    },
+  },
+  severity: { moderate: "Moderate", high: "High" },
+  footer:
+    "Educational plausibility model · Deterministic facts, learner reasoning, and AI interpretation remain separate",
 };
 
-/** Complete Polish translation of every visible prototype string. */
 const polish: Copy = {
   document: {
-    title: "Xenogenesis Lab | Trening misji astrobiologicznych",
-    description: "Ćwicz rozumowanie naukowe dla fikcyjnych misji ksenobiologicznych.",
+    title: "Xenogenesis Lab | Misja 01",
+    description: "Ukończ jedną astrobiologiczną misję treningową opartą na dowodach.",
   },
-  language: {
-    label: "Język",
-    switchToEnglish: "Przełącz na język angielski",
-    switchToPolish: "Przełącz na język polski",
-  },
+  language: { label: "Język", english: "Angielski", polish: "Polski" },
   header: {
-    subtitle: "Centrum misji",
-    prototypeMode: "Prototyp treningu",
-    resetWorld: "Resetuj ćwiczenie",
+    subtitle: "Centrum Misji",
+    mission: "Misja treningowa 01",
+    reset: "Resetuj misję",
   },
-  hero: {
-    imageAlt: "Xenogenesis Lab: planeta z orbitalnym motywem DNA na tle gwiazd",
-    eyebrow: "Astrobiologiczny trening misji wspierany przez AI",
-    titleStart: "Rozpocznij trening.",
-    titleHighlight: "Przeanalizuj świat.",
-    description:
-      "Ćwicz rozumowanie dla fikcyjnych misji ksenobiologicznych przez tworzenie i sprawdzanie hipotez. Ten prototyp wizualny pokazuje ścieżkę przed podłączeniem symulacji i instruktażu AI.",
+  stages: {
+    briefing: "Odprawa",
+    hypothesis: "Hipoteza",
+    simulation: "Symulacja",
+    debrief: "Omówienie",
+    progress: "Postęp",
   },
-  screens: {
-    configure: "Odprawa",
-    constraints: "Podgląd presji",
-    dossier: "Podgląd organizmu",
-    illustration: "Podgląd wizualny",
+  stageNavigation: "Etapy treningu misyjnego",
+  provenance: {
+    hypothesis: "Twoja hipoteza",
+    calculated: "Wynik obliczeń",
+    ai: "Interpretacja GPT-5.6",
+    local: "Lokalna analiza treningowa",
   },
-  controls: {
-    title: "Parametry ćwiczenia",
-    subtitle: "Lokalne sterowanie prototypem · bez uruchamiania analizy",
-    gravity: "Grawitacja",
-    pressure: "Ciśnienie atmosferyczne",
-    averageTemperature: "Średnia temperatura",
-    temperatureRange: "Zakres temperatur",
-    radiationDose: "Dawka promieniowania",
-    stellarLight: "Światło gwiazdy",
-    waterAccess: "Dostęp do wody",
-    habitat: "Dominujące siedlisko",
-    visualOnly:
-      "Elementy sterujące są wyłącznie wizualne. Nie wykonano obliczeń deterministycznych ani zewnętrznego żądania.",
-    explorePreview: "Zobacz ćwiczenie",
-  },
-  units: { relative: "wzgl." },
-  habitats: {
-    basaltPlains: "Wietrzne bazaltowe równiny",
-    caveNetwork: "Sieć podziemnych jaskiń",
-    oceanShelf: "Szelf głębokiego oceanu",
-    cloudLayer: "Warstwa chmur wysokiej atmosfery",
-  },
-  configure: {
-    eyebrow: "Podgląd odprawy misyjnej",
-    heading: "Oceń docelowy świat.",
-    status: "Widok odprawy",
-    selectedWorld: "Docelowy świat",
-    canvasDescription:
-      "Podglądowa przestrzeń dla środowiska misji. Parametry po lewej zmieniają tylko ten widok.",
-    gravityAbbreviation: "GRAW",
-    temperatureAbbreviation: "TEMP",
-    waterAbbreviation: "WODA",
-    journeyMap: "Pętla treningowa",
-    journey: [
-      { title: "Zatwierdź hipotezę", description: "Przewidź prawdopodobne adaptacje przetrwania." },
-      { title: "Uruchom symulację", description: "Pokaż deterministyczne presje i ograniczenia." },
-      { title: "Odprawa misyjna", description: "Omów dowody z Instruktorem Misji." },
+  mission: {
+    eyebrow: "Nadchodząca misja · Vespera-01",
+    title: "Zaprojektuj przetrwanie, zanim poznasz wynik modelu.",
+    planet: "Cel: Vespera b",
+    objectiveLabel: "Cel misji",
+    objective:
+      "Przewidź adaptacje, które mogą wspierać złożony organizm powierzchniowy przy wysokiej grawitacji, wahaniach temperatury, podwyższonym promieniowaniu i ograniczonej wodzie.",
+    briefing:
+      "Zespół badawczy ma jedno okno lądowania. Przeanalizuj zmierzone środowisko, zatwierdź hipotezę biologiczną, a następnie porównaj ją z zestawem reguł 0.2.0.",
+    candidateTask:
+      "Oceniany jest związek przyczynowy między presją środowiska a adaptacją — nie najbardziej efektowny organizm.",
+    factsTitle: "Zweryfikowana telemetria misji",
+    facts: [
+      { label: "Grawitacja", value: "1,7 g" },
+      { label: "Ciśnienie lokalne", value: "1,2 atm" },
+      { label: "Temperatura", value: "18°C ± 24°C" },
+      { label: "Promieniowanie", value: "0,4 mSv/h" },
+      { label: "Dostęp do wody", value: "0,38 względnie" },
+      { label: "Siedlisko", value: "Otwarta powierzchnia bazaltowa" },
     ],
-    previewFlow: "Zobacz analizę presji",
-    integrityTitle: "Rzetelność prototypu",
-    integrityDescription:
-      "Docelowa ścieżka obejmuje zatwierdzoną hipotezę i odprawę z Instruktorem Misji. Ten prototyp zawiera celowo przykładowe treści do czasu podłączenia silnika reguł i tras API.",
-    continue: "Kontynuuj podgląd",
+    ruleset: "Zestaw reguł 0.2.0 · edukacyjne konwencje modelu",
+    begin: "Rozpocznij analizę",
   },
-  constraints: {
-    eyebrow: "Podgląd obliczonych presji",
-    heading: "Świat pełen istotnych ograniczeń.",
-    status: "Tylko podgląd",
-    description:
-      "Te karty pokazują, jak będą prezentowane wyniki deterministyczne po uruchomieniu analizy. Nie są jeszcze obliczane na podstawie elementów sterujących.",
-    pressures: [
-      {
-        title: "Wysoka grawitacja",
-        detail: "1,7 g sprzyja niżej położonemu środkowi masy i wzmocnionym strukturom podporowym.",
-        tone: "cyan",
-      },
-      {
-        title: "Zakres temperatur",
-        detail: "Duże wahania sugerują buforowanie cieplne, korzystanie ze schronienia lub elastyczne cykle aktywności.",
-        tone: "amber",
-      },
-      {
-        title: "Promieniowanie na powierzchni",
-        detail: "Wybrana dawka wymaga ochronnej pigmentacji i ograniczonej ekspozycji.",
-        tone: "violet",
-      },
-      {
-        title: "Ograniczona dostępność wody",
-        detail: "Oszczędzanie wody i chronione rozmnażanie stają się ważnymi presjami.",
-        tone: "blue",
-      },
+  hypothesis: {
+    eyebrow: "Zatwierdź przed ujawnieniem",
+    title: "Sformułuj hipotezę przetrwania.",
+    instruction:
+      "Wybierz do sześciu przewidywanych adaptacji i wyjaśnij, jakie dane środowiskowe uzasadniają wybór.",
+    selectionTitle: "Przewidywane adaptacje",
+    selectionHint: "Wybierz co najmniej jedną. Celowo dodano opcje bez poparcia.",
+    reasoningLabel: "Rozumowanie naukowe",
+    reasoningPlaceholder:
+      "Przykład: Ponieważ grawitacja wynosi 1,7 g, oczekuję niskiej sylwetki zmniejszającej obciążenia...",
+    validation: "Wybierz adaptację i wpisz co najmniej 20 znaków uzasadnienia.",
+    commit: "Zatwierdź hipotezę",
+    committed: "Hipoteza zatwierdzona · wyniki były ukryte podczas wysyłania",
+  },
+  simulation: {
+    eyebrow: "Symulacja deterministyczna",
+    title: "Sprawdź zatwierdzoną hipotezę.",
+    ready:
+      "Zestaw reguł 0.2.0 znormalizuje telemetrię i oceni cztery nazwane konwencje modelu. Identyczne dane dają identyczny wynik.",
+    run: "Uruchom symulację",
+    running: "Obliczanie presji",
+    viabilityLabel: "Wynik modelu",
+    viability: "Warunkowo prawdopodobne złożone życie",
+    rulesetLabel: "Zestaw reguł",
+    normalizedFacts: "Dane znormalizowane",
+    facts: [
+      { key: "oxygen", label: "Ciśnienie cząstkowe O₂" },
+      { key: "temperature", label: "Ekstrema temperatury" },
+      { key: "radiation", label: "Dawka promieniowania" },
     ],
-    readyTitle: "Gotowy, aby zbadać przewidywany organizm?",
-    readyDescription: "Kolejny ekran pokazuje podgląd etapu badania organizmu.",
-    dossierPreview: "Zobacz podgląd organizmu",
+    pressuresTitle: "Presje środowiskowe",
+    organismTitle: "Analiza presji na organizm",
+    organismName: "Kandydat powierzchniowy Vespery",
+    candidateNotice:
+      "To ustrukturyzowana analiza adaptacji, a nie wygenerowany gatunek ani obraz.",
+    comparisonTitle: "Porównanie hipotezy",
+    alignment: "Zgodność",
+    supported: "Przewidywania z poparciem",
+    missed: "Pominięte adaptacje",
+    unsupported: "Przewidywania bez poparcia",
+    none: "Brak",
+    instructor: "Poproś Instruktora Misji o omówienie",
   },
-  dossier: {
-    eyebrow: "Podgląd badania organizmu",
-    previewSuffix: "podgląd",
-    status: "Nie wykonano wywołania modelu",
-    plausibilityLabel: "Ocena prawdopodobieństwa",
-    plausibilityStatement:
-      "Zwarty organizm aktywny o świcie i zmierzchu, możliwy zgodnie z przyszłą wersją modelu.",
-    description:
-      "Profil połączy zweryfikowane ograniczenia środowiskowe z każdą ważną cechą. Ten okaz jest treścią zastępczą dla przepływu produktu.",
-    habitatLabel: "Siedlisko",
-    habitatValue: "Schronienia na bazaltowym szelfie",
-    activityLabel: "Aktywność",
-    activityValue: "Świt / zmierzch",
-    adaptationLinks: "Powiązania adaptacji",
-    adaptations: [
-      { title: "Opancerzona warstwa zewnętrzna", category: "Gospodarka wodna · Ochrona przed promieniowaniem" },
-      { title: "Niska postawa na czterech kończynach", category: "Budowa · Lokomocja" },
-      { title: "Korona rozpraszająca światło", category: "System sensoryczny · Ochrona przed promieniowaniem" },
-      { title: "Aktywność o świcie i zmierzchu", category: "Termoregulacja · Zachowanie" },
-    ],
-    imagePromptDescription:
-      "Kontrolowane żądanie wizualne użyje zweryfikowanych pól profilu, nigdy surowych wartości formularza.",
-    illustrationPreview: "Zobacz etap wizualny",
+  debrief: {
+    eyebrow: "Instruktor Misji",
+    title: "Przeanalizuj dowody, a następnie popraw hipotezę.",
+    loading: "Przygotowywanie zweryfikowanego omówienia…",
+    liveSource: "Ustrukturyzowana odpowiedź na żywo z GPT-5.6",
+    fallbackSource: "Deterministyczny lokalny tryb zastępczy",
+    fallbackNotice:
+      "GPT-5.6 nie był dostępny w tej próbie. Poniżej znajduje się zweryfikowana lokalna analiza treningowa, która nie została wygenerowana przez AI.",
+    evidence: "Dowody",
+    tradeOffs: "Kompromisy biologiczne",
+    question: "Pytanie instruktora",
+    experiment: "Zalecany eksperyment",
+    revisionTitle: "Poprawa oparta na dowodach",
+    revisionInstruction:
+      "Wybierz co najmniej jedną obliczoną presję i wyjaśnij, jak zmienia lub wzmacnia pierwotną hipotezę.",
+    evidenceLabel: "Wykorzystane dowody",
+    revisionLabel: "Poprawione rozumowanie",
+    revisionPlaceholder:
+      "Obliczone ekstrema temperatury zmieniają moją pierwotną propozycję, ponieważ...",
+    revisionValidation: "Wybierz dowód i wpisz co najmniej 20 znaków.",
+    submit: "Ukończ misję",
+    error: "Nie udało się wczytać omówienia. Symulacja i hipoteza zostały zachowane.",
+    retry: "Ponów omówienie",
   },
-  illustration: {
-    eyebrow: "Podgląd reprezentacji wizualnej",
-    heading: "Etap wizualnego okazu.",
-    status: "Oczekuje na generowanie",
-    queueLabel: "Kolejka ilustracji",
-    title: "Zweryfikowany organizm pojawi się tutaj.",
-    description:
-      "Ta ramka wyznacza prezentację okazu i miejsce na ładowanie. Generowanie obrazu nie jest jeszcze podłączone.",
-    stages: ["Zweryfikowany profil", "Kontrolowany prompt", "Kompozycja naukowa"],
+  progress: {
+    eyebrow: "Postęp kompetencji",
+    title: "Misja 01 ukończona.",
+    completed: "Utworzono zapis treningu dla tej sesji przeglądarki.",
+    archiveTitle: "Archiwum Badawcze",
+    archiveEntry: "Ocena przetrwania na powierzchni Vespery b",
+    sessionOnly: "Tylko ta sesja · zapis znika po ponownym wczytaniu strony.",
+    competencyTitle: "Profil Kompetencji",
+    hypothesisFormation: "Formułowanie hipotezy",
+    adaptationAnalysis: "Analiza adaptacji",
+    evidenceUse: "Wykorzystanie dowodów",
+    certification: "Etap certyfikacji",
+    candidate: "Kandydat",
+    nextTitle: "Następna misja",
+    nextDescription:
+      "Biblioteka misji i trwała ścieżka certyfikacji nie należą do tego wycinka pionowego.",
+    todo: "TODO · Następna misja nie jest zaimplementowana",
+    repeat: "Powtórz misję",
   },
-  navigationLabel: "Podgląd ćwiczenia treningowego",
-  footer: "Xenogenesis Lab · Prototyp treningu misji astrobiologicznych",
+  adaptations: {
+    compactBody: {
+      title: "Zwarta budowa ciała",
+      description: "Zmniejsza dźwignię i obciążenia konstrukcyjne przy wyższej grawitacji.",
+    },
+    reinforcedSupport: {
+      title: "Wzmocnione tkanki podporowe",
+      description: "Zwiększają odporność na stałe obciążenia grawitacyjne.",
+    },
+    thermalBuffering: {
+      title: "Buforowanie cieplne",
+      description: "Ogranicza ekspozycję na obliczone ekstrema temperatury.",
+    },
+    radiationProtection: {
+      title: "Warstwa chroniąca przed promieniowaniem",
+      description: "Zmniejsza szkody biologiczne wynikające z podwyższonej ekspozycji.",
+    },
+    cellularRepair: {
+      title: "Wzmocniona naprawa komórkowa",
+      description: "Wspiera usuwanie uszkodzeń molekularnych związanych z promieniowaniem.",
+    },
+    waterConservation: {
+      title: "Zamknięty obieg wody",
+      description: "Ogranicza utratę wody w środowisku z jej niedoborem.",
+    },
+    protectedReproduction: {
+      title: "Chronione rozmnażanie",
+      description: "Zabezpiecza zależne od wody wczesne etapy rozwoju.",
+    },
+    aerialFlight: {
+      title: "Długotrwały lot aktywny",
+      description: "Kosztowna forma lokomocji przy podanej grawitacji.",
+    },
+    permeableSkin: {
+      title: "Wysoce przepuszczalna skóra",
+      description: "Ułatwia wymianę, ale zwiększa ryzyko utraty wody.",
+    },
+  },
+  pressures: {
+    highGravity: {
+      title: "Obciążenie wysoką grawitacją",
+      description: "1,7 g przekracza konwencję zestawu reguł wynoszącą 1,5 g.",
+    },
+    thermalRange: {
+      title: "Ekstrema temperatury",
+      description: "Symetryczny zakres sięga od −6°C do 42°C.",
+    },
+    radiationExposure: {
+      title: "Podwyższone promieniowanie",
+      description: "0,4 mSv/h przekracza konwencję zestawu reguł 0,1 mSv/h.",
+    },
+    limitedWater: {
+      title: "Ograniczona dostępność wody",
+      description: "0,38 jest poniżej względnej konwencji dostępności wody 0,40.",
+    },
+  },
+  severity: { moderate: "Umiarkowana", high: "Wysoka" },
+  footer:
+    "Edukacyjny model prawdopodobieństwa · Fakty obliczone, rozumowanie użytkownika i interpretacja AI pozostają rozdzielone",
 };
 
-/** Maps each supported language to a complete, compile-time-checked copy set. */
-export const COPY: Record<Language, Copy> = {
-  en: english,
-  pl: polish,
-};
+/** Complete, compile-time-checked translations for every supported language. */
+export const COPY: Record<Language, Copy> = { en: english, pl: polish };

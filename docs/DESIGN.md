@@ -58,6 +58,8 @@ Use a readable interface typeface, restrained display typography, short line len
 
 Illustrations should resemble neutral astrobiology field documentation or scientific concept art. A generated illustration may depict only validated habitat, posture, atmosphere, thermal and radiation adaptations, locomotion, scale, and sensory traits. It must not contradict the dossier, add unsupported anatomy, imitate protected franchises or artists, or present speculative details as measured facts.
 
-## Current prototype note
+## Current implementation note
 
-The current interface is a responsive preview with local controls and non-live pressure, organism, and illustration samples. Do not describe its preview stages as a functioning Mission Instructor, deterministic simulation, archive, or generated image until those flows are implemented.
+The current interface implements one responsive mission loop. Hypothesis content, deterministic results, GPT-5.6 interpretation, and the local instructor fallback have visibly different provenance labels. The Research Archive and competency profile are session-only and reset on reload.
+
+Do not describe the adaptation analysis as a generated organism, the session record as persistent, the fallback as AI-generated, or the disabled next-mission state as a mission library. Image generation is not implemented.

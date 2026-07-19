@@ -2,9 +2,11 @@
 
 ## Current implementation
 
-The repository currently contains a Next.js 16.2.10 / React 19.2.4 prototype, Tailwind CSS 4, TypeScript, Zod 4 world-parameter validation and normalization, and Vitest domain tests. It does not currently contain a viability engine, route handlers, OpenAI SDK integration, image generation, persistence, or progression.
+The repository contains a Next.js 16.2.10 / React 19.2.4 application, Tailwind CSS 4, TypeScript, Zod 4, the official OpenAI JavaScript SDK, and Vitest domain tests. One fixed Vespera mission implements world normalization, four deterministic pressure rules, hypothesis comparison, adaptation candidates, a server-only Mission Instructor route, evidence-based revision, and session-only competency progress.
 
-Planned server-side capabilities must be implemented in the same Next.js App Router application. OpenAI credentials must remain server-side.
+`POST /api/instructor` re-runs the deterministic simulation on the server and validates the request and response. With `OPENAI_API_KEY`, it requests a structured response from the `gpt-5.6` alias through the Responses API. Without a usable live response, it returns a Zod-validated local fallback with explicit provenance. No credentials are sent to the client.
+
+Image generation, database persistence, accounts, a mission library, and durable certification are not implemented.
 
 ## Target mission flow
 
@@ -60,7 +62,7 @@ Every displayed claim must retain one of these sources:
 - **AI interpretation:** GPT-5.6 instructional content tied to that output.
 - **Visual representation:** a generated image grounded in validated organism data.
 
-## Target data contracts
+## Implemented data contracts
 
 ```ts
 type CommittedHypothesis = {
@@ -71,13 +73,12 @@ type CommittedHypothesis = {
 };
 
 type SimulationResult = {
-  rulesetVersion: string;
-  normalizedEnvironment: NormalizedWorldParameters;
-  viability: ViabilityAssessment;
+  missionId: "vespera-01";
+  rulesetVersion: "0.2.0";
+  viability: "conditionallyPlausibleComplexLife";
+  normalizedFacts: NormalizedFacts;
   pressures: EnvironmentalPressure[];
-  constraints: BiologicalConstraint[];
   adaptationCandidates: AdaptationCandidate[];
-  warnings: string[];
 };
 
 type MissionDebrief = {
@@ -89,13 +90,13 @@ type MissionDebrief = {
 };
 ```
 
-`SimulationResult`, `ViabilityAssessment`, `EnvironmentalPressure`, `BiologicalConstraint`, and `AdaptationCandidate` are target contracts until their implementation exists. Do not present them as exported code.
+The exact Zod schemas are exported from `src/domain/mission/schema.ts`. The current viability value is scoped only to the fixed mission; it is not a general viability engine.
 
 ## Client and server boundary
 
 The client may collect input, provide non-authoritative validation, show results, and manage local state. It must not define scientific rules, contain API keys, call privileged endpoints directly, or trust raw model output.
 
-The server owns final validation, deterministic calculations, model and image calls, output validation, rate limiting, error handling, and secret management. Route handlers must import server-only code.
+The server owns final validation, deterministic recalculation, model calls, output validation, safe fallback behavior, and secret management. Rate limiting, persistent user identity, and production observability are **TODOs** before public scale.
 
 ## Failure handling
 
