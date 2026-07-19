@@ -41,14 +41,14 @@ No AI request occurs during rendering, rotation, parameter editing, or determini
 
 ### World contract — `src/domain/world/`
 
-Owns authoritative physical inputs, units, atmospheric-fraction validation, radiation normalization, symmetric temperature range, oxygen partial pressure, local ideal-gas density, and conservative geochemical pathway detection.
+Owns authoritative physical inputs, units, atmospheric-fraction validation, radiation normalization, symmetric temperature range, oxygen partial pressure, local ideal-gas density, conservative geochemical pathway detection, preference-preserving control updates, and phase-dependent consequences. `engineering.ts` applies one user change without erasing other preferences. `interactions.ts` derives atmospheric presence, pressure-dependent boiling, continuous ice/liquid/vapor shares, effective humidity, and cloud potential. `visualization.ts` converts only those derived facts into renderer targets.
 
 It does not infer radiation shielding, electron acceptors, molar mass, or alternative energy from a habitat label.
 
 ### Simulator — `src/domain/simulator/`
 
 - `schema.ts` defines the mission, trait, request, result, consultant, and illustration contracts.
-- `mission.ts` contains the immutable Vespera 7A seed and baseline.
+- `mission.ts` contains the immutable Vespera 7A seed and barren starting state.
 - `traits.ts` centralizes 33 trait definitions, costs, conflicts, and modifiers.
 - `simulate.ts` calculates continuous metrics, representative regions, population, outcome, success, and stable hash.
 - `consultant.ts` builds the local fallback and final controlled image prompt.
@@ -57,15 +57,15 @@ The simulator has no React, Three.js, OpenAI, route, or persistence dependency.
 
 ### Procedural rendering — `src/components/planet/` and `src/shaders/`
 
-The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, biome masks, continuous ice, water masks, lava channels, clouds, radiation heatmaps, biosphere patches, schematic magnetic flux lines, conditional polar auroras, and a shared world-space sun direction for day/night shading. The water layer maps zero available water to no visible surface water and full available water to an aquatic shell. Vacuum removes water, cloud, atmosphere, and aurora layers. Gravity no longer changes terrain geometry because the supplied input alone cannot justify a geology mapping.
+The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, phase-derived ice/water masks, dry sand, thermally altered or molten basaltic rock, white-grey clouds or steam, radiation exposure, biosphere patches, polar auroral ovals, a procedurally animated stellar photosphere and corona, and a shared world-space sun direction for day/night shading. The stellar shader is a presentation layer only; it does not change stellar energy or any simulation result. A deterministic Three.js point field places stars on large world-space shells, so camera movement changes their apparent positions instead of pinning them to screen pixels. The cloud sphere clears maximum displaced terrain elevation instead of intersecting the surface. Ice requires nonzero exposed water. The unscaled water mesh rises from the deepest terrain basins to just below the theoretical highest summit; terrain depth testing exposes only flooded areas, avoiding a detached shell. Its liquid/ice appearance is then selected from the same latitude temperature convention as the terrain, constrained by the globally available phase inventory. Vacuum immediately removes exposed water, clouds, atmosphere, atmospheric rim light, and auroras; the radiation shell appears only in its labelled scientific mode. The `−273…1800°C` mean-temperature range introduces a documented basaltic melt transition at `780–1050°C`. Gravity does not rewrite terrain, pressure, water, or humidity.
 
-React state changes only update target values. `useFrame` interpolates external Three.js shader uniforms and rotation without React state updates. Terrain geometry is not regenerated for slider changes. Water, cloud, and atmosphere are separate coordinated layers. Region markers visualize deterministic result scores.
+React state changes only update target values. `useFrame` interpolates external Three.js shader uniforms and rotation without React state updates. Terrain geometry is not regenerated for slider changes. Native range inputs move immediately and coalesce world-state commits to at most one per animation frame, preventing pointer-event floods from making the thumb lag behind. Water, cloud, and atmosphere are separate coordinated layers. Region markers visualize deterministic result scores.
 
 This layer owns presentation only. It cannot produce habitability or population facts.
 
 ### Presentation — `src/app/page.tsx` and `src/components/life/`
 
-The client keeps one mission’s current state: language, phase, planet, traits, visualization mode, inspection, latest result, previous result, AI states, and fallback image. It caps editable humidity by available water and runs the same pure deterministic simulator for immediate results. The phase layout centers the planet, organism, or analysis according to the current task while retaining a contextual planet view.
+The client keeps one mission’s current state: language, phase, planet, traits, visualization mode, latest result, previous result, AI states, and fallback image. It derives one of six value-specific captions and explanatory stored/effective-state notices, preserves every independent preference, and runs the same pure deterministic simulator for immediate results. Dependent controls display physically expressed values: gas partial pressure, phase-supported surface water, and effective humidity. A control is locked only when its physical support is zero; its stored preference is restored when support returns. Direct globe-region selection is absent; regional scores remain evidence in the analysis phase. The phase layout centers the planet, organism, or analysis according to the current task while retaining a contextual planet view. Every mode's editable controls belong to the right panel; the primary phase transition lives beside those controls rather than in the planet canvas.
 
 `src/app/copy.ts` is a compile-time checked English/Polish dictionary covering visible and accessible text. New UI text must be added and reviewed in both languages.
 
@@ -102,7 +102,7 @@ type SurvivalSimulationRequest = {
 };
 
 type SurvivalSimulationResult = {
-  simulatorVersion: "1.0.0";
+  simulatorVersion: "1.5.0";
   stateHash: string;
   outcome: SimulationOutcome;
   missionSuccess: boolean;

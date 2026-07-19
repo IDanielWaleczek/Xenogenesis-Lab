@@ -1,21 +1,12 @@
 /**
- * Versioned educational conventions for simulator 1.0.0.
+ * Versioned educational conventions for simulator 1.5.0.
  * Values are internally consistent tuning coefficients, not universal biological constants.
  */
 export const SIMULATOR_CONVENTIONS = {
   geochemicalEnergy: { none: 0, low: 0.28, moderate: 0.6, high: 0.9 },
   energyOverrunScale: 35,
   radiation: {
-    magneticProtectionPerEarthField: 1.6,
     safetyDecayMilliSvPerHour: 0.55,
-  },
-  liquidWater: {
-    supplyWeight: 0.55,
-    temperatureIdealC: 14,
-    temperatureWidthC: 48,
-    temperatureWeight: 0.3,
-    pressureReferenceAtm: 1.1,
-    pressureWeight: 0.15,
   },
   carbonDioxide: {
     excessStartFraction: 0.05,
@@ -58,6 +49,7 @@ export const SIMULATOR_CONVENTIONS = {
     oxygenWidthAtm: 0.17,
     lowOxygenIdealAtm: 0.075,
     lowOxygenWidthAtm: 0.1,
+    oxygenAvailabilityScaleAtm: 0.02,
     anaerobicEnergyFactor: 0.82,
     minimumPathwayScore: 0.18,
     pathwayWeight: 0.72,
@@ -92,7 +84,6 @@ export const SIMULATOR_CONVENTIONS = {
     habitableScore: 0.5,
     coastal: { liquidWater: 0.34, thermal: 0.22, energy: 0.22, hydration: 0.22 },
     equatorial: {
-      temperatureOffsetC: 8,
       temperatureIdealC: 24,
       temperatureWidthC: 50,
       temperature: 0.3,
@@ -101,7 +92,6 @@ export const SIMULATOR_CONVENTIONS = {
       radiation: 0.25,
     },
     polar: {
-      temperatureOffsetC: -24,
       temperatureIdealC: -5,
       temperatureWidthC: 44,
       temperature: 0.32,

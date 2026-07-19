@@ -1,4 +1,8 @@
 import { normalizeWorldParameters } from "../world/schema";
+import {
+  deriveEffectiveRadiationDose,
+  deriveWorldInteractionState,
+} from "../world/interactions";
 import { SIMULATOR_CONVENTIONS } from "./coefficients";
 import {
   SIMULATOR_VERSION,
@@ -59,45 +63,43 @@ export function runSurvivalSimulation(
   const energyOverrun = clamp01(
     (traitCost - LIFE_ENERGY_BUDGET) / convention.energyOverrunScale,
   );
-  const magneticProtection =
-    1 +
-    world.magneticFieldStrengthEarth *
-      convention.radiation.magneticProtectionPerEarthField;
-  const effectiveRadiation =
-    world.radiationDoseRateMilliSvPerHour / magneticProtection;
-
-  const liquidWater = clamp01(
-    world.waterAvailability * convention.liquidWater.supplyWeight +
-      bell(
-        world.averageTemperatureC,
-        convention.liquidWater.temperatureIdealC,
-        convention.liquidWater.temperatureWidthC,
-      ) * convention.liquidWater.temperatureWeight +
-      clamp01(
-        world.atmosphericPressureAtm /
-          convention.liquidWater.pressureReferenceAtm,
-      ) * convention.liquidWater.pressureWeight,
+  const effectiveRadiation = deriveEffectiveRadiationDose(
+    world.radiationDoseRateMilliSvPerHour,
+    world.magneticFieldStrengthEarth,
   );
+
+  // Independent user inputs are preserved; only their derived physical expression is coupled.
+  const interactions = deriveWorldInteractionState(world);
+  const effectivePressureAtm = world.atmosphericPressureAtm;
+  const effectiveOxygenPartialPressureAtm = world.oxygenPartialPressureAtm;
+  const effectiveMinimumTemperatureC = world.temperatureRangeC.minimum;
+  const effectiveMaximumTemperatureC = world.temperatureRangeC.maximum;
+  const availableSurfaceWater = interactions.surfaceWaterFraction;
+  const liquidWater = interactions.liquidWaterFraction;
+  const retainedHumidity = interactions.effectiveHumidity;
   const carbonDioxideFraction =
     world.atmosphereComposition.carbonDioxideFraction;
   const excessCarbonDioxide = clamp01(
     (carbonDioxideFraction - convention.carbonDioxide.excessStartFraction) /
       convention.carbonDioxide.excessScaleFraction,
   );
-  const atmosphere = clamp01(
+  // A zero-pressure world has no atmosphere regardless of its latent composition fractions.
+  const pressurePresence = interactions.atmospherePresence;
+  const atmosphere = clamp01((
     bell(
-      world.atmosphericPressureAtm,
+      effectivePressureAtm,
       convention.atmosphere.pressureIdealAtm,
       convention.atmosphere.pressureWidthAtm,
     ) * convention.atmosphere.pressureWeight +
       bell(
-        world.oxygenPartialPressureAtm,
+        effectiveOxygenPartialPressureAtm,
         convention.atmosphere.oxygenIdealAtm,
         convention.atmosphere.oxygenWidthAtm,
       ) * convention.atmosphere.oxygenWeight +
       (1 - world.atmosphereComposition.toxicGasFraction) *
         convention.atmosphere.nonToxicWeight -
-      excessCarbonDioxide * convention.carbonDioxide.atmospherePenalty,
+      excessCarbonDioxide * convention.carbonDioxide.atmospherePenalty) *
+      pressurePresence,
   );
   const thermalStability = clamp01(
     bell(
@@ -106,24 +108,24 @@ export function runSurvivalSimulation(
       convention.thermal.widthC,
     ) * convention.thermal.meanWeight +
       bell(
-        world.temperatureRangeC.minimum,
+        effectiveMinimumTemperatureC,
         convention.thermal.idealC,
         convention.thermal.widthC,
       ) * convention.thermal.minimumWeight +
       bell(
-        world.temperatureRangeC.maximum,
+        effectiveMaximumTemperatureC,
         convention.thermal.idealC,
         convention.thermal.widthC,
       ) * convention.thermal.maximumWeight +
       (modifiers.thermalCold ?? 0) *
         clamp01(
           (convention.thermal.coldReferenceC -
-            world.temperatureRangeC.minimum) /
+            effectiveMinimumTemperatureC) /
             convention.thermal.coldScaleC,
         ) +
       (modifiers.thermalHeat ?? 0) *
         clamp01(
-          (world.temperatureRangeC.maximum -
+          (effectiveMaximumTemperatureC -
             convention.thermal.heatReferenceC) /
             convention.thermal.heatScaleC,
         ),
@@ -152,7 +154,7 @@ export function runSurvivalSimulation(
     world.lightLevel * convention.biologicalEnergy.lightWeight +
       geochemicalEnergy * convention.biologicalEnergy.geochemicalWeight +
       liquidWater * convention.biologicalEnergy.liquidWaterWeight +
-      world.humidity * convention.biologicalEnergy.humidityWeight +
+      retainedHumidity * convention.biologicalEnergy.humidityWeight +
       carbonAvailability * convention.biologicalEnergy.carbonWeight +
       (modifiers.lightEnergy ?? 0) * world.lightLevel +
       (modifiers.chemicalEnergy ?? 0) * geochemicalEnergy -
@@ -162,19 +164,26 @@ export function runSurvivalSimulation(
 
   const has = (trait: SurvivalSimulationRequest["traitIds"][number]) =>
     request.traitIds.includes(trait);
+  // Aerobic pathways approach zero continuously and cannot operate at zero oxygen.
+  const oxygenAvailability =
+    1 -
+    Math.exp(
+      -effectiveOxygenPartialPressureAtm /
+        convention.metabolism.oxygenAvailabilityScaleAtm,
+    );
   const oxygenMetabolism = has("oxygenRespiration")
     ? bell(
-        world.oxygenPartialPressureAtm,
+        effectiveOxygenPartialPressureAtm,
         convention.metabolism.oxygenIdealAtm,
         convention.metabolism.oxygenWidthAtm,
-      )
+      ) * oxygenAvailability
     : 0;
   const lowOxygenMetabolism = has("lowOxygenMetabolism")
     ? bell(
-        world.oxygenPartialPressureAtm,
+        effectiveOxygenPartialPressureAtm,
         convention.metabolism.lowOxygenIdealAtm,
         convention.metabolism.lowOxygenWidthAtm,
-      )
+      ) * oxygenAvailability
     : 0;
   const anaerobicMetabolism = has("anaerobicMetabolism")
     ? geochemicalEnergy * convention.metabolism.anaerobicEnergyFactor
@@ -188,7 +197,8 @@ export function runSurvivalSimulation(
     ) * convention.metabolism.pathwayWeight +
       biologicalEnergy * convention.metabolism.biologicalEnergyWeight +
       (modifiers.oxygenEfficiency ?? 0) *
-        convention.metabolism.oxygenModifierWeight +
+        convention.metabolism.oxygenModifierWeight *
+        oxygenAvailability +
       (modifiers.alternativeMetabolism ?? 0) *
         geochemicalEnergy *
         convention.metabolism.alternativeModifierWeight,
@@ -207,33 +217,36 @@ export function runSurvivalSimulation(
         ),
   );
   const pressureFitness = clamp01(
-    bell(
-      world.atmosphericPressureAtm,
-      convention.physicalFitness.pressureIdealAtm,
-      convention.physicalFitness.pressureWidthAtm,
-    ) +
-      (modifiers.pressureTolerance ?? 0) *
-        clamp01(
-          Math.abs(
-            world.atmosphericPressureAtm -
-              convention.physicalFitness.pressureIdealAtm,
-          ) / convention.physicalFitness.pressureModifierScaleAtm,
-        ),
+    (
+      bell(
+        effectivePressureAtm,
+        convention.physicalFitness.pressureIdealAtm,
+        convention.physicalFitness.pressureWidthAtm,
+      ) +
+        (modifiers.pressureTolerance ?? 0) *
+          clamp01(
+            Math.abs(
+              effectivePressureAtm -
+                convention.physicalFitness.pressureIdealAtm,
+            ) / convention.physicalFitness.pressureModifierScaleAtm,
+          )
+    ) *
+      pressurePresence,
   );
   const hydration = clamp01(
     liquidWater * convention.hydration.liquidWaterWeight +
-      world.humidity * convention.hydration.humidityWeight +
-      (modifiers.hydration ?? 0) * (1 - world.waterAvailability),
+      retainedHumidity * convention.hydration.humidityWeight +
+      (modifiers.hydration ?? 0) * (1 - liquidWater),
   );
   const movement = clamp01(
     convention.movement.base +
       (modifiers.movement ?? 0) +
       (has("aquaticMovement")
-        ? world.waterAvailability * convention.movement.aquaticWaterWeight
+        ? liquidWater * convention.movement.aquaticWaterWeight
         : 0) +
       (has("terrestrialMovement")
         ? (1 -
-            world.waterAvailability *
+            availableSurfaceWater *
               convention.movement.terrestrialWaterPenalty) *
           convention.movement.terrestrialWeight
         : 0) +
@@ -258,8 +271,7 @@ export function runSurvivalSimulation(
     ),
     equatorial: clamp01(
       bell(
-        world.averageTemperatureC +
-          convention.regions.equatorial.temperatureOffsetC,
+        effectiveMaximumTemperatureC,
         convention.regions.equatorial.temperatureIdealC,
         convention.regions.equatorial.temperatureWidthC,
       ) * convention.regions.equatorial.temperature +
@@ -269,8 +281,7 @@ export function runSurvivalSimulation(
     ),
     polar: clamp01(
       bell(
-        world.averageTemperatureC +
-          convention.regions.polar.temperatureOffsetC,
+        effectiveMinimumTemperatureC,
         convention.regions.polar.temperatureIdealC,
         convention.regions.polar.temperatureWidthC,
       ) * convention.regions.polar.temperature +
@@ -280,7 +291,7 @@ export function runSurvivalSimulation(
           convention.regions.polar.coldModifier,
     ),
     deepOcean: clamp01(
-      world.waterAvailability * convention.regions.deepOcean.water +
+      liquidWater * convention.regions.deepOcean.water +
         (has("aquaticMovement")
           ? convention.regions.deepOcean.aquaticMovement
           : 0) +

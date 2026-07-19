@@ -28,12 +28,12 @@ Before Build Week, no complete production application, procedural WebGL planet, 
 
 The repository currently implements:
 
-- a cinematic skippable boot;
+- a cinematic boot with explicit entry;
 - one continuous Genesis 01 mission;
 - a deterministic seeded planet with layered custom GLSL terrain, water, ice, clouds, atmosphere, scientific overlays, and result-driven biosphere/region markers;
-- ten reactive planet parameters;
+- eleven reactive planet parameters with preserved preferences and continuous phase-aware consequences;
 - 33 biological traits with costs, conflicts, modifiers, advantages, and tradeoffs;
-- simulator 1.0.0 with 11 continuous metrics, six representative regions, eight outcomes, stable hashing, and a 40-generation population model;
+- simulator 1.5.0 with phase-aware water/humidity coupling, effective dependent controls, 11 continuous metrics, six representative regions, eight outcomes, stable hashing, and a 40-generation population model;
 - deterministic organism morphology;
 - a server-only GPT-5.6 consultant route with Zod structured output and honest local fallback;
 - a server-only `gpt-image-2` route with controlled server-built prompt and procedural fallback;

@@ -30,10 +30,18 @@ import {
   LIFE_TRAITS,
   type TraitCategory,
 } from "@/domain/simulator/traits";
+import {
+  applyWorldEngineeringControlChange,
+  deriveWorldEngineeringControlState,
+} from "@/domain/world/engineering";
 import { normalizeWorldParameters } from "@/domain/world/schema";
 import type { WorldParameters } from "@/domain/world/schema";
+import {
+  MAX_AVERAGE_TEMPERATURE_C,
+  MIN_AVERAGE_TEMPERATURE_C,
+} from "@/domain/world/schema";
 
-import { COPY, type LabPhase, type Language, type ParameterId } from "./copy";
+import { COPY, type LabCopy, type LabPhase, type Language, type ParameterId } from "./copy";
 
 const ProceduralPlanet = dynamic(
   () => import("@/components/planet/ProceduralPlanet"),
@@ -78,18 +86,19 @@ const PARAMETER_CONFIG: Array<{
   min: number;
   max: number;
   step: number;
-  read: (world: WorldParameters) => number;
+  captionThresholds: readonly [number, number, number, number, number];
 }> = [
-  { id: "gravity", min: 0.2, max: 3, step: 0.01, read: (world) => world.gravityG },
-  { id: "temperature", min: -70, max: 100, step: 1, read: (world) => world.averageTemperatureC },
-  { id: "pressure", min: 0, max: 5, step: 0.01, read: (world) => world.atmosphericPressureAtm },
-  { id: "oxygen", min: 0, max: 32, step: 0.1, read: (world) => world.atmosphereComposition.oxygenFraction * 100 },
-  { id: "carbonDioxide", min: 0, max: 12, step: 0.1, read: (world) => world.atmosphereComposition.carbonDioxideFraction * 100 },
-  { id: "water", min: 0, max: 100, step: 1, read: (world) => world.waterAvailability * 100 },
-  { id: "radiation", min: 0, max: 3, step: 0.01, read: (world) => world.radiationDoseRate.value },
-  { id: "light", min: 0, max: 100, step: 1, read: (world) => world.lightLevel * 100 },
-  { id: "humidity", min: 0, max: 100, step: 1, read: (world) => world.humidity * 100 },
-  { id: "magneticField", min: 0, max: 3, step: 0.01, read: (world) => world.magneticFieldStrengthEarth },
+  { id: "gravity", min: 0.05, max: 3, step: 0.01, captionThresholds: [0.15, 0.35, 0.7, 1.2, 2] },
+  { id: "light", min: 0, max: 100, step: 1, captionThresholds: [5, 20, 45, 75, 90] },
+  { id: "pressure", min: 0, max: 5, step: 0.01, captionThresholds: [0.001, 0.05, 0.5, 1.5, 3] },
+  { id: "carbonDioxide", min: 0, max: 0.6, step: 0.0001, captionThresholds: [0.0001, 0.005, 0.02, 0.08, 0.2] },
+  { id: "oxygen", min: 0, max: 1.6, step: 0.001, captionThresholds: [0.001, 0.03, 0.1, 0.25, 0.5] },
+  { id: "temperature", min: MIN_AVERAGE_TEMPERATURE_C, max: MAX_AVERAGE_TEMPERATURE_C, step: 1, captionThresholds: [-100, 0, 50, 800, 1_200] },
+  { id: "temperatureVariation", min: 0, max: 100, step: 1, captionThresholds: [5, 15, 30, 60, 85] },
+  { id: "water", min: 0, max: 100, step: 0.1, captionThresholds: [1, 10, 35, 70, 90] },
+  { id: "humidity", min: 0, max: 100, step: 0.1, captionThresholds: [1, 15, 40, 70, 90] },
+  { id: "magneticField", min: 0, max: 3, step: 0.01, captionThresholds: [0.05, 0.3, 0.8, 1.8, 2.5] },
+  { id: "radiation", min: 0, max: 3, step: 0.01, captionThresholds: [0.01, 0.1, 0.5, 1.5, 2.5] },
 ];
 
 /** Creates a fresh validated copy of the immutable mission baseline. */
@@ -102,6 +111,64 @@ function formatNumber(value: number, language: Language, digits = 1): string {
   return new Intl.NumberFormat(language === "pl" ? "pl-PL" : "en-US", {
     maximumFractionDigits: digits,
   }).format(value);
+}
+
+/** Derives a value-sensitive explanation and any physical UI constraint for one control. */
+function deriveParameterControlState(
+  parameter: (typeof PARAMETER_CONFIG)[number],
+  world: WorldParameters,
+  copy: LabCopy,
+): { constraint: string | null; disabled: boolean; influence: string; min: number; max: number; preferredValue: number | null; step: number; value: number } {
+  const engineeringState = deriveWorldEngineeringControlState(
+    world,
+    parameter.id,
+  );
+  const value = engineeringState.displayedValue;
+  const thresholdIndex = parameter.captionThresholds.findIndex(
+    (threshold) => value < threshold,
+  );
+  const captionIndex = thresholdIndex === -1 ? 5 : thresholdIndex;
+  const constraint = engineeringState.constraint
+    ? copy.parameterConstraints[engineeringState.constraint]
+    : null;
+  const min =
+    parameter.id === "temperature"
+      ? Math.ceil(MIN_AVERAGE_TEMPERATURE_C + world.temperatureVariationC)
+      : parameter.min;
+  const max =
+    parameter.id === "oxygen"
+      ? world.atmosphericPressureAtm * 0.32
+      : parameter.id === "carbonDioxide"
+        ? world.atmosphericPressureAtm * 0.12
+        : parameter.id === "water"
+          ? deriveWorldEngineeringControlState(
+              { ...world, waterAvailability: 1 },
+              "water",
+            ).displayedValue
+          : parameter.id === "humidity"
+            ? deriveWorldEngineeringControlState(
+                { ...world, humidity: 1 },
+                "humidity",
+              ).displayedValue
+        : parameter.id === "temperatureVariation"
+          ? Math.min(
+              parameter.max,
+              world.averageTemperatureC - MIN_AVERAGE_TEMPERATURE_C,
+            )
+          : parameter.max;
+
+  return {
+    constraint,
+    disabled: engineeringState.disabled,
+    influence: copy.parameters[parameter.id].captions[captionIndex],
+    min,
+    max,
+    preferredValue: engineeringState.disabled
+      ? engineeringState.preferredValue
+      : null,
+    step: parameter.step,
+    value,
+  };
 }
 
 /** Creates the validated request shared by local simulation and server-only AI routes. */
@@ -138,6 +205,9 @@ function ParameterControl({
   label,
   unit,
   influence,
+  constraint,
+  preferredValue,
+  storedPreferenceLabel,
   disabled,
   language,
   onChange,
@@ -150,13 +220,68 @@ function ParameterControl({
   label: string;
   unit: string;
   influence: string;
+  constraint: string | null;
+  preferredValue: number | null;
+  storedPreferenceLabel: string;
   disabled: boolean;
   language: Language;
   onChange: (value: number) => void;
 }) {
-  const digits = step < 0.1 ? 2 : step < 1 ? 1 : 0;
+  const digits = step < 0.001 ? 4 : step < 0.01 ? 3 : step < 0.1 ? 2 : step < 1 ? 1 : 0;
   const display = `${formatNumber(value, language, digits)} ${unit}`;
-  const position = ((value - min) / (max - min)) * 100;
+  const position = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  const descriptionId = `parameter-${id}-description`;
+  const constraintId = `parameter-${id}-constraint`;
+  const rangeRef = useRef<HTMLInputElement>(null);
+  const pendingValueRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    const range = rangeRef.current;
+    if (!range) return;
+    range.value = String(value);
+    range.style.setProperty("--range-position", `${position}%`);
+  }, [position, value]);
+
+  useEffect(
+    () => () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    },
+    [],
+  );
+
+  /** Commits the newest native slider value and discards redundant pointer events. */
+  const commitPendingValue = () => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    const pendingValue = pendingValueRef.current;
+    pendingValueRef.current = null;
+    if (pendingValue !== null) onChangeRef.current(pendingValue);
+  };
+
+  /** Keeps the thumb native and immediate while limiting expensive world updates to one per frame. */
+  const queueValueChange = (range: HTMLInputElement) => {
+    const nextValue = Number(range.value);
+    const nextPosition = max > min ? ((nextValue - min) / (max - min)) * 100 : 0;
+    range.style.setProperty("--range-position", `${nextPosition}%`);
+    pendingValueRef.current = nextValue;
+    if (animationFrameRef.current !== null) return;
+    animationFrameRef.current = requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      const pendingValue = pendingValueRef.current;
+      pendingValueRef.current = null;
+      if (pendingValue !== null) onChangeRef.current(pendingValue);
+    });
+  };
 
   return (
     <div className="parameter-control">
@@ -165,19 +290,42 @@ function ParameterControl({
         <output htmlFor={`parameter-${id}`}>{display}</output>
       </div>
       <input
+        aria-describedby={`${descriptionId}${constraint ? ` ${constraintId}` : ""}`}
         aria-valuetext={display}
         className="xl-range"
+        defaultValue={value}
         disabled={disabled}
         id={`parameter-${id}`}
         max={max}
         min={min}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onBlur={commitPendingValue}
+        onInput={(event) => queueValueChange(event.currentTarget)}
+        onPointerCancel={commitPendingValue}
+        onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerUp={(event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+          commitPendingValue();
+        }}
+        ref={rangeRef}
         step={step}
         style={{ "--range-position": `${position}%` } as React.CSSProperties}
         type="range"
-        value={value}
       />
-      <p>{influence}</p>
+      <p id={descriptionId}>{influence}</p>
+      {constraint && (
+        <p className="parameter-constraint" id={constraintId}>
+          <span>{constraint}</span>
+          {preferredValue !== null && (
+            <strong>
+              {storedPreferenceLabel}: {formatNumber(preferredValue, language, 1)}%
+            </strong>
+          )}
+        </p>
+      )}
     </div>
   );
 }
@@ -241,7 +389,6 @@ export default function Home() {
   const [visualizationMode, setVisualizationMode] = useState<PlanetVisualizationMode>("realistic");
   const [autoRotate, setAutoRotate] = useState(true);
   const [cameraResetSignal, setCameraResetSignal] = useState(0);
-  const [inspectedRegion, setInspectedRegion] = useState<RegionId | null>(null);
   const [result, setResult] = useState<SurvivalSimulationResult | null>(null);
   const [previousResult, setPreviousResult] = useState<SurvivalSimulationResult | null>(null);
   const [resultStale, setResultStale] = useState(false);
@@ -263,12 +410,6 @@ export default function Home() {
     description?.setAttribute("content", copy.document.description);
   }, [copy.document.description, copy.document.title, language]);
 
-  useEffect(() => {
-    if (screen !== "boot") return;
-    const timeout = window.setTimeout(() => setScreen("lab"), 5_200);
-    return () => window.clearTimeout(timeout);
-  }, [screen]);
-
   const invalidateCalculatedState = () => {
     stateEpoch.current += 1;
     simulationRunId.current += 1;
@@ -283,59 +424,14 @@ export default function Home() {
   const updateParameter = (id: ParameterId, value: number) => {
     invalidateCalculatedState();
     setPlanet((current) => {
-      const world = current.world;
-      if (id === "oxygen" || id === "carbonDioxide") {
-        const composition = world.atmosphereComposition;
-        const oxygenFraction = id === "oxygen" ? value / 100 : composition.oxygenFraction;
-        const carbonDioxideFraction = id === "carbonDioxide" ? value / 100 : composition.carbonDioxideFraction;
-        const nitrogenFraction =
-          1 -
-          oxygenFraction -
-          carbonDioxideFraction -
-          composition.inertGasFraction -
-          composition.toxicGasFraction;
-        return PlanetStateSchema.parse({
-          ...current,
-          world: {
-            ...world,
-            atmosphereComposition: {
-              ...composition,
-              oxygenFraction,
-              carbonDioxideFraction,
-              nitrogenFraction,
-            },
-          },
-        });
-      }
-
-      const patch: Partial<WorldParameters> =
-        id === "gravity"
-          ? { gravityG: value }
-          : id === "temperature"
-            ? { averageTemperatureC: value }
-            : id === "pressure"
-              ? { atmosphericPressureAtm: value }
-              : id === "water"
-                ? { waterAvailability: value / 100 }
-                : id === "radiation"
-                  ? { radiationDoseRate: { value, unit: "mSv/h" } }
-                  : id === "light"
-                    ? { lightLevel: value / 100 }
-                    : id === "humidity"
-                      ? { humidity: value / 100 }
-                      : { magneticFieldStrengthEarth: value };
-      const nextWorld = { ...world, ...patch };
-      if (id === "water") {
-        nextWorld.humidity = Math.min(nextWorld.humidity, value / 100);
-      }
-      return PlanetStateSchema.parse({ ...current, world: nextWorld });
+      const world = applyWorldEngineeringControlChange(current.world, id, value);
+      return PlanetStateSchema.parse({ ...current, world });
     });
   };
 
   const restoreBaseline = () => {
     setPlanet(createBaselinePlanet());
     invalidateCalculatedState();
-    setInspectedRegion(null);
   };
 
   const resetMission = () => {
@@ -348,7 +444,6 @@ export default function Home() {
     setTraitNotice(null);
     setVisualizationMode("realistic");
     setAutoRotate(true);
-    setInspectedRegion(null);
     setResult(null);
     setPreviousResult(null);
     setResultStale(false);
@@ -483,7 +578,6 @@ export default function Home() {
           <p className="boot-scene-label"><span aria-hidden="true" />{copy.boot.sceneLabel}</p>
           <div className="boot-actions">
             <button className="button-primary" onClick={() => setScreen("lab")} type="button">{copy.boot.enter} <span aria-hidden="true">→</span></button>
-            <button className="text-button" onClick={() => setScreen("lab")} type="button">{copy.boot.skip}</button>
           </div>
         </section>
       </main>
@@ -504,6 +598,7 @@ export default function Home() {
         <div className="lab-mission-id">
           <strong>{copy.header.mission}</strong>
           <span>{copy.header.seed} · {planet.seed}</span>
+          <small>{copy.mission.objective}</small>
         </div>
         <div className="lab-header-actions">
           <div aria-label={copy.language.label} className="language-switch" role="group">
@@ -525,45 +620,15 @@ export default function Home() {
       <div className={`lab-grid phase-${phase}`}>
         <aside className={`lab-panel environment-panel ${phase !== "planet" ? "mobile-hidden" : ""}`}>
           <section className="mission-card">
-            <p className="eyebrow">{copy.mission.eyebrow}</p>
+            <p className="eyebrow">{copy.mission.guidanceTitle}</p>
             <h1>{copy.mission.title}</h1>
-            <span className="section-label">{copy.mission.objectiveLabel}</span>
-            <p className="mission-objective">{copy.mission.objective}</p>
-            <p className="mission-context">{copy.mission.description}</p>
-            <div className="experiment-loop" aria-label={copy.mission.loopLabel}>
-              {copy.mission.loop.map((step, index) => (
-                <span key={step}>{step}{index < copy.mission.loop.length - 1 && <b aria-hidden="true">→</b>}</span>
-              ))}
-            </div>
-          </section>
-
-          <section className="panel-section controls-section">
-            <div className="panel-section-heading">
-              <div><p className="eyebrow">{copy.planet.baseline}</p><h2>{copy.planet.title}</h2></div>
-              <button className="text-button" onClick={restoreBaseline} type="button">{copy.planet.resetBaseline}</button>
-            </div>
-            <p className="panel-intro">{copy.planet.instruction}</p>
-            <div className="parameter-list">
-              {PARAMETER_CONFIG.map((parameter) => {
-                const parameterCopy = copy.parameters[parameter.id];
-                return (
-                  <ParameterControl
-                    disabled={isSimulating}
-                    id={parameter.id}
-                    influence={parameterCopy.influence}
-                    key={parameter.id}
-                    label={parameterCopy.label}
-                    language={language}
-                    max={parameter.id === "humidity" ? planet.world.waterAvailability * 100 : parameter.max}
-                    min={parameter.min}
-                    onChange={(value) => updateParameter(parameter.id, value)}
-                    step={parameter.step}
-                    unit={parameterCopy.unit}
-                    value={parameter.read(planet.world)}
-                  />
-                );
-              })}
-            </div>
+            <p className="mission-context">{copy.mission.guidance}</p>
+            <dl className="world-readout">
+              <div><dt>{copy.planet.oxygenPartialPressure}</dt><dd>{formatNumber(normalizedWorld.oxygenPartialPressureAtm, language, 3)} atm</dd></div>
+              <div><dt>{copy.planet.atmosphericDensity}</dt><dd>{formatNumber(normalizedWorld.atmosphericDensityKgM3 ?? 0, language, 2)} kg/m³</dd></div>
+              <div><dt>{copy.planet.temperatureRange}</dt><dd>{formatNumber(normalizedWorld.temperatureRangeC.minimum, language, 0)}–{formatNumber(normalizedWorld.temperatureRangeC.maximum, language, 0)} °C</dd></div>
+            </dl>
+            <div className="scientific-note">{copy.planet.regionalModel}</div>
           </section>
         </aside>
 
@@ -592,7 +657,6 @@ export default function Home() {
                   biosphereLevel={biosphereLevel}
                   cameraResetSignal={cameraResetSignal}
                   label={copy.planet.liveView}
-                  onInspect={setInspectedRegion}
                   planet={planet}
                   regionScores={visibleResult?.regionScores}
                   visualizationMode={visualizationMode}
@@ -623,7 +687,6 @@ export default function Home() {
                   biosphereLevel={biosphereLevel}
                   cameraResetSignal={cameraResetSignal}
                   label={copy.planet.liveView}
-                  onInspect={setInspectedRegion}
                   planet={planet}
                   regionScores={visibleResult?.regionScores}
                   visualizationMode={visualizationMode}
@@ -636,7 +699,6 @@ export default function Home() {
               biosphereLevel={biosphereLevel}
               cameraResetSignal={cameraResetSignal}
               label={copy.planet.liveView}
-              onInspect={setInspectedRegion}
               planet={planet}
               regionScores={visibleResult?.regionScores}
               visualizationMode={visualizationMode}
@@ -665,20 +727,13 @@ export default function Home() {
             </div>
           )}
 
-          <div className="planet-inspection">
-            <span className="status-dot" />
-            <div>
-              <strong>{inspectedRegion ? `${copy.planet.inspecting} · ${copy.regions[inspectedRegion].label}` : copy.planet.noInspection}</strong>
-              <small>{inspectedRegion ? copy.regions[inspectedRegion].description : copy.planet.inspectHint}</small>
-            </div>
-          </div>
-
           <div className="planet-toolbar">
             <button className="button-quiet compact" onClick={() => setCameraResetSignal((value) => value + 1)} type="button">{copy.header.resetCamera}</button>
             <button className="button-quiet compact" onClick={() => setAutoRotate((value) => !value)} type="button">{autoRotate ? copy.header.rotationOn : copy.header.rotationOff}</button>
-            <button className="button-primary" onClick={() => { if (phase === "planet") setPhase("life"); else if (phase === "life") void runSimulation(); else setPhase("planet"); }} type="button">
-              {phase === "planet" ? copy.planet.openDesigner : phase === "life" ? copy.life.run : copy.simulation.adaptPlanet}<span aria-hidden="true">→</span>
-            </button>
+          </div>
+          <div className="planet-control-hint" aria-live="polite">
+            <span className="desktop-control-hint">{copy.planet.controlsDesktop}</span>
+            <span className="mobile-control-hint">{copy.planet.controlsMobile}</span>
           </div>
         </section>
 
@@ -694,16 +749,19 @@ export default function Home() {
           </nav>
 
           {phase === "planet" && (
-            <div className="phase-content guidance-content">
-              <p className="eyebrow">{copy.mission.guidanceTitle}</p>
-              <h2>{copy.planet.title}</h2>
-              <p>{copy.mission.guidance}</p>
-              <dl className="world-readout">
-                <div><dt>{copy.planet.oxygenPartialPressure}</dt><dd>{formatNumber(normalizedWorld.oxygenPartialPressureAtm, language, 3)} atm</dd></div>
-                <div><dt>{copy.planet.atmosphericDensity}</dt><dd>{formatNumber(normalizedWorld.atmosphericDensityKgM3 ?? 0, language, 2)} kg/m³</dd></div>
-                <div><dt>{copy.planet.temperatureRange}</dt><dd>{formatNumber(normalizedWorld.temperatureRangeC.minimum, language, 0)}–{formatNumber(normalizedWorld.temperatureRangeC.maximum, language, 0)} °C</dd></div>
-              </dl>
-              <div className="scientific-note">{copy.planet.regionalModel}</div>
+            <div className="phase-content guidance-content planet-controls-content">
+              <div className="panel-section-heading">
+                <div><p className="eyebrow">{copy.planet.baseline}</p><h2>{copy.planet.title}</h2></div>
+                <button className="text-button" onClick={restoreBaseline} type="button">{copy.planet.resetBaseline}</button>
+              </div>
+              <p className="panel-intro">{copy.planet.instruction}</p>
+              <div className="parameter-list">
+                {PARAMETER_CONFIG.map((parameter) => {
+                  const parameterCopy = copy.parameters[parameter.id];
+                  const controlState = deriveParameterControlState(parameter, planet.world, copy);
+                  return <ParameterControl constraint={controlState.constraint} disabled={isSimulating || controlState.disabled} id={parameter.id} influence={controlState.influence} key={parameter.id} label={parameterCopy.label} language={language} max={controlState.max} min={controlState.min} onChange={(value) => updateParameter(parameter.id, value)} preferredValue={controlState.preferredValue} step={controlState.step} storedPreferenceLabel={copy.parameterConstraints.storedPreference} unit={parameterCopy.unit} value={controlState.value} />;
+                })}
+              </div>
               <button className="button-primary wide" onClick={() => setPhase("life")} type="button">{copy.planet.openDesigner}<span aria-hidden="true">→</span></button>
             </div>
           )}
@@ -808,10 +866,10 @@ export default function Home() {
                     <h3>{copy.simulation.regionsTitle}</h3>
                     <div className="region-list">
                       {(Object.entries(result.regionScores) as Array<[RegionId, number]>).map(([region, score]) => (
-                        <button key={region} onClick={() => setInspectedRegion(region)} type="button">
+                        <div key={region}>
                           <span><strong>{copy.regions[region].label}</strong><small>{score >= 0.5 ? copy.simulation.habitable : copy.regions[region].description}</small></span>
                           <b>{Math.round(score * 100)}</b>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   </section>

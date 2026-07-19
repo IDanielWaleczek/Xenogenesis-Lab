@@ -26,7 +26,7 @@ No hidden exact configuration is presented as the answer. Mission success is a b
 
 > Engineer the planet and design a stable, advanced multicellular lifeform capable of persisting there.
 
-The mission supplies a deterministic seed and baseline world. Learners may change gravity, mean temperature, local atmospheric pressure, oxygen, carbon dioxide, water, radiation, stellar energy, humidity, and magnetic-field strength. They then select biologically meaningful traits within an explicit energy budget and simulate 40 generations.
+The mission supplies a deterministic seed and a barren starting world: no atmosphere, no accessible water, no humidity, and no magnetic protection. Learners may change gravity, mean temperature, symmetric temperature variation, local atmospheric pressure, oxygen, carbon dioxide, surface water, radiation, stellar energy, humidity, and magnetic-field strength. They then select biologically meaningful traits within an explicit energy budget and simulate 40 generations.
 
 The mission may produce extinction, temporary survival, a regional refuge, a stable simple population, expansion, unstable dominance, a stable multicellular ecosystem, or advanced adaptable life. The user can revise the same experiment without reloading.
 
@@ -34,13 +34,13 @@ The mission may produce extinction, temporary survival, a regional refuge, a sta
 
 1. Boot the laboratory computer.
 2. Read the broad mission objective and concrete first-use instruction.
-3. Rotate and inspect the seeded planet.
+3. Rotate and observe the seeded planet.
 4. Change world parameters and see layered WebGL transitions immediately.
 5. Use realistic, temperature, and radiation views to form a strategy.
 6. Select compatible body, physiology, sensory, reproduction, and complexity traits.
 7. Keep the design within the 100-point biological energy budget.
 8. Run the deterministic suitability, region, and population model.
-9. Inspect the organism visualization, scores, habitat markers, and timeline.
+9. Inspect the organism visualization, scores, regional evidence, and timeline.
 10. Optionally request GPT-5.6 scientific interpretation and a controlled field illustration.
 11. Change the planet or organism and compare the next run.
 
@@ -68,7 +68,7 @@ GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy, re
 
 ## Current implementation status
 
-The working local build implements a cinematic space-and-life boot, one Vespera mission, ten environment controls, a deterministic seeded 3D planet, custom terrain/water/ice/lava/cloud/atmosphere/radiation shaders, a visible sun/day-night treatment, schematic magnetic-field lines and conditional auroras, labelled scientific overlays, region inspection, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.0.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
+The working local build implements a cinematic space-and-life boot requiring an explicit entry, one Vespera mission, eleven causally ordered environment controls in the right mode panel, six value-dependent captions per control, preserved user preferences with locked zero-support states and phase-aware effective values, a deterministic seeded 3D planet, world-space stars, separated white-grey clouds, custom terrain/water/ice/vapor/atmosphere/radiation/molten-rock shaders, a distant flared sun/day-night treatment, radiation and aurora presentation, labelled scientific overlays, regional analysis, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.5.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
 
 The local deterministic loop and fallback paths were browser-verified. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed server credentials**. Accounts, persistence, sharing, a campaign, and durable caching are not implemented.
 

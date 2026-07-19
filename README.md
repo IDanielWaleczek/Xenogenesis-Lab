@@ -18,14 +18,14 @@ There is no single hidden correct configuration. The tested model supports disti
 
 ## Main features
 
-- Cinematic, skippable space-and-life introduction into a single-screen astrobiology laboratory.
+- Cinematic space-and-life introduction with an explicit Begin training action into a single-screen astrobiology laboratory.
 - One complete Genesis mission with a broad goal: create stable advanced multicellular life on Vespera 7A.
 - Deterministic seeded WebGL planet rendered with Three.js, React Three Fiber, layered FBM/value noise, and custom GLSL shaders.
-- Persistent terrain geometry with smoothly interpolated water, global ice, lava, cloud, atmosphere, sun-driven day/night illumination, radiation exposure, magnetic-field, aurora, and biosphere uniforms.
-- Interactive orbit camera, zoom, reset, automatic-rotation control, surface inspection, and realistic/temperature/radiation modes with labelled legends.
-- Ten live environmental controls; each affects both the visualization and deterministic simulation.
+- Persistent terrain geometry with smoothly interpolated phase-aware water/ice/vapor, sand, thermally altered rock, clouds, atmosphere, day/night illumination, radiation exposure, aurora, and biosphere uniforms.
+- Interactive orbit camera, zoom, day-side reset, automatic-rotation control, and realistic/temperature/radiation modes with labelled legends.
+- Eleven live environmental controls with preserved preferences and continuous derived interactions.
 - Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, and a 100-point biological energy budget.
-- Deterministic simulator 1.0.0 with 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
+- Deterministic simulator 1.5.0 with phase-aware water and humidity coupling, effective dependent controls, 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
 - Deterministic code-native organism morphology that responds to the seed, environment, movement, body, sensory, and adaptation traits.
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
 - Optional server-only `gpt-image-2` field illustration. GPT selects only validated art-direction enums; the server constructs the final prompt from calculated facts and selected traits.
@@ -34,7 +34,7 @@ There is no single hidden correct configuration. The tested model supports disti
 
 ## How it works for the learner
 
-1. Let the laboratory boot or skip startup.
+1. On the startup screen, select **Begin training** when ready; it never advances automatically.
 2. Read the mission goal and first-use instruction.
 3. Change gravity, temperature, local pressure, oxygen, carbon dioxide, water, radiation, stellar energy, humidity, or magnetic-field strength.
 4. Rotate the planet and switch scientific overlays to inspect its response.
@@ -84,7 +84,7 @@ In-memory caches use a stable hash of mission, planet, traits, result, and langu
 
 ## Scientific scope
 
-Simulator 1.0.0 is a scientifically inspired educational model, not a complete climate, radiation-transport, ecosystem, genetics, or evolutionary model. Its formulas are continuous and deterministic, but its weights and success convention are documented model choices. Six representative habitats are scored instead of a spatial climate grid. The shader terrain is a visual interpretation and does not supply scientific facts.
+Simulator 1.5.0 is a scientifically inspired educational model, not a complete climate, geology, radiation-transport, ecosystem, genetics, or evolutionary model. Its formulas are continuous and deterministic, but its weights and success convention are documented model choices. Six representative habitats are scored instead of a spatial climate grid. The shader terrain consumes shared derived state but remains a visual interpretation.
 
 Important conservative boundaries include:
 

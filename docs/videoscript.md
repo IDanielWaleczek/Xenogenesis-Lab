@@ -13,7 +13,7 @@ Before recording:
 
 ## 0:00–0:16 — Cinematic boot
 
-Show startup from a fresh reload and let the system enter the lab.
+Show startup from a fresh reload, then select **Begin training** to enter the lab.
 
 > Xenogenesis Lab is a procedural astrobiology simulator. This is a cinematic introduction to a world, its orbit, and the life we might engineer there. Then the lab gives the learner one broad goal: design stable, advanced life.
 
@@ -27,7 +27,7 @@ Pause on the objective and point to the five-step loop.
 
 Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and magnetic field. Switch briefly to Temperature and Radiation, then return to Realistic.
 
-> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. Water freezes into a global shell at the cold endpoint, evaporates into a lava world at the hot endpoint, and disappears with clouds and atmosphere in vacuum. The visible sun creates a clear day and night side. Radiation adds a labelled animated exposure layer, while schematic magnetic lines and conditional polar auroras explain how atmosphere, field, and radiation interact. Gravity stays in the deterministic organism model instead of falsely redrawing continents.
+> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. The model preserves every selected preference while dependent controls show effective gas pressure, surface water, and humidity. A dry world has no clouds, `−40±4°C` freezes its exposed ocean, and the expanded range reaches a documented basaltic melt transition only above `780°C`. Vacuum has no atmospheric glow. The reset camera starts on the day side while the night side stays readable, and the full configured temperature variation makes the equator hotter and poles colder. Radiation has a labelled animated exposure layer, while polar auroral ovals explain how atmosphere, field, and radiation interact.
 
 ## 1:02–1:28 — Design life
 
@@ -39,7 +39,7 @@ Open Design life. Show the organism, budget, one selected trait, one incompatibi
 
 Run the simulation. Keep the animation and then show the outcome, state hash, scores, region markers, and population graph.
 
-> Simulator 1.0.0 runs locally and reproducibly for 40 generations. It combines 11 continuous suitability scores rather than checking one correct threshold. It can produce extinction, a regional refuge, simple stability, ecological dominance, a multicellular ecosystem, or advanced adaptable life. Here the same result is tied to a stable state hash.
+> Simulator 1.5.0 runs locally and reproducibly for 40 generations. It combines 11 continuous suitability scores rather than checking one correct threshold. It can produce extinction, a regional refuge, simple stability, ecological dominance, a multicellular ecosystem, or advanced adaptable life. Here the same result is tied to a stable state hash.
 
 ## 1:55–2:13 — Adapt and compare
 

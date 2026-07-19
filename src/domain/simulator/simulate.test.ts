@@ -160,6 +160,157 @@ describe("continuous survival simulator", () => {
     expect(defended.metrics.organismCompatibility).toBeGreaterThan(weak.metrics.organismCompatibility);
   });
 
+  it("keeps supplied pressure and water independent from gravity", () => {
+    const volatileWorld = { waterAvailability: 0.7, humidity: 0.55, atmosphericPressureAtm: 1 };
+    const lowGravity = runSurvivalSimulation(request(planetVariant({ ...volatileWorld, gravityG: 0.2 })));
+    const earthGravity = runSurvivalSimulation(request(planetVariant({ ...volatileWorld, gravityG: 1 })));
+
+    expect(lowGravity.metrics.liquidWater).toBe(earthGravity.metrics.liquidWater);
+    expect(lowGravity.metrics.atmosphere).toBe(earthGravity.metrics.atmosphere);
+    expect(lowGravity.metrics.organismCompatibility)
+      .not.toBe(earthGravity.metrics.organismCompatibility);
+  });
+
+  it("treats water inventory and atmospheric pressure as hard phase prerequisites", () => {
+    const dry = runSurvivalSimulation(request(planetVariant({
+      atmosphericPressureAtm: 1,
+      waterAvailability: 0,
+    })));
+    const vacuum = runSurvivalSimulation(request(planetVariant({
+      atmosphericPressureAtm: 0,
+      waterAvailability: 0,
+    })));
+
+    expect(dry.metrics.liquidWater).toBe(0);
+    expect(vacuum.metrics.atmosphere).toBe(0);
+  });
+
+  it("preserves explicit pressure and temperature variation in direct requests", () => {
+    const denseStable = runSurvivalSimulation(request(planetVariant({
+      gravityG: 0.2,
+      atmosphericPressureAtm: 5,
+      temperatureVariationC: 0,
+      waterAvailability: 0.7,
+      humidity: 0.5,
+    })));
+    const thinVariable = runSurvivalSimulation(request(planetVariant({
+      gravityG: 0.2,
+      atmosphericPressureAtm: 0.2,
+      temperatureVariationC: 57,
+      waterAvailability: 0.7,
+      humidity: 0.5,
+    })));
+
+    expect(denseStable.metrics.atmosphere).not.toBe(thinVariable.metrics.atmosphere);
+    expect(denseStable.metrics.thermalStability)
+      .not.toBe(thinVariable.metrics.thermalStability);
+
+    const optimisticVacuum = runSurvivalSimulation(request(planetVariant({
+      atmosphericPressureAtm: 0,
+      temperatureVariationC: 0,
+    })));
+    const exposedVacuum = runSurvivalSimulation(request(planetVariant({
+      atmosphericPressureAtm: 0,
+      temperatureVariationC: 100,
+    })));
+
+    expect(optimisticVacuum.metrics.thermalStability)
+      .not.toBe(exposedVacuum.metrics.thermalStability);
+  });
+
+  it("does not treat a vacuum as near-ideal pressure fitness", () => {
+    const pressureWorld = (atmosphericPressureAtm: number) =>
+      planetVariant({
+        atmosphericPressureAtm,
+        atmosphereComposition: {
+          oxygenFraction: 0,
+          carbonDioxideFraction: 0,
+          nitrogenFraction: 0.985,
+          inertGasFraction: 0.015,
+          toxicGasFraction: 0,
+        },
+        averageTemperatureC: 18,
+        temperatureVariationC: 0,
+        waterAvailability: 0,
+        humidity: 0,
+        lightLevel: 0,
+      });
+    const traits: LifeTraitId[] = ["compactBody", "visibleVision", "spores"];
+    const vacuum = runSurvivalSimulation(request(pressureWorld(0), traits));
+    const traceAtmosphere = runSurvivalSimulation(request(pressureWorld(0.01), traits));
+    const thinAtmosphere = runSurvivalSimulation(request(pressureWorld(0.1), traits));
+    const oneAtmosphere = runSurvivalSimulation(request(pressureWorld(1), traits));
+
+    expect(vacuum.metrics.organismCompatibility)
+      .toBeLessThan(traceAtmosphere.metrics.organismCompatibility);
+    expect(traceAtmosphere.metrics.organismCompatibility)
+      .toBeLessThan(thinAtmosphere.metrics.organismCompatibility);
+    expect(thinAtmosphere.metrics.organismCompatibility)
+      .toBeLessThan(oneAtmosphere.metrics.organismCompatibility);
+  });
+
+  it("gates oxygen respiration continuously and exactly at zero oxygen", () => {
+    const oxygenWorld = (oxygenFraction: number) =>
+      planetVariant({
+        atmosphericPressureAtm: 1,
+        atmosphereComposition: {
+          oxygenFraction,
+          carbonDioxideFraction: 0,
+          nitrogenFraction: 0.985 - oxygenFraction,
+          inertGasFraction: 0.015,
+          toxicGasFraction: 0,
+        },
+        averageTemperatureC: 18,
+        temperatureVariationC: 0,
+        waterAvailability: 0,
+        humidity: 0,
+        lightLevel: 0,
+        geochemicalEnergyAvailability: "none",
+        electronAcceptors: [],
+      });
+    const neutralTraits: LifeTraitId[] = [
+      "compactBody",
+      "visibleVision",
+      "spores",
+    ];
+    const aerobicTraits: LifeTraitId[] = [...neutralTraits, "oxygenRespiration"];
+    const zeroOxygen = runSurvivalSimulation(request(oxygenWorld(0), aerobicTraits));
+    const noRespiration = runSurvivalSimulation(
+      request(oxygenWorld(0), neutralTraits),
+    );
+    const traceOxygen = runSurvivalSimulation(request(oxygenWorld(0.01), aerobicTraits));
+    const lowOxygen = runSurvivalSimulation(request(oxygenWorld(0.05), aerobicTraits));
+    const nearIdealOxygen = runSurvivalSimulation(request(oxygenWorld(0.2), aerobicTraits));
+
+    expect(zeroOxygen.metrics.metabolicViability)
+      .toBe(noRespiration.metrics.metabolicViability);
+    expect(traceOxygen.metrics.metabolicViability)
+      .toBeGreaterThan(zeroOxygen.metrics.metabolicViability);
+    expect(lowOxygen.metrics.metabolicViability)
+      .toBeGreaterThan(traceOxygen.metrics.metabolicViability);
+    expect(nearIdealOxygen.metrics.metabolicViability)
+      .toBeGreaterThan(lowOxygen.metrics.metabolicViability);
+  });
+
+  it("scores frozen oceans as ice rather than liquid aquatic habitat", () => {
+    const temperate = runSurvivalSimulation(request(planetVariant({
+      atmosphericPressureAtm: 1,
+      averageTemperatureC: 20,
+      temperatureVariationC: 4,
+      waterAvailability: 1,
+    })));
+    const frozen = runSurvivalSimulation(request(planetVariant({
+      atmosphericPressureAtm: 1,
+      averageTemperatureC: -40,
+      temperatureVariationC: 4,
+      waterAvailability: 1,
+    })));
+
+    expect(temperate.metrics.liquidWater).toBeGreaterThan(0.99);
+    expect(frozen.metrics.liquidWater).toBe(0);
+    expect(frozen.regionScores.deepOcean).toBeLessThan(temperate.regionScores.deepOcean);
+  });
+
   it("requires an explicit geochemical gradient for anaerobic energy", () => {
     const traits: LifeTraitId[] = [
       "compactBody",
@@ -219,7 +370,25 @@ describe("continuous survival simulator", () => {
 
   it("connects every exposed environment control to deterministic output", () => {
     const traits = BASELINE_TRAITS.filter((id) => id !== "radiationResistance");
-    const baseline = runSurvivalSimulation(request(GENESIS_MISSION.planet, traits));
+    const coupledBaseline = planetVariant({
+      gravityG: 1,
+      atmosphericPressureAtm: 1,
+      averageTemperatureC: 18,
+      temperatureVariationC: 12,
+      radiationDoseRate: { value: 0.4, unit: "mSv/h" as const },
+      lightLevel: 0.7,
+      waterAvailability: 0.65,
+      humidity: 0.5,
+      magneticFieldStrengthEarth: 0.8,
+      atmosphereComposition: {
+        oxygenFraction: 0.14,
+        carbonDioxideFraction: 0.018,
+        nitrogenFraction: 0.827,
+        inertGasFraction: 0.015,
+        toxicGasFraction: 0,
+      },
+    });
+    const baseline = runSurvivalSimulation(request(coupledBaseline, traits));
     const compositionWithLowOxygen = {
       oxygenFraction: 0.02,
       carbonDioxideFraction: 0.018,
@@ -237,6 +406,7 @@ describe("continuous survival simulator", () => {
     const cases = [
       ["gravity", { gravityG: 2.6 }, "organismCompatibility"],
       ["temperature", { averageTemperatureC: 82 }, "thermalStability"],
+      ["temperatureVariation", { temperatureVariationC: 72 }, "thermalStability"],
       ["pressure", { atmosphericPressureAtm: 3.2 }, "atmosphere"],
       ["oxygen", { atmosphereComposition: compositionWithLowOxygen }, "metabolicViability"],
       ["carbonDioxide", { atmosphereComposition: compositionWithHighCarbon }, "biologicalEnergy"],
@@ -248,7 +418,15 @@ describe("continuous survival simulator", () => {
     ] as const;
 
     for (const [name, patch, metric] of cases) {
-      const changed = runSurvivalSimulation(request(planetVariant(patch), traits));
+      const changed = runSurvivalSimulation(
+        request(
+          PlanetStateSchema.parse({
+            ...coupledBaseline,
+            world: { ...coupledBaseline.world, ...patch },
+          }),
+          traits,
+        ),
+      );
       expect(changed.metrics[metric], name).not.toBe(baseline.metrics[metric]);
     }
   });
@@ -271,6 +449,32 @@ describe("continuous survival simulator", () => {
 
     expect(uninsulated.metrics.thermalStability).not.toBe(stableMean.metrics.thermalStability);
     expect(insulated.metrics.thermalStability).toBeGreaterThan(uninsulated.metrics.thermalStability);
+  });
+
+  it("uses the hot extreme at the equator and the cold extreme at the poles", () => {
+    const stableWorld = planetVariant({
+      atmosphericPressureAtm: 1,
+      averageTemperatureC: 30,
+      temperatureVariationC: 0,
+      waterAvailability: 0,
+      humidity: 0,
+    });
+    const variableWorld = planetVariant({
+      atmosphericPressureAtm: 1,
+      averageTemperatureC: 30,
+      temperatureVariationC: 50,
+      waterAvailability: 0,
+      humidity: 0,
+    });
+    const stable = runSurvivalSimulation(request(stableWorld));
+    const variable = runSurvivalSimulation(request(variableWorld));
+
+    expect(variable.regionScores.equatorial).toBeLessThan(
+      stable.regionScores.equatorial,
+    );
+    expect(variable.regionScores.polar).toBeGreaterThan(
+      stable.regionScores.polar,
+    );
   });
 
   it("rejects conflicting traits and selections above the energy budget", () => {

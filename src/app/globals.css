@@ -512,6 +512,15 @@ input:focus-visible {
   font-size: 0.52rem;
 }
 
+.lab-mission-id small {
+  display: block;
+  max-width: min(36vw, 420px);
+  margin-top: 0.16rem;
+  color: #7e99a4;
+  font-size: 0.48rem;
+  line-height: 1.25;
+}
+
 .lab-header-actions {
   justify-content: flex-end;
   gap: 0.5rem;
@@ -675,25 +684,56 @@ input:focus-visible {
   line-height: 1.4;
 }
 
+.parameter-control .parameter-constraint {
+  border-left: 2px solid rgb(245 158 11 / 0.52);
+  background: rgb(245 158 11 / 0.055);
+  color: #caa66f;
+  padding: 0.38rem 0.45rem;
+}
+
+.parameter-constraint span,
+.parameter-constraint strong {
+  display: block;
+}
+
+.parameter-constraint strong {
+  margin-top: 0.28rem;
+  color: #e0c38e;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.55rem;
+  font-weight: 500;
+}
+
+.parameter-control:has(.xl-range:disabled) {
+  opacity: 0.72;
+}
+
+.xl-range:disabled {
+  cursor: not-allowed;
+}
+
 .xl-range {
   --range-position: 50%;
   width: 100%;
-  height: 0.85rem;
-  margin: 0.45rem 0 0;
+  height: 1.35rem;
+  margin: 0.28rem 0 0;
   appearance: none;
   background: transparent;
   cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .xl-range::-webkit-slider-runnable-track {
-  height: 2px;
+  height: 3px;
+  border-radius: 999px;
   background: linear-gradient(90deg, #1a9aae var(--range-position), #203542 var(--range-position));
 }
 
 .xl-range::-webkit-slider-thumb {
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-top: -0.32rem;
+  width: 0.92rem;
+  height: 0.92rem;
+  margin-top: -0.38rem;
   appearance: none;
   border: 2px solid #dffcff;
   border-radius: 50%;
@@ -702,18 +742,20 @@ input:focus-visible {
 }
 
 .xl-range::-moz-range-track {
-  height: 2px;
+  height: 3px;
+  border-radius: 999px;
   background: #203542;
 }
 
 .xl-range::-moz-range-progress {
-  height: 2px;
+  height: 3px;
+  border-radius: 999px;
   background: #1a9aae;
 }
 
 .xl-range::-moz-range-thumb {
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.72rem;
+  height: 0.72rem;
   border: 2px solid #dffcff;
   border-radius: 50%;
   background: #0e7490;
@@ -724,21 +766,7 @@ input:focus-visible {
 .planet-stage {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 48%, rgb(19 78 98 / 0.14), transparent 34%),
-    #01040b;
-}
-
-.planet-stage::after {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgb(103 232 249 / 0.035);
-  background-image:
-    linear-gradient(rgb(103 232 249 / 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(103 232 249 / 0.018) 1px, transparent 1px);
-  background-size: 44px 44px;
-  content: "";
-  pointer-events: none;
+  background: #01040b;
 }
 
 .planet-canvas {
@@ -857,23 +885,6 @@ input:focus-visible {
   text-align: right;
 }
 
-.planet-inspection {
-  position: absolute;
-  z-index: 6;
-  right: 0.85rem;
-  bottom: 4.75rem;
-  left: 0.85rem;
-  display: flex;
-  max-width: 500px;
-  align-items: flex-start;
-  gap: 0.55rem;
-  border-left: 2px solid rgb(94 234 212 / 0.65);
-  background: rgb(2 8 18 / 0.72);
-  padding: 0.6rem 0.75rem;
-  backdrop-filter: blur(8px);
-  pointer-events: none;
-}
-
 .status-dot {
   display: inline-block;
   flex: 0 0 auto;
@@ -885,24 +896,6 @@ input:focus-visible {
   box-shadow: 0 0 10px rgb(94 234 212 / 0.6);
 }
 
-.planet-inspection strong,
-.planet-inspection small {
-  display: block;
-}
-
-.planet-inspection strong {
-  color: #d8eef1;
-  font-size: 0.66rem;
-  font-weight: 580;
-}
-
-.planet-inspection small {
-  margin-top: 0.2rem;
-  color: #708793;
-  font-size: 0.57rem;
-  line-height: 1.35;
-}
-
 .planet-toolbar {
   position: absolute;
   z-index: 7;
@@ -912,6 +905,26 @@ input:focus-visible {
   display: flex;
   justify-content: flex-end;
   gap: 0.4rem;
+}
+
+.planet-control-hint {
+  position: absolute;
+  z-index: 7;
+  bottom: 3.55rem;
+  left: 0.85rem;
+  max-width: min(430px, calc(100% - 1.7rem));
+  border: 1px solid rgb(103 232 249 / 0.1);
+  background: rgb(2 8 17 / 0.72);
+  color: #718995;
+  padding: 0.42rem 0.55rem;
+  font-size: 0.55rem;
+  line-height: 1.4;
+  pointer-events: none;
+  backdrop-filter: blur(7px);
+}
+
+.mobile-control-hint {
+  display: none;
 }
 
 .simulation-overlay {
@@ -994,7 +1007,6 @@ input:focus-visible {
   min-height: 0;
 }
 
-.planet-stage-life .planet-inspection,
 .planet-stage-life .planet-legend {
   display: none;
 }
@@ -1049,7 +1061,6 @@ input:focus-visible {
   line-height: 1.55;
 }
 
-.planet-stage-results .planet-inspection,
 .planet-stage-results .planet-legend {
   display: none;
 }
@@ -1188,6 +1199,14 @@ input:focus-visible {
 
 .guidance-content .scientific-note {
   margin: 1rem 0;
+}
+
+.planet-controls-content .parameter-list {
+  margin-top: 0.2rem;
+}
+
+.planet-controls-content > .button-primary {
+  margin-top: 1rem;
 }
 
 .phase-title-row {
@@ -1591,20 +1610,15 @@ input:focus-visible {
   margin-top: 0.65rem;
 }
 
-.region-list button {
+.region-list > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.7rem;
   border: 1px solid rgb(148 163 184 / 0.08);
   background: rgb(255 255 255 / 0.012);
-  cursor: pointer;
   padding: 0.5rem 0.6rem;
   text-align: left;
-}
-
-.region-list button:hover {
-  border-color: rgb(103 232 249 / 0.25);
 }
 
 .region-list strong,
@@ -1909,8 +1923,6 @@ input:focus-visible {
   .panel-intro,
   .parameter-heading label,
   .parameter-control p,
-  .planet-inspection strong,
-  .planet-inspection small,
   .phase-tabs strong,
   .guidance-content > p,
   .trait-title strong,
@@ -1946,8 +1958,7 @@ input:focus-visible {
     grid-row: 1;
   }
 
-  .lab-grid.phase-results .planet-stage-header > div:first-child,
-  .lab-grid.phase-results .planet-inspection {
+  .lab-grid.phase-results .planet-stage-header > div:first-child {
     display: none;
   }
 
@@ -1975,6 +1986,14 @@ input:focus-visible {
 }
 
 @media (max-width: 1080px) {
+  .desktop-control-hint {
+    display: none;
+  }
+
+  .mobile-control-hint {
+    display: inline;
+  }
+
   .lab-shell {
     display: block;
     height: auto;
@@ -2160,12 +2179,6 @@ input:focus-visible {
   .planet-mode-switch button {
     padding: 0.4rem 0.45rem;
     font-size: 0.55rem;
-  }
-
-  .planet-inspection {
-    right: 0.55rem;
-    bottom: 4.25rem;
-    left: 0.55rem;
   }
 
   .planet-legend {

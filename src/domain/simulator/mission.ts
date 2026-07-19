@@ -1,32 +1,32 @@
 import { PlanetStateSchema } from "./schema";
 
-/** Deterministic baseline for the first continuous life-engineering mission. */
+/** Deterministic barren starting state for the first continuous life-engineering mission. */
 export const GENESIS_MISSION = {
   id: "genesis-01" as const,
   seed: "VESPERA-7A-2049",
   planet: PlanetStateSchema.parse({
     seed: "VESPERA-7A-2049",
     world: {
-      gravityG: 1.35,
-      atmosphericPressureAtm: 0.82,
+      gravityG: 1,
+      atmosphericPressureAtm: 0,
       atmosphereComposition: {
-        oxygenFraction: 0.14,
-        carbonDioxideFraction: 0.018,
-        nitrogenFraction: 0.827,
-        inertGasFraction: 0.015,
+        oxygenFraction: 0,
+        carbonDioxideFraction: 0,
+        nitrogenFraction: 1,
+        inertGasFraction: 0,
         toxicGasFraction: 0,
       },
-      averageTemperatureC: 4,
-      temperatureVariationC: 28,
-      radiationDoseRate: { value: 0.32, unit: "mSv/h" },
-      lightLevel: 0.74,
-      waterAvailability: 0.46,
-      humidity: 0.34,
-      magneticFieldStrengthEarth: 0.42,
+      averageTemperatureC: -30,
+      temperatureVariationC: 100,
+      radiationDoseRate: { value: 0.4, unit: "mSv/h" },
+      lightLevel: 0.72,
+      waterAvailability: 0,
+      humidity: 0,
+      magneticFieldStrengthEarth: 0,
       habitat: "open surface",
       shieldingColumnMassKgM2: 0,
-      geochemicalEnergyAvailability: "moderate",
-      electronAcceptors: ["sulfate", "ferricIron"],
+      geochemicalEnergyAvailability: "none",
+      electronAcceptors: [],
       atmosphericMeanMolarMassKgPerMol: 0.0298,
     },
   }),

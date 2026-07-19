@@ -61,6 +61,23 @@ describe("WorldParametersSchema", () => {
 
     expect(WorldParametersSchema.safeParse(world).success).toBe(false);
   });
+
+  it("accepts magma-ocean temperatures but rejects ranges below absolute zero", () => {
+    expect(
+      WorldParametersSchema.safeParse({
+        ...createReferenceWorld(),
+        averageTemperatureC: 1_800,
+        temperatureVariationC: 100,
+      }).success,
+    ).toBe(true);
+    expect(
+      WorldParametersSchema.safeParse({
+        ...createReferenceWorld(),
+        averageTemperatureC: -250,
+        temperatureVariationC: 24,
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("normalizeWorldParameters", () => {

@@ -15,6 +15,12 @@ export const UNIVERSAL_GAS_CONSTANT_J_PER_MOL_K = 8.314_462_618;
 /** Converts Celsius values to absolute temperature in kelvin. */
 export const CELSIUS_TO_KELVIN_OFFSET = 273.15;
 
+/** Coldest editable mean temperature, kept just above absolute zero. */
+export const MIN_AVERAGE_TEMPERATURE_C = -273;
+
+/** Hottest editable mean temperature, sufficient for a molten rocky surface. */
+export const MAX_AVERAGE_TEMPERATURE_C = 1_800;
+
 /** Supported habitats for the MVP deterministic model. */
 export const HabitatSchema = z.enum([
   "open surface",
@@ -86,7 +92,11 @@ export const WorldParametersSchema = z
     gravityG: z.number().finite().min(0.05).max(5),
     atmosphericPressureAtm: z.number().finite().min(0).max(20),
     atmosphereComposition: AtmosphereCompositionSchema,
-    averageTemperatureC: z.number().finite().min(-100).max(150),
+    averageTemperatureC: z
+      .number()
+      .finite()
+      .min(MIN_AVERAGE_TEMPERATURE_C)
+      .max(MAX_AVERAGE_TEMPERATURE_C),
     temperatureVariationC: z.number().finite().min(0).max(100),
     radiationDoseRate: RadiationDoseRateSchema,
     lightLevel: z.number().finite().min(0).max(1),
@@ -115,6 +125,17 @@ export const WorldParametersSchema = z
   })
   .strict()
   .superRefine((parameters, context) => {
+    if (
+      parameters.averageTemperatureC - parameters.temperatureVariationC <
+      MIN_AVERAGE_TEMPERATURE_C
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["temperatureVariationC"],
+        message: "Configured minimum temperature cannot be below absolute zero.",
+      });
+    }
+
     if (
       parameters.habitat === "high atmosphere" &&
       parameters.atmosphericMeanMolarMassKgPerMol === undefined

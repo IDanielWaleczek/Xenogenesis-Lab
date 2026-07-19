@@ -31,12 +31,28 @@ float fbm(vec3 p) {
 }
 `;
 
+/** Lowest possible radial displacement produced by the terrain convention. */
+export const PLANET_TERRAIN_MIN_ELEVATION = -0.0475;
+
+/** Highest possible radial displacement produced by the terrain convention. */
+export const PLANET_TERRAIN_MAX_ELEVATION = 0.0825;
+
+/** Lowest rendered ocean level, kept just above the deepest terrain basin. */
+export const PLANET_WATER_MIN_ELEVATION = -0.045;
+
+/** Highest liquid-ocean level, kept just below the tallest terrain summit. */
+export const PLANET_WATER_MAX_ELEVATION = 0.081;
+
+/** Small radial expansion used for a completely frozen hydrosphere. */
+export const PLANET_ICE_SURFACE_EXPANSION = 0.001;
+
 export const PLANET_TERRAIN_VERTEX_SHADER = `
 uniform float uSeed;
 varying float vElevation;
-varying float vContinental;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
 ${GLSL_NOISE}
 
 void main() {
@@ -46,73 +62,92 @@ void main() {
   float ridges = 1.0 - abs(fbm(samplePoint * 3.4) * 2.0 - 1.0);
   float elevation = (continents - 0.5) * 0.095 + pow(ridges, 3.0) * 0.035;
   vec3 displaced = position * (1.0 + elevation);
+  vec4 viewPosition = modelViewMatrix * vec4(displaced, 1.0);
   vElevation = elevation;
-  vContinental = continents;
   vObjectPosition = normalize(position);
   vNormalDirection = normalize(mat3(modelMatrix) * normal);
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+  vViewNormal = normalize(normalMatrix * normal);
+  vViewDirection = normalize(-viewPosition.xyz);
+  gl_Position = projectionMatrix * viewPosition;
 }
 `;
 
 export const PLANET_TERRAIN_FRAGMENT_SHADER = `
 uniform float uSeed;
-uniform float uWater;
-uniform float uTemperature;
-uniform float uHumidity;
-uniform float uPressure;
+uniform float uSurfaceWater;
+uniform float uLiquidWater;
+uniform float uIceWater;
+uniform float uMeanTemperatureC;
+uniform float uTemperatureVariationC;
+uniform float uEffectiveHumidity;
+uniform float uPressurePresence;
+uniform float uSandClimate;
 uniform float uRadiation;
-uniform float uMagnetic;
 uniform float uBiosphere;
 uniform float uMode;
 uniform float uLightLevel;
 uniform vec3 uLightDirection;
 varying float vElevation;
-varying float vContinental;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
 ${GLSL_NOISE}
 
-vec3 temperatureRamp(float value) {
+vec3 temperatureRamp(float temperatureC) {
   vec3 cold = vec3(0.32, 0.72, 0.95);
   vec3 temperate = vec3(0.26, 0.78, 0.42);
   vec3 hot = vec3(0.96, 0.58, 0.18);
-  return value < 0.5 ? mix(cold, temperate, value * 2.0) : mix(temperate, hot, (value - 0.5) * 2.0);
+  vec3 molten = vec3(1.0, 0.09, 0.01);
+  vec3 color = mix(cold, temperate, smoothstep(-80.0, 25.0, temperatureC));
+  color = mix(color, hot, smoothstep(25.0, 700.0, temperatureC));
+  return mix(color, molten, smoothstep(780.0, 1050.0, temperatureC));
 }
 
 void main() {
   float latitude = abs(vObjectPosition.y);
   float localNoise = fbm(vObjectPosition * 8.0 + vec3(uSeed * 0.01));
-  float moisture = clamp(uHumidity * 0.7 + uWater * 0.42 + (localNoise - 0.5) * 0.35, 0.0, 1.0);
-  float normalizedTemperature = clamp(uTemperature - latitude * 0.52 - max(vElevation, 0.0) * 3.8, 0.0, 1.0);
-  float pressurePresence = smoothstep(0.01, 0.08, uPressure);
-  float globalIce = (1.0 - smoothstep(0.12, 0.28, uTemperature)) * step(0.01, uWater) * pressurePresence;
-  float polarIce = smoothstep(0.42, 0.72, latitude + (0.42 - uTemperature) * 0.72) * (0.35 + uWater * 0.65) * pressurePresence;
-  float ice = max(globalIce, polarIce * (1.0 - globalIce));
-  float desert = (1.0 - smoothstep(0.05, 0.28, moisture)) * smoothstep(0.38, 0.72, normalizedTemperature);
-  float fertile = smoothstep(0.28, 0.72, moisture) * smoothstep(0.18, 0.5, normalizedTemperature) * (1.0 - smoothstep(0.72, 0.9, normalizedTemperature));
+  float moistureSupply = clamp(uEffectiveHumidity * 0.72 + uLiquidWater * 0.55 + uSurfaceWater * 0.08, 0.0, 1.0);
+  float moisture = moistureSupply * (0.72 + localNoise * 0.42);
+  float latitudeSignal = 1.0 - latitude * 2.0;
+  float terrainSignal = (localNoise - 0.5) * 0.28 - smoothstep(0.02, 0.09, vElevation) * 0.18;
+  float thermalPosition = clamp(latitudeSignal * 1.12 + terrainSignal * 0.45, -1.0, 1.0);
+  float localTemperatureC = uMeanTemperatureC + uTemperatureVariationC * thermalPosition;
+  float localFreeze = 1.0 - smoothstep(-2.0, 2.0, localTemperatureC);
+  float iceSupply = smoothstep(0.001, 0.65, uIceWater);
+  float ice = localFreeze * iceSupply * (0.34 + uIceWater * 0.66);
+  float dry = 1.0 - smoothstep(0.08, 0.48, moisture);
+  float unfrozenGround = smoothstep(-12.0, 5.0, localTemperatureC);
+  float sandWeathering = 0.58 + smoothstep(8.0, 45.0, localTemperatureC) * 0.42;
+  float desert = dry * unfrozenGround * sandWeathering * uSandClimate * (1.0 - ice);
+  float temperateMoisture = smoothstep(0.16, 0.68, moisture);
+  float vegetationThermal = smoothstep(-8.0, 8.0, localTemperatureC) * (1.0 - smoothstep(45.0, 60.0, localTemperatureC));
   float mountain = smoothstep(0.035, 0.075, vElevation);
-  float bioMask = smoothstep(0.48, 0.7, fbm(vObjectPosition * 11.0 + vec3(uSeed * 0.031))) * fertile * uBiosphere;
-  float extremeHeat = smoothstep(0.70, 0.80, uTemperature);
-  float lavaChannels = smoothstep(0.42, 0.68, localNoise + mountain * 0.24);
-  float volcanic = extremeHeat * lavaChannels;
+  float bioCoverage = smoothstep(0.24, 0.72, uBiosphere);
+  float bioMask = smoothstep(0.42, 0.64, fbm(vObjectPosition * 11.0 + vec3(uSeed * 0.031))) * temperateMoisture * vegetationThermal * bioCoverage;
+  float heatStress = smoothstep(65.0, 115.0, localTemperatureC);
+  float moltenRock = smoothstep(780.0, 1050.0, localTemperatureC);
+  float lavaChannels = smoothstep(0.48, 0.78, 1.0 - abs(fbm(vObjectPosition * 14.0 + vec3(uSeed * 0.071)) * 2.0 - 1.0));
 
   vec3 rock = mix(vec3(0.19, 0.16, 0.15), vec3(0.38, 0.31, 0.25), localNoise);
-  vec3 desertColor = vec3(0.56, 0.36, 0.17);
-  vec3 fertileColor = vec3(0.12, 0.29, 0.18);
+  vec3 desertColor = vec3(0.64, 0.43, 0.22);
+  vec3 dampSoilColor = vec3(0.24, 0.20, 0.17);
   vec3 biosphereColor = vec3(0.08, 0.47, 0.24);
   vec3 color = rock;
   color = mix(color, desertColor, desert * 0.82);
-  color = mix(color, fertileColor, fertile * 0.72);
+  color = mix(color, dampSoilColor, temperateMoisture * (1.0 - desert) * 0.55);
   color = mix(color, vec3(0.52, 0.49, 0.46), mountain * 0.75);
-  color = mix(color, mix(vec3(0.08, 0.025, 0.012), vec3(1.0, 0.19, 0.018), smoothstep(0.42, 0.74, localNoise)), volcanic * 0.96);
-  color = mix(color, biosphereColor, bioMask * 0.9);
+  color = mix(color, mix(vec3(0.13, 0.08, 0.06), vec3(0.32, 0.16, 0.08), localNoise), heatStress * 0.86);
+  vec3 lavaColor = mix(vec3(0.24, 0.018, 0.004), vec3(1.0, 0.24, 0.008), lavaChannels);
+  color = mix(color, lavaColor, moltenRock * (0.46 + lavaChannels * 0.54));
+  color = mix(color, biosphereColor, bioMask * 0.98);
   color = mix(color, vec3(0.82, 0.91, 0.98), ice);
 
   if (uMode > 0.5 && uMode < 1.5) {
-    color = temperatureRamp(normalizedTemperature);
+    color = temperatureRamp(localTemperatureC);
   }
   if (uMode > 1.5) {
-    float exposure = clamp(uRadiation / (0.08 + uMagnetic * 0.82) + (localNoise - 0.5) * 0.18, 0.0, 1.0);
+    float exposure = clamp(uRadiation + (localNoise - 0.5) * 0.18, 0.0, 1.0);
     color = exposure < 0.5
       ? mix(vec3(0.035, 0.16, 0.44), vec3(0.86, 0.58, 0.12), exposure * 2.0)
       : mix(vec3(0.86, 0.58, 0.12), vec3(1.0, 0.055, 0.018), (exposure - 0.5) * 2.0);
@@ -120,59 +155,69 @@ void main() {
 
   float sunFacing = dot(normalize(vNormalDirection), normalize(uLightDirection));
   float directLight = smoothstep(-0.08, 0.28, sunFacing);
-  float nightLight = 0.025 + uLightLevel * 0.035;
-  float diffuse = nightLight + directLight * (0.34 + uLightLevel * 0.92);
-  float viewRim = pow(1.0 - max(dot(normalize(vObjectPosition), vec3(0.0, 0.0, 1.0)), 0.0), 2.0);
-  vec3 litColor = color * diffuse + viewRim * vec3(0.012, 0.028, 0.04);
-  litColor += vec3(1.0, 0.12, 0.01) * volcanic * (0.28 + localNoise * 0.32);
+  float nightLight = 0.075 + uLightLevel * 0.035;
+  float diffuse = nightLight + directLight * (0.24 + uLightLevel * 0.94);
+  float viewRim = pow(1.0 - max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0), 2.0);
+  vec3 lavaEmission = moltenRock * lavaChannels * vec3(0.88, 0.11, 0.004);
+  vec3 litColor = color * diffuse + viewRim * uPressurePresence * vec3(0.014, 0.032, 0.045) + lavaEmission;
   gl_FragColor = vec4(litColor, 1.0);
 }
 `;
 
 export const PLANET_WATER_VERTEX_SHADER = `
-uniform float uWater;
-uniform float uTemperature;
+uniform float uSurfaceWater;
+uniform float uIceWater;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
 void main() {
+  float seaLevel = mix(
+    ${PLANET_WATER_MIN_ELEVATION.toFixed(4)},
+    ${PLANET_WATER_MAX_ELEVATION.toFixed(4)},
+    smoothstep(0.0, 1.0, uSurfaceWater)
+  );
+  seaLevel += smoothstep(0.0, 1.0, uIceWater) * ${PLANET_ICE_SURFACE_EXPANSION.toFixed(4)};
+  vec3 displaced = position * (1.0 + seaLevel);
+  vec4 viewPosition = modelViewMatrix * vec4(displaced, 1.0);
   vObjectPosition = normalize(position);
   vNormalDirection = normalize(mat3(modelMatrix) * normal);
-  float seaLevel = mix(0.002, 0.115, smoothstep(0.0, 1.0, uWater));
-  float globalIce = 1.0 - smoothstep(0.12, 0.28, uTemperature);
-  seaLevel = mix(seaLevel, 0.12, globalIce * step(0.01, uWater));
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 + seaLevel), 1.0);
+  vViewNormal = normalize(normalMatrix * normal);
+  vViewDirection = normalize(-viewPosition.xyz);
+  gl_Position = projectionMatrix * viewPosition;
 }
 `;
 
 export const PLANET_WATER_FRAGMENT_SHADER = `
 uniform float uSeed;
-uniform float uWater;
-uniform float uTemperature;
-uniform float uPressure;
+uniform float uSurfaceWater;
+uniform float uIceWater;
+uniform float uMeanTemperatureC;
+uniform float uTemperatureVariationC;
 uniform float uBiosphere;
 uniform float uTime;
 uniform vec3 uLightDirection;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
 ${GLSL_NOISE}
 void main() {
-  if (uWater < 0.002) discard;
-  float pressureStability = smoothstep(0.01, 0.08, uPressure);
-  if (pressureStability < 0.01) discard;
+  if (uSurfaceWater < 0.002) discard;
   vec3 samplePoint = vObjectPosition * 2.7 + vec3(uSeed * 0.017);
   float warped = fbm(samplePoint * 0.75 + fbm(samplePoint * 1.8));
   float terrain = fbm(samplePoint + vec3(warped * 1.4));
-  float threshold = mix(-0.05, 1.05, uWater);
-  float globalIce = 1.0 - smoothstep(0.12, 0.28, uTemperature);
-  float extremeHeat = smoothstep(0.70, 0.80, uTemperature);
-  float stableWater = pressureStability * (1.0 - extremeHeat);
-  float oceanMask = (1.0 - smoothstep(threshold - 0.045, threshold + 0.045, terrain)) * stableWater;
-  oceanMask = max(oceanMask, globalIce * pressureStability * step(0.01, uWater));
+  float threshold = mix(-0.05, 1.05, uSurfaceWater);
+  float oceanMask = 1.0 - smoothstep(threshold - 0.045, threshold + 0.045, terrain);
   if (oceanMask < 0.02) discard;
   float wave = fbm(vObjectPosition * 18.0 + vec3(uTime * 0.025, 0.0, 0.0));
-  float fresnel = pow(1.0 - abs(dot(normalize(vNormalDirection), vec3(0.0, 0.0, 1.0))), 2.2);
-  float polarFreeze = smoothstep(0.48, 0.82, abs(vObjectPosition.y) + (0.42 - uTemperature) * 0.9);
-  float freeze = max(globalIce, polarFreeze);
+  float fresnel = pow(1.0 - max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0), 2.2);
+  float latitudeSignal = 1.0 - abs(vObjectPosition.y) * 2.0;
+  float thermalPosition = clamp(latitudeSignal * 1.12, -1.0, 1.0);
+  float localTemperatureC = uMeanTemperatureC + uTemperatureVariationC * thermalPosition;
+  float localFreeze = 1.0 - smoothstep(-2.0, 2.0, localTemperatureC);
+  float iceSupply = smoothstep(0.0001, 0.02, uIceWater);
+  float freeze = localFreeze * iceSupply;
   float bloom = smoothstep(0.62, 0.79, fbm(vObjectPosition * 13.0 + vec3(uSeed * 0.037))) * uBiosphere * (1.0 - freeze);
   vec3 deep = vec3(0.015, 0.12, 0.23);
   vec3 shallow = vec3(0.03, 0.42, 0.52);
@@ -181,8 +226,8 @@ void main() {
   color = mix(color, vec3(0.74, 0.88, 0.93), freeze * (0.72 + wave * 0.18));
   float sunFacing = dot(normalize(vNormalDirection), normalize(uLightDirection));
   float directLight = smoothstep(-0.08, 0.28, sunFacing);
-  color *= 0.035 + directLight * 0.965;
-  gl_FragColor = vec4(color, mix(oceanMask * 0.9, 1.0, globalIce));
+  color *= 0.08 + directLight * 0.92;
+  gl_FragColor = vec4(color, mix(oceanMask * 0.9, 1.0, freeze));
 }
 `;
 
@@ -199,24 +244,26 @@ void main() {
 export const PLANET_CLOUD_FRAGMENT_SHADER = `
 uniform float uSeed;
 uniform float uClouds;
-uniform float uPressure;
-uniform float uTemperature;
+uniform float uPressurePresence;
+uniform float uVaporWater;
 uniform float uTime;
 uniform vec3 uLightDirection;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
 ${GLSL_NOISE}
 void main() {
-  float atmospherePresence = smoothstep(0.01, 0.08, uPressure);
-  float heatClearing = 1.0 - smoothstep(0.70, 0.82, uTemperature);
-  float cloudPresence = uClouds * atmospherePresence * heatClearing;
+  float cloudPresence = uClouds * uPressurePresence;
   if (cloudPresence < 0.01) discard;
   vec3 moving = vObjectPosition * 7.5 + vec3(uSeed * 0.023, uTime * 0.018, 0.0);
   float cloud = fbm(moving);
   float mask = smoothstep(0.68 - cloudPresence * 0.23, 0.78 - cloudPresence * 0.12, cloud);
   if (mask < 0.015) discard;
   float directLight = smoothstep(-0.08, 0.28, dot(normalize(vNormalDirection), normalize(uLightDirection)));
-  gl_FragColor = vec4(vec3(0.18 + directLight * 0.72, 0.24 + directLight * 0.68, 0.31 + directLight * 0.62), mask * (0.14 + cloudPresence * 0.58));
+  float shadowShade = 0.28 + directLight * 0.64;
+  vec3 coldCloud = vec3(shadowShade * 0.9, shadowShade * 0.94, shadowShade);
+  vec3 vaporCloud = vec3(shadowShade * 1.02, shadowShade, shadowShade * 0.96);
+  float vapor = smoothstep(0.02, 0.6, uVaporWater);
+  gl_FragColor = vec4(mix(coldCloud, vaporCloud, vapor), mask * (0.14 + cloudPresence * (0.58 + vapor * 0.22)));
 }
 `;
 
@@ -245,7 +292,7 @@ void main() {
   if (uDensity < 0.004) discard;
   float fresnel = pow(1.0 - max(dot(normalize(vViewNormal), vViewDirection), 0.0), 2.7);
   float sunlight = max(dot(normalize(vNormalDirection), normalize(uLightDirection)), 0.0);
-  float daySide = 0.1 + sunlight * (0.25 + uDaylight * 0.75);
+  float daySide = 0.16 + sunlight * (0.18 + uDaylight * 0.66);
   float alpha = fresnel * (0.08 + uDensity * 0.82) * (0.45 + sunlight * 0.55);
   vec3 color = uAtmosphereColor * daySide + vec3(0.03, 0.06, 0.14) * (1.0 - daySide);
   gl_FragColor = vec4(color, alpha);
@@ -254,12 +301,12 @@ void main() {
 
 export const RADIATION_VERTEX_SHADER = `
 varying vec3 vObjectPosition;
-varying vec3 vWorldNormal;
+varying vec3 vViewNormal;
 varying vec3 vViewDirection;
 void main() {
   vObjectPosition = normalize(position);
-  vWorldNormal = normalize(mat3(modelMatrix) * normal);
   vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+  vViewNormal = normalize(normalMatrix * normal);
   vViewDirection = normalize(-viewPosition.xyz);
   gl_Position = projectionMatrix * viewPosition;
 }
@@ -267,20 +314,19 @@ void main() {
 
 export const RADIATION_FRAGMENT_SHADER = `
 uniform float uRadiation;
-uniform float uMagnetic;
 uniform float uMode;
 uniform float uTime;
 varying vec3 vObjectPosition;
-varying vec3 vWorldNormal;
+varying vec3 vViewNormal;
 varying vec3 vViewDirection;
 ${GLSL_NOISE}
 void main() {
-  float modeVisibility = smoothstep(1.45, 1.9, uMode);
+  float modeVisibility = uMode > 1.45 ? 1.0 : 0.0;
   if (modeVisibility < 0.01 || uRadiation < 0.002) discard;
-  float effectiveExposure = clamp(uRadiation / (0.08 + uMagnetic * 0.82), 0.0, 1.0);
+  float effectiveExposure = clamp(uRadiation, 0.0, 1.0);
   float movingNoise = fbm(vObjectPosition * 10.0 + vec3(0.0, uTime * 0.18, 0.0));
   float pulses = smoothstep(0.64, 0.86, movingNoise);
-  float rim = pow(1.0 - max(dot(normalize(vWorldNormal), normalize(vViewDirection)), 0.0), 2.2);
+  float rim = pow(1.0 - max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0), 2.2);
   vec3 color = mix(vec3(0.08, 0.32, 1.0), vec3(1.0, 0.06, 0.015), effectiveExposure);
   float alpha = modeVisibility * (0.025 + rim * 0.18 + pulses * 0.16) * (0.25 + effectiveExposure * 0.75);
   gl_FragColor = vec4(color, alpha);
@@ -309,9 +355,9 @@ void main() {
 `;
 
 export const AURORA_VERTEX_SHADER = `
-varying vec2 vUv;
+varying vec3 vObjectPosition;
 void main() {
-  vUv = uv;
+  vObjectPosition = normalize(position);
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
@@ -319,12 +365,87 @@ void main() {
 export const AURORA_FRAGMENT_SHADER = `
 uniform float uIntensity;
 uniform float uTime;
-varying vec2 vUv;
+varying vec3 vObjectPosition;
+${GLSL_NOISE}
 void main() {
   if (uIntensity < 0.01) discard;
-  float curtain = 0.48 + 0.52 * sin(vUv.x * 52.0 + sin(vUv.x * 9.0 - uTime * 0.7) * 2.4 - uTime * 1.9);
-  float edge = sin(vUv.y * 3.14159265);
-  vec3 color = mix(vec3(0.12, 1.0, 0.58), vec3(0.18, 0.54, 1.0), curtain);
-  gl_FragColor = vec4(color, uIntensity * curtain * edge * 0.72);
+  float latitude = abs(vObjectPosition.y);
+  float oval = smoothstep(0.42, 0.62, latitude) * (1.0 - smoothstep(0.88, 0.98, latitude));
+  float arc = fbm(vObjectPosition * 8.0 + vec3(0.0, uTime * 0.08, 0.0));
+  float curtain = smoothstep(0.43, 0.7, arc) * oval;
+  float folds = 0.6 + 0.4 * sin(atan(vObjectPosition.z, vObjectPosition.x) * 19.0 + uTime * 1.4 + arc * 6.0);
+  vec3 color = mix(vec3(0.06, 0.95, 0.44), vec3(0.42, 0.22, 1.0), arc);
+  gl_FragColor = vec4(color, uIntensity * curtain * folds * 0.56);
+}
+`;
+
+export const SUN_VERTEX_SHADER = `
+varying vec3 vObjectPosition;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
+void main() {
+  vObjectPosition = normalize(position);
+  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+  vViewNormal = normalize(normalMatrix * normal);
+  vViewDirection = normalize(-viewPosition.xyz);
+  gl_Position = projectionMatrix * viewPosition;
+}
+`;
+
+export const SUN_FRAGMENT_SHADER = `
+uniform float uTime;
+varying vec3 vObjectPosition;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
+${GLSL_NOISE}
+void main() {
+  vec3 direction = normalize(vObjectPosition);
+  float slowTime = uTime * 0.028;
+  float broadFlow = fbm(direction * 3.2 + vec3(slowTime, -slowTime * 0.7, slowTime * 0.35));
+  vec3 warped = direction * 7.5 + vec3(broadFlow * 2.4, -broadFlow * 1.6, broadFlow * 1.1);
+  float cells = fbm(warped + vec3(-slowTime * 1.2, slowTime * 0.9, slowTime * 0.55));
+  float fineCells = fbm(direction * 22.0 + vec3(slowTime * 2.1, 0.0, -slowTime * 1.3));
+  float filaments = 1.0 - abs(cells * 2.0 - 1.0);
+  filaments = smoothstep(0.43, 0.82, filaments + fineCells * 0.18);
+  float hotCells = smoothstep(0.48, 0.88, broadFlow * 0.55 + fineCells * 0.7);
+  float limb = pow(1.0 - max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0), 2.3);
+
+  vec3 ember = vec3(0.72, 0.105, 0.018);
+  vec3 orange = vec3(1.0, 0.31, 0.055);
+  vec3 whiteHot = vec3(1.0, 0.94, 0.69);
+  vec3 color = mix(orange, whiteHot, hotCells * 0.84 + fineCells * 0.14);
+  color = mix(color, ember, filaments * (0.34 + (1.0 - hotCells) * 0.34));
+  color += whiteHot * (0.16 + limb * 0.72);
+  gl_FragColor = vec4(color, 1.0);
+}
+`;
+
+export const SUN_CORONA_VERTEX_SHADER = `
+varying vec3 vObjectPosition;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
+void main() {
+  vObjectPosition = normalize(position);
+  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+  vViewNormal = normalize(normalMatrix * normal);
+  vViewDirection = normalize(-viewPosition.xyz);
+  gl_Position = projectionMatrix * viewPosition;
+}
+`;
+
+export const SUN_CORONA_FRAGMENT_SHADER = `
+uniform float uTime;
+varying vec3 vObjectPosition;
+varying vec3 vViewNormal;
+varying vec3 vViewDirection;
+${GLSL_NOISE}
+void main() {
+  float viewFacing = max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0);
+  float rim = pow(1.0 - viewFacing, 2.9);
+  float turbulence = fbm(vObjectPosition * 6.5 + vec3(uTime * 0.018, -uTime * 0.012, 0.0));
+  float prominence = smoothstep(0.62, 0.86, turbulence) * pow(1.0 - viewFacing, 1.35);
+  vec3 color = mix(vec3(1.0, 0.22, 0.025), vec3(1.0, 0.82, 0.38), turbulence);
+  float alpha = rim * (0.14 + turbulence * 0.2) + prominence * 0.2;
+  gl_FragColor = vec4(color, alpha);
 }
 `;
