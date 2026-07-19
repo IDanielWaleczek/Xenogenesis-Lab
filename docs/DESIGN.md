@@ -60,13 +60,16 @@ The planet is not a static image or pre-rendered texture. It is a deterministic 
 2. separate masked water sphere;
 3. independent animated cloud sphere;
 4. Fresnel/scattering-style atmosphere shell;
-5. procedural ice and biosphere masks;
-6. optional temperature or radiation view;
-7. result-driven representative region markers.
+5. procedural ice, lava, and biosphere masks;
+6. optional temperature and animated radiation views;
+7. schematic magnetic flux lines and conditional polar auroras;
+8. result-driven representative region markers.
 
 All environment controls update shader targets. Uniforms ease toward those targets, so ice, water, cloud, atmosphere, illumination, relief, and biome changes appear as a process rather than a texture swap. Geometry remains allocated across changes.
 
-Water coverage maps `0%` to no visible surface water and maps `100%` to an aquatic shell covering the planet. Humidity is capped by supplied water, so a dry world cannot retain `100%` humidity through the UI. At zero local pressure, the atmosphere shell fades out entirely. A visible sun supplies the shared lighting direction: the day side is bright and the night side stays dimly visible. Temperature and radiation overlays have labelled three-point legends and remain scientific communication overlays, not physical sensor products.
+Water coverage maps `0%` to no visible surface water and maps `100%` to an aquatic shell covering the planet. At the UI minimum of `−70°C`, supplied water becomes a continuous opaque ice shell; at `100°C`, surface water clears and emissive lava channels appear. Humidity is capped by supplied water, so a dry world cannot retain `100%` humidity through the UI. At zero local pressure, water, clouds, atmosphere, and auroras disappear, leaving seeded barren terrain. A visible sun supplies one world-space lighting direction: the day side is bright and the night side stays dimly visible as the globe rotates. Temperature and radiation overlays have labelled three-point legends and remain scientific communication overlays, not physical sensor products.
+
+Gravity does not reshape continents or recolor mountain snow. It remains a deterministic biological and movement input because inferring planetary radius, density, or geology from surface gravity alone would be false precision. Magnetic-field lines and auroras are schematic communication effects. Auroras strengthen smoothly only when atmosphere, magnetic field, and incident radiation are all present; they are not a magnetosphere or particle-transport calculation.
 
 ## Environment controls
 

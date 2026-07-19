@@ -1891,6 +1891,47 @@ input:focus-visible {
 }
 
 @media (min-width: 1081px) {
+  html {
+    font-size: 18px;
+  }
+
+  .phase-tabs span,
+  .planet-legend strong,
+  .planet-legend-labels,
+  .lab-footer,
+  .population-axis,
+  .experiment-loop {
+    font-size: 0.6rem;
+  }
+
+  .mission-objective,
+  .mission-context,
+  .panel-intro,
+  .parameter-heading label,
+  .parameter-control p,
+  .planet-inspection strong,
+  .planet-inspection small,
+  .phase-tabs strong,
+  .guidance-content > p,
+  .trait-title strong,
+  .trait-card small,
+  .outcome-card p,
+  .metric-row small,
+  .region-list strong,
+  .region-list small,
+  .consultant-report p,
+  .consultant-report li {
+    font-size: 0.7rem;
+  }
+
+  .parameter-heading output,
+  .objective-score > div span,
+  .objective-score > div strong,
+  .population-stats dt,
+  .population-stats dd {
+    font-size: 0.68rem;
+  }
+
   .lab-grid.phase-results {
     grid-template-columns: minmax(255px, 300px) minmax(520px, 1fr) minmax(230px, 280px);
   }

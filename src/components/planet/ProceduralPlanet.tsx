@@ -20,14 +20,20 @@ import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 
 import type { PlanetState, RegionId } from "@/domain/simulator/schema";
 import {
+  AURORA_FRAGMENT_SHADER,
+  AURORA_VERTEX_SHADER,
   ATMOSPHERE_FRAGMENT_SHADER,
   ATMOSPHERE_VERTEX_SHADER,
+  MAGNETIC_FIELD_FRAGMENT_SHADER,
+  MAGNETIC_FIELD_VERTEX_SHADER,
   PLANET_CLOUD_FRAGMENT_SHADER,
   PLANET_CLOUD_VERTEX_SHADER,
   PLANET_TERRAIN_FRAGMENT_SHADER,
   PLANET_TERRAIN_VERTEX_SHADER,
   PLANET_WATER_FRAGMENT_SHADER,
   PLANET_WATER_VERTEX_SHADER,
+  RADIATION_FRAGMENT_SHADER,
+  RADIATION_VERTEX_SHADER,
 } from "@/shaders/planet-shaders";
 
 export type PlanetVisualizationMode = "realistic" | "temperature" | "radiation";
@@ -56,8 +62,8 @@ type VisualTargets = {
   atmosphereDensity: number;
   atmosphereColor: Color;
   daylight: number;
-  terrainScale: number;
   lightLevel: number;
+  aurora: number;
 };
 
 const REGION_MARKERS: Record<RegionId, [number, number, number]> = {
@@ -69,7 +75,7 @@ const REGION_MARKERS: Record<RegionId, [number, number, number]> = {
   highAltitude: [-0.6, 0.57, -0.58],
 };
 
-const SUN_POSITION: [number, number, number] = [1.8, 1.15, 5.2];
+const SUN_POSITION: [number, number, number] = [-1.15, 0.72, 0.25];
 const SUN_DIRECTION = new Vector3(...SUN_POSITION).normalize();
 
 /** Maps a stable text seed to a shader-friendly number. */
@@ -91,11 +97,8 @@ function deriveVisualTargets(
   const world = planet.world;
   const temperature = MathUtils.clamp((world.averageTemperatureC + 100) / 250, 0, 1);
   const pressure = MathUtils.clamp(world.atmosphericPressureAtm / 5, 0, 1);
-  const radiation = MathUtils.clamp(
-    Math.log10(1 + world.radiationDoseRate.value * (world.radiationDoseRate.unit === "Sv/h" ? 1_000 : 1)) / 2.2,
-    0,
-    1,
-  );
+  const doseMilliSvPerHour = world.radiationDoseRate.value * (world.radiationDoseRate.unit === "Sv/h" ? 1_000 : 1);
+  const radiation = MathUtils.clamp(doseMilliSvPerHour / 3, 0, 1);
   const oxygen = world.atmosphereComposition.oxygenFraction;
   const carbonDioxide = world.atmosphereComposition.carbonDioxideFraction;
   const dust = MathUtils.clamp(carbonDioxide * 4 + Math.max(0, temperature - 0.68), 0, 1);
@@ -104,14 +107,22 @@ function deriveVisualTargets(
     0.2 + oxygen * 1.05 - dust * 0.08,
     0.34 + oxygen * 1.45 - dust * 0.26,
   );
+  const atmosphereDensity = MathUtils.clamp(world.atmosphericPressureAtm / 1.35, 0, 1);
+  const magnetic = MathUtils.clamp(world.magneticFieldStrengthEarth / 3, 0, 1);
   const clouds = MathUtils.clamp(
-    world.waterAvailability * 0.38 +
+    (world.waterAvailability * 0.38 +
       world.humidity * 0.48 +
       pressure * 0.22 -
-      Math.abs(temperature - 0.46) * 0.18,
+      Math.abs(temperature - 0.46) * 0.18) *
+      MathUtils.smoothstep(pressure, 0.01, 0.08) *
+      (1 - MathUtils.smoothstep(temperature, 0.7, 0.82)),
     0,
     1,
   );
+  const aurora =
+    MathUtils.smoothstep(atmosphereDensity, 0.03, 0.16) *
+    MathUtils.smoothstep(magnetic, 0.04, 0.18) *
+    MathUtils.smoothstep(radiation, 0.01, 0.15);
 
   return {
     water: world.waterAvailability,
@@ -119,15 +130,15 @@ function deriveVisualTargets(
     humidity: world.humidity,
     pressure,
     radiation,
-    magnetic: MathUtils.clamp(world.magneticFieldStrengthEarth / 2.5, 0, 1),
+    magnetic,
     biosphere: MathUtils.clamp(biosphereLevel, 0, 1),
     mode: mode === "realistic" ? 0 : mode === "temperature" ? 1 : 2,
     clouds,
-    atmosphereDensity: MathUtils.clamp(world.atmosphericPressureAtm / 1.35, 0, 1),
+    atmosphereDensity,
     atmosphereColor,
     daylight: MathUtils.clamp(world.lightLevel, 0.15, 1),
-    terrainScale: MathUtils.clamp(1.28 - world.gravityG * 0.22, 0.48, 1.22),
     lightLevel: world.lightLevel,
+    aurora,
   };
 }
 
@@ -187,7 +198,6 @@ function PlanetScene({
       new ShaderMaterial({
         uniforms: {
           uSeed: { value: seed },
-          uTerrainScale: { value: 1 },
           uWater: { value: 0.45 },
           uTemperature: { value: 0.45 },
           uHumidity: { value: 0.45 },
@@ -229,6 +239,8 @@ function PlanetScene({
         uniforms: {
           uSeed: { value: seed },
           uClouds: { value: 0.4 },
+          uPressure: { value: 0.2 },
+          uTemperature: { value: 0.45 },
           uTime: { value: 0 },
           uLightDirection: { value: SUN_DIRECTION },
         },
@@ -258,6 +270,56 @@ function PlanetScene({
       }),
     [],
   );
+  const radiationMaterial = useMemo(
+    () =>
+      new ShaderMaterial({
+        uniforms: {
+          uRadiation: { value: 0.1 },
+          uMagnetic: { value: 0.2 },
+          uMode: { value: 0 },
+          uTime: { value: 0 },
+        },
+        vertexShader: RADIATION_VERTEX_SHADER,
+        fragmentShader: RADIATION_FRAGMENT_SHADER,
+        transparent: true,
+        depthWrite: false,
+        side: DoubleSide,
+        blending: AdditiveBlending,
+      }),
+    [],
+  );
+  const magneticFieldMaterial = useMemo(
+    () =>
+      new ShaderMaterial({
+        uniforms: {
+          uIntensity: { value: 0.1 },
+          uTime: { value: 0 },
+        },
+        vertexShader: MAGNETIC_FIELD_VERTEX_SHADER,
+        fragmentShader: MAGNETIC_FIELD_FRAGMENT_SHADER,
+        transparent: true,
+        depthWrite: false,
+        side: DoubleSide,
+        blending: AdditiveBlending,
+      }),
+    [],
+  );
+  const auroraMaterial = useMemo(
+    () =>
+      new ShaderMaterial({
+        uniforms: {
+          uIntensity: { value: 0 },
+          uTime: { value: 0 },
+        },
+        vertexShader: AURORA_VERTEX_SHADER,
+        fragmentShader: AURORA_FRAGMENT_SHADER,
+        transparent: true,
+        depthWrite: false,
+        side: DoubleSide,
+        blending: AdditiveBlending,
+      }),
+    [],
+  );
 
   useEffect(
     () => () => {
@@ -265,7 +327,18 @@ function PlanetScene({
       waterMaterial.dispose();
       cloudMaterial.dispose();
       atmosphereMaterial.dispose();
-    }, [atmosphereMaterial, cloudMaterial, terrainMaterial, waterMaterial],
+      radiationMaterial.dispose();
+      magneticFieldMaterial.dispose();
+      auroraMaterial.dispose();
+    }, [
+      atmosphereMaterial,
+      auroraMaterial,
+      cloudMaterial,
+      magneticFieldMaterial,
+      radiationMaterial,
+      terrainMaterial,
+      waterMaterial,
+    ],
   );
 
   useFrame(({ clock }, delta) => {
@@ -283,18 +356,27 @@ function PlanetScene({
     lerpUniform(terrainMaterial, "uMagnetic", target.magnetic);
     lerpUniform(terrainMaterial, "uBiosphere", target.biosphere);
     lerpUniform(terrainMaterial, "uMode", target.mode);
-    lerpUniform(terrainMaterial, "uTerrainScale", target.terrainScale);
     lerpUniform(terrainMaterial, "uLightLevel", target.lightLevel);
     lerpUniform(waterMaterial, "uWater", target.water);
     lerpUniform(waterMaterial, "uTemperature", target.temperature);
     lerpUniform(waterMaterial, "uPressure", target.pressure);
     lerpUniform(waterMaterial, "uBiosphere", target.biosphere);
     lerpUniform(cloudMaterial, "uClouds", target.clouds);
+    lerpUniform(cloudMaterial, "uPressure", target.pressure);
+    lerpUniform(cloudMaterial, "uTemperature", target.temperature);
     lerpUniform(atmosphereMaterial, "uDensity", target.atmosphereDensity);
     lerpUniform(atmosphereMaterial, "uDaylight", target.daylight);
+    lerpUniform(radiationMaterial, "uRadiation", target.radiation);
+    lerpUniform(radiationMaterial, "uMagnetic", target.magnetic);
+    lerpUniform(radiationMaterial, "uMode", target.mode);
+    lerpUniform(magneticFieldMaterial, "uIntensity", target.magnetic);
+    lerpUniform(auroraMaterial, "uIntensity", target.aurora);
     (atmosphereMaterial.uniforms.uAtmosphereColor.value as Color).lerp(target.atmosphereColor, ease);
     waterMaterial.uniforms.uTime.value = clock.elapsedTime;
     cloudMaterial.uniforms.uTime.value = clock.elapsedTime;
+    radiationMaterial.uniforms.uTime.value = clock.elapsedTime;
+    magneticFieldMaterial.uniforms.uTime.value = clock.elapsedTime;
+    auroraMaterial.uniforms.uTime.value = clock.elapsedTime;
 
     if (autoRotate && planetGroup.current) planetGroup.current.rotation.y += delta * 0.055;
     if (cloudMesh.current) cloudMesh.current.rotation.y += delta * 0.018;
@@ -307,13 +389,26 @@ function PlanetScene({
 
   return (
     <>
-      <ambientLight intensity={0.14} />
-      <directionalLight intensity={1.5} position={SUN_POSITION} />
-      <pointLight color="#ffe4a3" distance={16} intensity={2.2} position={SUN_POSITION} />
-      <mesh position={SUN_POSITION}>
-        <sphereGeometry args={[0.18, 24, 24]} />
-        <meshBasicMaterial color="#fff3bf" />
-      </mesh>
+      <ambientLight intensity={0.04} />
+      <directionalLight intensity={2.4} position={SUN_POSITION} />
+      <pointLight color="#ffe4a3" distance={8} intensity={5} position={SUN_POSITION} />
+      <group position={SUN_POSITION}>
+        <mesh>
+          <sphereGeometry args={[0.12, 24, 24]} />
+          <meshBasicMaterial color="#fff5bf" toneMapped={false} />
+        </mesh>
+        <mesh scale={2.1}>
+          <sphereGeometry args={[0.12, 24, 24]} />
+          <meshBasicMaterial
+            blending={AdditiveBlending}
+            color="#ffc95c"
+            depthWrite={false}
+            opacity={0.24}
+            toneMapped={false}
+            transparent
+          />
+        </mesh>
+      </group>
       <Stars count={1_200} depth={45} factor={2.4} fade radius={38} speed={0.12} />
       <group ref={planetGroup} rotation={[0.08, -0.5, 0.03]}>
         <mesh material={terrainMaterial} onClick={inspect}>
@@ -327,6 +422,24 @@ function PlanetScene({
         </mesh>
         <mesh material={atmosphereMaterial} scale={1.14}>
           <icosahedronGeometry args={[1, 5]} />
+        </mesh>
+        <mesh material={radiationMaterial} scale={1.16}>
+          <sphereGeometry args={[1, 64, 48]} />
+        </mesh>
+        <mesh material={auroraMaterial} position={[0, 0.86, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.58, 0.045, 12, 128]} />
+        </mesh>
+        <mesh material={auroraMaterial} position={[0, -0.86, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.58, 0.045, 12, 128]} />
+        </mesh>
+        <mesh material={magneticFieldMaterial} scale={[0.76, 1.18, 1]}>
+          <torusGeometry args={[1.18, 0.007, 8, 128]} />
+        </mesh>
+        <mesh material={magneticFieldMaterial} rotation={[0, Math.PI / 3, 0]} scale={[0.76, 1.18, 1]}>
+          <torusGeometry args={[1.18, 0.007, 8, 128]} />
+        </mesh>
+        <mesh material={magneticFieldMaterial} rotation={[0, (Math.PI * 2) / 3, 0]} scale={[0.76, 1.18, 1]}>
+          <torusGeometry args={[1.18, 0.007, 8, 128]} />
         </mesh>
         {regionScores &&
           (Object.entries(regionScores) as Array<[RegionId, number]>).map(([region, score]) => (

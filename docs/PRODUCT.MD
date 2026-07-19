@@ -68,7 +68,7 @@ GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy, re
 
 ## Current implementation status
 
-The working local build implements a cinematic space-and-life boot, one Vespera mission, ten environment controls, a deterministic seeded 3D planet, custom terrain/water/cloud/atmosphere shaders, a visible sun/day-night treatment, labelled scientific overlays, region inspection, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.0.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
+The working local build implements a cinematic space-and-life boot, one Vespera mission, ten environment controls, a deterministic seeded 3D planet, custom terrain/water/ice/lava/cloud/atmosphere/radiation shaders, a visible sun/day-night treatment, schematic magnetic-field lines and conditional auroras, labelled scientific overlays, region inspection, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.0.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
 
 The local deterministic loop and fallback paths were browser-verified. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed server credentials**. Accounts, persistence, sharing, a campaign, and durable caching are not implemented.
 

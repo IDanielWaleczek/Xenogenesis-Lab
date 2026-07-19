@@ -26,7 +26,7 @@ There is no single planet recipe. A high-energy aerobic surface strategy and a l
 
 ## What the learner sees
 
-The planet is not a static asset. Custom shaders use a deterministic seed and layered noise to generate orbital-scale terrain, ridges, oceans, ice, moisture, clouds, atmosphere, and biosphere patches. A visible sun gives the world a readable day and night side; zero pressure removes the visual atmosphere and zero/full water create dry/aquatic extremes. Temperature and radiation overlays include labels so their colors remain interpretable.
+The planet is not a static asset. Custom shaders use a deterministic seed and layered noise to generate orbital-scale terrain, ridges, oceans, ice, lava, moisture, clouds, atmosphere, and biosphere patches. A visible sun gives the world a readable day and night side; zero pressure produces a barren world, cold and hot endpoints produce global ice or lava, and zero/full water create dry/aquatic extremes. The radiation view now combines a labelled surface map with an animated exposure shell. Schematic magnetic flux lines and conditional polar auroras make the atmosphere–field–radiation relationship visible without presenting it as measured magnetospheric science.
 
 The organism is not a paragraph. Its immediate procedural field model responds to the current seed and selected body, movement, support, sensory, thermal, radiation, and energy traits. During Design life it becomes the central visual while a smaller live planet remains in view. An optional AI-generated field illustration can replace it only after the server grounds the prompt in validated facts.
 

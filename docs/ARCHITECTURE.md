@@ -57,7 +57,7 @@ The simulator has no React, Three.js, OpenAI, route, or persistence dependency.
 
 ### Procedural rendering — `src/components/planet/` and `src/shaders/`
 
-The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, biome masks, ice, water masks, clouds, radiation heatmaps, biosphere patches, and a shared sun direction for day/night shading. The water layer maps zero available water to no visible surface water and full available water to an aquatic shell; the atmosphere shell fades out at zero local pressure.
+The planet uses one persistent scene and seeded sphere geometry. Custom GLSL implements deterministic value noise and FBM for continents, elevation, ridges, local moisture, biome masks, continuous ice, water masks, lava channels, clouds, radiation heatmaps, biosphere patches, schematic magnetic flux lines, conditional polar auroras, and a shared world-space sun direction for day/night shading. The water layer maps zero available water to no visible surface water and full available water to an aquatic shell. Vacuum removes water, cloud, atmosphere, and aurora layers. Gravity no longer changes terrain geometry because the supplied input alone cannot justify a geology mapping.
 
 React state changes only update target values. `useFrame` interpolates external Three.js shader uniforms and rotation without React state updates. Terrain geometry is not regenerated for slider changes. Water, cloud, and atmosphere are separate coordinated layers. Region markers visualize deterministic result scores.
 

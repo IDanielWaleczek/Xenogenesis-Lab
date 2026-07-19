@@ -227,19 +227,22 @@ These labels summarize continuous evidence. The interface exposes scores and pop
 
 The WebGL planet is deterministic for the same seed and shader code. Layered value noise and FBM generate orbital-scale continents, ridges, elevation, local moisture, biomes, ice, ocean masks, clouds, and biosphere patches. Shader uniforms interpolate toward world inputs.
 
-Each exposed slider has a visual consequence:
+Most exposed sliders have a visual consequence; gravity intentionally remains model-only because gravity alone does not establish planetary radius, density, composition, or geology:
 
-- gravity changes terrain relief;
-- temperature changes biome, ice, water stability, and heat regions;
-- pressure changes water stability, atmosphere thickness, and clouds;
+- gravity changes deterministic organism support, movement, and flight costs without changing the seeded continents;
+- temperature changes biome, ice, water stability, and heat regions; the UI endpoints deliberately communicate a globally frozen supplied-water shell at `−70°C` and evaporated surface water plus lava channels at `100°C`;
+- pressure changes water stability, atmosphere thickness, clouds, and aurora support; zero pressure removes all four visual layers;
 - oxygen and carbon dioxide change atmosphere color;
 - water changes ocean masks and clouds; `0%` renders no surface water and `100%` renders an aquatic shell across the planet;
-- radiation and magnetic field change the optional exposure overlay;
-- light changes illumination; a visible scene sun establishes the shared day/night direction;
+- radiation changes a labelled surface exposure map and an animated additive exposure shell; the `0–3 mSv/h` UI demonstration range maps linearly to the overlay only;
+- magnetic field adds schematic flux lines and reduces the radiation-overlay exposure convention;
+- light changes world-space illumination; a visible scene sun establishes the shared direction and the night side remains substantially darker;
 - humidity changes moisture, fertile terrain, and clouds, and is capped by supplied water in the UI;
 - pressure controls atmosphere density; zero pressure removes the visual atmosphere shell.
 
 Temperature and radiation views include labelled low/mid/high legends so their colors are never the only interpretation aid.
+
+Polar aurora intensity is a presentation-only product of three smooth gates: nonzero atmospheric density, nonzero Earth-relative magnetic field, and nonzero incident radiation. It is intended to explain their interaction, not predict an auroral oval, spectrum, latitude, or particle flux.
 
 These mappings are aesthetic explanations, not additional scientific calculations. The temperature and radiation views are overlays. Biosphere patches appear only from the latest non-stale deterministic ecosystem score.
 

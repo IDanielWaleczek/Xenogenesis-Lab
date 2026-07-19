@@ -225,7 +225,7 @@ const english: LabCopy = {
   },
   planet: {
     title: "Planet engineering",
-    instruction: "Every control affects both the visual planet and the deterministic model.",
+    instruction: "Every control affects the deterministic model; physically justified changes also transform the planet.",
     parameterGroup: "Environmental systems",
     baseline: "Mission baseline",
     resetBaseline: "Restore baseline",
@@ -457,7 +457,7 @@ const polish: LabCopy = {
   },
   planet: {
     title: "Inżynieria planetarna",
-    instruction: "Każdy parametr wpływa zarówno na obraz planety, jak i na model deterministyczny.",
+    instruction: "Każdy parametr wpływa na model deterministyczny; fizycznie uzasadnione zmiany przekształcają też planetę.",
     parameterGroup: "Systemy środowiskowe",
     baseline: "Wartości początkowe misji",
     resetBaseline: "Przywróć wartości początkowe",

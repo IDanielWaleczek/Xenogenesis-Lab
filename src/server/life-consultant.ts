@@ -50,9 +50,9 @@ export async function createLifeConsultantResponse(rawRequest: unknown) {
     const openai = new OpenAI({ apiKey });
     const response = await openai.responses.parse({
       model: LIFE_CONSULTANT_MODEL,
-      reasoning: { effort: "low" },
+      reasoning: { effort: "none" },
       store: false,
-      max_output_tokens: 1_200,
+      max_output_tokens: 300,
       input: [
         {
           role: "system",

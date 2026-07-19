@@ -21,7 +21,7 @@ There is no single hidden correct configuration. The tested model supports disti
 - Cinematic, skippable space-and-life introduction into a single-screen astrobiology laboratory.
 - One complete Genesis mission with a broad goal: create stable advanced multicellular life on Vespera 7A.
 - Deterministic seeded WebGL planet rendered with Three.js, React Three Fiber, layered FBM/value noise, and custom GLSL shaders.
-- Persistent terrain geometry with smoothly interpolated terrain, water, ice, cloud, atmosphere, sun-driven day/night illumination, radiation-overlay, and biosphere uniforms.
+- Persistent terrain geometry with smoothly interpolated water, global ice, lava, cloud, atmosphere, sun-driven day/night illumination, radiation exposure, magnetic-field, aurora, and biosphere uniforms.
 - Interactive orbit camera, zoom, reset, automatic-rotation control, surface inspection, and realistic/temperature/radiation modes with labelled legends.
 - Ten live environmental controls; each affects both the visualization and deterministic simulation.
 - Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, and a 100-point biological energy budget.

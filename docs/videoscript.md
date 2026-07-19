@@ -27,7 +27,7 @@ Pause on the objective and point to the five-step loop.
 
 Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and magnetic field. Switch briefly to Temperature and Radiation, then return to Realistic.
 
-> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. The scene keeps one terrain mesh while water, ice, clouds, atmosphere, sun-driven day/night light, radiation, and biome uniforms move smoothly toward every parameter change. Zero water dries the world, full water creates an aquatic shell, and the two scientific overlays have labels. Each control also feeds the local science model; none is decorative.
+> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. Water freezes into a global shell at the cold endpoint, evaporates into a lava world at the hot endpoint, and disappears with clouds and atmosphere in vacuum. The visible sun creates a clear day and night side. Radiation adds a labelled animated exposure layer, while schematic magnetic lines and conditional polar auroras explain how atmosphere, field, and radiation interact. Gravity stays in the deterministic organism model instead of falsely redrawing continents.
 
 ## 1:02–1:28 — Design life
 
