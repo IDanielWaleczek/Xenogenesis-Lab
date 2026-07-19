@@ -124,7 +124,7 @@ export function buildControlledOrganismImagePrompt(
   ].join(" ");
 }
 
-/** Creates a validated local consultant response when GPT-5.6 is unavailable. */
+/** Creates a validated local consultant response when GPT-5.4-mini is unavailable. */
 export function buildLocalLifeConsultant(
   language: SimulatorLanguage,
   request: SurvivalSimulationRequest,

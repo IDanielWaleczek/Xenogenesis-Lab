@@ -847,7 +847,7 @@ export default function Home() {
                     {consultantStatus === "error" && <p className="api-notice error">{copy.consultant.error}</p>}
                     {consultant && (
                       <div className="consultant-report">
-                        <div className="consultant-source"><span className="status-dot" /><strong>{consultant.source === "gpt-5.6" ? copy.consultant.liveSource : copy.consultant.localSource}</strong></div>
+                        <div className="consultant-source"><span className="status-dot" /><strong>{consultant.source === "gpt-5.4-mini" ? copy.consultant.liveSource : copy.consultant.localSource}</strong></div>
                         {consultant.source === "local-fallback" && <p className="api-notice">{copy.consultant.fallbackNotice}</p>}
                         <h4>{consultant.content.organismName}</h4>
                         <p>{consultant.content.scientificDescription}</p>

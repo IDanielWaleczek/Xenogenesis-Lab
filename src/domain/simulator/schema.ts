@@ -150,7 +150,7 @@ export const LifeConsultantRequestSchema = z
   })
   .strict();
 
-/** Structured interpretation produced by GPT-5.6 or the local fallback. */
+/** Structured interpretation produced by GPT-5.4-mini or the local fallback. */
 export const LifeConsultantContentSchema = z
   .object({
     organismName: z.string().trim().min(3).max(90),
@@ -173,7 +173,7 @@ export const LifeConsultantContentSchema = z
 /** Provenance-preserving consultant response. */
 export const LifeConsultantResponseSchema = z
   .object({
-    source: z.enum(["gpt-5.6", "local-fallback"]),
+    source: z.enum(["gpt-5.4-mini", "local-fallback"]),
     model: z.string().min(1).nullable(),
     fallbackReason: z.string().min(1).nullable(),
     cacheKey: z.string().min(8),
