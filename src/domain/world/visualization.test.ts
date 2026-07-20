@@ -87,10 +87,17 @@ describe("planet visualization state", () => {
     expect(deriveResetCameraLightAlignment()).toBeGreaterThan(0.6);
   });
 
-  it("uses the full configured variation for a hotter equator and colder poles", () => {
+  it("uses the full configured variation with a curved latitudinal climate gradient", () => {
     expect(deriveLatitudinalTemperatureC(20, 50, 0)).toBe(70);
-    expect(deriveLatitudinalTemperatureC(20, 50, 0.5)).toBe(20);
+    expect(deriveLatitudinalTemperatureC(20, 50, 0.5)).toBeGreaterThan(20);
+    expect(deriveLatitudinalTemperatureC(20, 50, 0.5)).toBeLessThan(70);
     expect(deriveLatitudinalTemperatureC(20, 50, 1)).toBe(-30);
+  });
+
+  it("allows terrain variation to locally perturb intermediate latitudes", () => {
+    const baseline = deriveLatitudinalTemperatureC(20, 50, 0.5);
+    expect(deriveLatitudinalTemperatureC(20, 50, 0.5, -0.4)).toBeLessThan(baseline);
+    expect(deriveLatitudinalTemperatureC(20, 50, 0.5, 0.4)).toBeGreaterThan(baseline);
   });
 
   it("keeps a 41 degree equatorial ocean liquid while freezing cold polar water", () => {
@@ -121,11 +128,33 @@ describe("planet visualization state", () => {
         0,
       );
 
-    expect(createVisual(0).cloudCover).toBe(0);
-    expect(createVisual(0.5).cloudCover).toBeGreaterThan(0);
+    expect(createVisual(0).cloudCover).toBeGreaterThan(0.1);
+    expect(createVisual(0.5).cloudCover).toBeGreaterThan(createVisual(0).cloudCover);
     expect(createVisual(1).cloudCover).toBeGreaterThan(
       createVisual(0.5).cloudCover,
     );
+  });
+
+  it("preserves substantial liquid water and cloud support for an Earth-like visual state", () => {
+    const visual = derivePlanetVisualizationState(
+      {
+        ...GENESIS_MISSION.planet.world,
+        gravityG: 1,
+        atmosphericPressureAtm: 1,
+        averageTemperatureC: 15,
+        temperatureVariationC: 15,
+        waterAvailability: 0.71,
+        humidity: 0.6,
+        magneticFieldStrengthEarth: 1,
+        radiationDoseRate: { value: 0.0003, unit: "mSv/h" },
+      },
+      0,
+    );
+
+    expect(visual.surfaceWater).toBeGreaterThan(0.68);
+    expect(visual.liquidWater).toBeGreaterThan(0.65);
+    expect(visual.cloudCover).toBeGreaterThan(0.4);
+    expect(visual.atmosphereDensity).toBeGreaterThan(0.5);
   });
 
   it("passes gradually protected radiation exposure to the renderer", () => {

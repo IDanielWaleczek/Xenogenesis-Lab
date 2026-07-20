@@ -29,6 +29,7 @@ export type ParameterId =
 type ParameterCopy = {
   label: string;
   unit: string;
+  earthReference: string;
   captions: readonly [string, string, string, string, string, string];
 };
 
@@ -76,7 +77,6 @@ export type LabCopy = {
   };
   parameters: Record<ParameterId, ParameterCopy>;
   parameterConstraints: {
-    storedPreference: string;
     requiresAtmosphere: string;
     gravityLimited: string;
     requiresWaterPressure: string;
@@ -84,6 +84,42 @@ export type LabCopy = {
     surfaceWaterLimited: string;
     requiresSurfaceWater: string;
     humidityLimitedByWater: string;
+  };
+  environment: {
+    title: string;
+    planetDescription: string;
+    designDescription: string;
+    climate: string;
+    atmosphere: string;
+    hydrosphere: string;
+    humidity: string;
+    energyCarbon: string;
+    radiation: string;
+    mean: string;
+    variation: string;
+    range: string;
+    gravity: string;
+    storedPressure: string;
+    pressureCapacity: string;
+    effectivePressure: string;
+    oxygen: string;
+    waterInventory: string;
+    liquid: string;
+    ice: string;
+    vapor: string;
+    surfaceWater: string;
+    boilingPoint: string;
+    noBoilingPoint: string;
+    selected: string;
+    effective: string;
+    clouds: string;
+    stellarEnergy: string;
+    carbonDioxide: string;
+    incident: string;
+    protected: string;
+    magneticField: string;
+    earthFieldUnit: string;
+    shieldingColumn: string;
   };
   life: {
     title: string;
@@ -218,7 +254,7 @@ const english: LabCopy = {
     },
   },
   parameters: {
-    gravity: { label: "🪐 Gravity", unit: "g", captions: [
+    gravity: { label: "🪐 Gravity", unit: "g", earthReference: "Earth reference: 1 g", captions: [
       "Near-zero gravity provides almost no body support and makes controlled surface movement difficult.",
       "Very low gravity reduces weight but complicates traction, circulation, and stable locomotion.",
       "Low gravity favors light structures while reducing traction and changing flight costs.",
@@ -226,7 +262,7 @@ const english: LabCopy = {
       "High gravity raises structural, circulation, and locomotion costs for large bodies.",
       "Extreme gravity imposes severe body-support, circulation, and movement costs.",
     ] },
-    light: { label: "☀️ Stellar energy", unit: "%", captions: [
+    light: { label: "☀️ Stellar energy", unit: "%", earthReference: "Earth reference: 100% (model scale)", captions: [
       "Negligible stellar input leaves the surface dark and removes practical photosynthetic energy.",
       "Very weak light supports little phototrophic energy and weak day-side illumination.",
       "Low light can support specialized photosynthesis but not high biological productivity.",
@@ -234,7 +270,7 @@ const english: LabCopy = {
       "Strong light supplies abundant phototrophic energy and pronounced day-night forcing.",
       "Extreme light maximizes illumination; mean temperature remains explicit because spectrum and orbit are unknown.",
     ] },
-    pressure: { label: "🌫️ Atmosphere", unit: "atm", captions: [
+    pressure: { label: "🌫️ Atmosphere", unit: "atm", earthReference: "Earth reference: 1 atm", captions: [
       "Vacuum cannot transport heat, sustain clouds, or support an exposed surface hydrosphere.",
       "A trace atmosphere barely redistributes heat and leaves temperature swings close to airless conditions.",
       "A thin atmosphere provides limited heat transport, gas density, and water stability.",
@@ -242,7 +278,7 @@ const english: LabCopy = {
       "A substantial atmosphere redistributes heat and supports stable water, weather, and buoyancy.",
       "Atmospheric pressure continuously affects water stability, humidity, clouds, density, and aurora support without erasing the stored user preference.",
     ] },
-    carbonDioxide: { label: "🧪 Carbon dioxide partial pressure", unit: "atm", captions: [
+    carbonDioxide: { label: "🧪 Carbon dioxide partial pressure", unit: "atm", earthReference: "Earth reference: ≈0.00042 atm", captions: [
       "No carbon dioxide removes this modeled inorganic-carbon source and its greenhouse contribution.",
       "Trace carbon dioxide supplies little carbon but already participates in atmospheric heat retention.",
       "Low carbon dioxide supports carbon fixation with a modest greenhouse contribution.",
@@ -250,7 +286,7 @@ const english: LabCopy = {
       "High carbon dioxide strongly alters atmospheric chemistry and penalizes many respiratory strategies.",
       "Extreme carbon dioxide is toxic to many modeled organisms despite abundant inorganic carbon.",
     ] },
-    oxygen: { label: "💨 Oxygen partial pressure", unit: "atm", captions: [
+    oxygen: { label: "💨 Oxygen partial pressure", unit: "atm", earthReference: "Earth reference: ≈0.21 atm", captions: [
       "No oxygen disables aerobic respiration; only explicitly supported alternative pathways remain.",
       "Very low oxygen partial pressure supports only low-oxygen or non-aerobic strategies.",
       "Low oxygen constrains sustained aerobic metabolism and energetic complexity.",
@@ -258,7 +294,7 @@ const english: LabCopy = {
       "High oxygen exceeds the preferred respiratory range and increases oxidative pressure.",
       "Extreme oxygen strongly favors combustion and oxidative stress despite high aerobic availability.",
     ] },
-    temperature: { label: "🌡️ Mean temperature", unit: "°C", captions: [
+    temperature: { label: "🌡️ Mean temperature", unit: "°C", earthReference: "Earth reference: ≈15 °C global mean", captions: [
       "Near-absolute-zero conditions freeze exposed volatiles and suppress active chemistry.",
       "Deep cold leaves available surface water as ice and strongly limits metabolism.",
       "Cool-to-temperate conditions can support liquid water when pressure and local extremes allow it.",
@@ -266,7 +302,7 @@ const english: LabCopy = {
       "Basaltic surface rock begins transitioning from solid crust toward visibly molten material under the renderer convention.",
       "Magma-ocean temperatures produce a predominantly molten rocky surface; this does not imply active volcanism.",
     ] },
-    temperatureVariation: { label: "🌡️↕️ Temperature variation", unit: "°C", captions: [
+    temperatureVariation: { label: "🌡️↕️ Temperature variation", unit: "°C", earthReference: "Earth reference: ±15 °C (model convention)", captions: [
       "Minimal variation creates a thermally uniform world with few climate-driven niches.",
       "Small variation reduces thermal stress while preserving mild regional differences.",
       "Moderate variation creates useful hot and cold niches and adaptation tradeoffs.",
@@ -274,7 +310,7 @@ const english: LabCopy = {
       "Severe variation demands insulation, dormancy, migration, or heat resistance.",
       "Extreme variation is characteristic of weakly moderated exposed surfaces and dominates survival.",
     ] },
-    water: { label: "🌊 Surface water", unit: "%", captions: [
+    water: { label: "🌊 Surface water", unit: "%", earthReference: "Earth reference: ≈71%", captions: [
       "No exposed water means no oceans, water-fed humidity, or aquatic habitats.",
       "Trace water supports isolated deposits but little humidity or ecosystem capacity.",
       "Sparse water creates limited coasts, hydration sources, and local cloud formation.",
@@ -282,7 +318,7 @@ const english: LabCopy = {
       "Abundant water strengthens aquatic habitats and atmospheric moisture while reducing dry land.",
       "A water-dominated surface maximizes aquatic area and humidity supply but leaves little exposed terrain.",
     ] },
-    humidity: { label: "💧 Humidity", unit: "%", captions: [
+    humidity: { label: "💧 Humidity", unit: "%", earthReference: "Earth reference: 60% (model proxy)", captions: [
       "No atmospheric water vapor suppresses clouds and strongly favors water conservation.",
       "Very dry air permits only sparse clouds and rapidly removes moisture from exposed organisms.",
       "Low humidity limits cloud cover and favors protected or water-conserving biology.",
@@ -290,7 +326,7 @@ const english: LabCopy = {
       "High humidity produces extensive cloud potential and reduces evaporative water loss.",
       "Near-saturated air strongly supports clouds when an exposed water supply and atmosphere are present.",
     ] },
-    magneticField: { label: "🧲 Magnetic field", unit: "Earth", captions: [
+    magneticField: { label: "🧲 Magnetic field", unit: "Earth", earthReference: "Earth reference: 1 Earth field", captions: [
       "No global field provides no magnetic reduction of the modeled incident radiation.",
       "A trace field offers negligible protection and only weak auroral organization.",
       "A weak field reduces part of the effective dose when incident radiation is present.",
@@ -298,7 +334,7 @@ const english: LabCopy = {
       "A strong field further lowers exposure, although it cannot create atmosphere or water.",
       "An extreme field maximizes the simplified protection convention with diminishing added value.",
     ] },
-    radiation: { label: "☢️ Radiation dose rate", unit: "mSv/h", captions: [
+    radiation: { label: "☢️ Radiation dose rate", unit: "mSv/h", earthReference: "Earth reference: ≈0.0003 mSv/h natural background", captions: [
       "Negligible incident radiation creates little repair pressure or auroral activity.",
       "Low radiation is manageable for many strategies without specialized protection.",
       "Elevated radiation rewards repair systems and benefits from magnetic protection.",
@@ -308,14 +344,49 @@ const english: LabCopy = {
     ] },
   },
   parameterConstraints: {
-    storedPreference: "Stored preference",
-    requiresAtmosphere: "Locked and stored: the displayed effective value is zero until atmospheric pressure is restored.",
-    gravityLimited: "Gravity-limited: surface gravity caps the effective atmosphere immediately; lower it manually or increase gravity to restore the stored pressure.",
-    requiresWaterPressure: "Locked and stored: exposed surface water is unavailable below the pressure boundary and returns when pressure supports it.",
-    surfaceWaterBoils: "Locked and stored: the selected inventory is vapor at this temperature and returns to the surface after cooling.",
-    surfaceWaterLimited: "The displayed surface share is reduced continuously by pressure and phase balance; the underlying inventory is preserved.",
-    requiresSurfaceWater: "Locked and stored: effective humidity requires an atmosphere and a phase-supported surface-water supply.",
-    humidityLimitedByWater: "Displayed effective humidity scales continuously with atmosphere and exposed water; preferred saturation is preserved.",
+    requiresAtmosphere: "This value needs an atmosphere to have an effect.",
+    gravityLimited: "Gravity currently limits the effective atmospheric pressure.",
+    requiresWaterPressure: "Exposed surface water needs more pressure here.",
+    surfaceWaterBoils: "At this temperature, exposed water is vapor.",
+    surfaceWaterLimited: "Pressure and phase balance currently reduce exposed surface water.",
+    requiresSurfaceWater: "Effective humidity needs atmosphere and phase-supported surface water.",
+    humidityLimitedByWater: "Atmosphere and exposed water currently limit effective humidity.",
+  },
+  environment: {
+    title: "Active world evidence",
+    planetDescription: "These are the active deterministic consequences of the current planetary parameters.",
+    designDescription: "These deterministic conditions shape the tradeoffs of every trait. Traits remain selectable so you can test a risky hypothesis.",
+    climate: "Climate",
+    atmosphere: "Atmosphere and gravity",
+    hydrosphere: "Hydrosphere",
+    humidity: "Atmospheric moisture",
+    energyCarbon: "Energy and carbon",
+    radiation: "Radiation protection",
+    mean: "Mean",
+    variation: "Variation",
+    range: "Range",
+    gravity: "Gravity",
+    storedPressure: "Selected pressure",
+    pressureCapacity: "Gravity pressure limit",
+    effectivePressure: "Effective pressure",
+    oxygen: "Oxygen pO₂",
+    waterInventory: "Water inventory",
+    liquid: "Liquid",
+    ice: "Ice",
+    vapor: "Vapor",
+    surfaceWater: "Surface water",
+    boilingPoint: "Water boiling point",
+    noBoilingPoint: "No liquid-water pressure support",
+    selected: "Selected",
+    effective: "Effective",
+    clouds: "Cloud potential",
+    stellarEnergy: "Stellar energy",
+    carbonDioxide: "Carbon dioxide pCO₂",
+    incident: "Incident",
+    protected: "After magnetic protection",
+    magneticField: "Magnetic field",
+    earthFieldUnit: "× Earth",
+    shieldingColumn: "Shielding column",
   },
   life: {
     title: "Lifeform designer",
@@ -518,7 +589,7 @@ const polish: LabCopy = {
     },
   },
   parameters: {
-    gravity: { label: "🪐 Grawitacja", unit: "g", captions: [
+    gravity: { label: "🪐 Grawitacja", unit: "g", earthReference: "Wartość Ziemi: 1 g", captions: [
       "Niemal zerowa grawitacja prawie nie podtrzymuje ciała i utrudnia kontrolowany ruch po powierzchni.",
       "Bardzo niska grawitacja zmniejsza ciężar, ale utrudnia przyczepność, krążenie i stabilny ruch.",
       "Niska grawitacja sprzyja lekkim strukturom, zmniejsza przyczepność i zmienia koszt lotu.",
@@ -526,7 +597,7 @@ const polish: LabCopy = {
       "Wysoka grawitacja zwiększa koszt konstrukcji ciała, krążenia i lokomocji dużych organizmów.",
       "Ekstremalna grawitacja narzuca poważne koszty podparcia ciała, krążenia i ruchu.",
     ] },
-    light: { label: "☀️ Energia gwiazdy", unit: "%", captions: [
+    light: { label: "☀️ Energia gwiazdy", unit: "%", earthReference: "Wartość Ziemi: 100% (skala modelu)", captions: [
       "Pomijalna energia gwiazdy pozostawia powierzchnię ciemną i usuwa praktyczną energię fotosyntezy.",
       "Bardzo słabe światło zapewnia niewiele energii fototroficznej i słabe oświetlenie strony dziennej.",
       "Niskie światło może wspierać wyspecjalizowaną fotosyntezę, ale nie wysoką produktywność.",
@@ -534,7 +605,7 @@ const polish: LabCopy = {
       "Silne światło zapewnia dużo energii fototroficznej i wyraźne wymuszanie dnia oraz nocy.",
       "Ekstremalne światło maksymalizuje oświetlenie; temperatura pozostaje jawna, bo nie znamy widma ani orbity.",
     ] },
-    pressure: { label: "🌫️ Atmosfera", unit: "atm", captions: [
+    pressure: { label: "🌫️ Atmosfera", unit: "atm", earthReference: "Wartość Ziemi: 1 atm", captions: [
       "Próżnia nie transportuje ciepła, nie tworzy chmur ani nie utrzymuje odsłoniętej hydrosfery.",
       "Śladowa atmosfera prawie nie rozprowadza ciepła i pozostawia amplitudę zbliżoną do świata bez powietrza.",
       "Cienka atmosfera zapewnia ograniczony transport ciepła, gęstość gazu i stabilność wody.",
@@ -542,7 +613,7 @@ const polish: LabCopy = {
       "Znacząca atmosfera rozprowadza ciepło i wspiera stabilną wodę, pogodę oraz wyporność.",
       "Ciśnienie atmosferyczne płynnie wpływa na stabilność wody, wilgotność, chmury, gęstość i zorzę, bez kasowania zapisanej preferencji użytkownika.",
     ] },
-    carbonDioxide: { label: "🧪 Ciśnienie parcjalne CO₂", unit: "atm", captions: [
+    carbonDioxide: { label: "🧪 Ciśnienie parcjalne CO₂", unit: "atm", earthReference: "Wartość Ziemi: ≈0,00042 atm", captions: [
       "Brak CO₂ usuwa modelowane źródło węgla nieorganicznego i jego wkład cieplarniany.",
       "Śladowy CO₂ dostarcza mało węgla, ale uczestniczy już w zatrzymywaniu ciepła.",
       "Niski CO₂ wspiera wiązanie węgla i wnosi umiarkowany efekt cieplarniany.",
@@ -550,7 +621,7 @@ const polish: LabCopy = {
       "Wysoki CO₂ silnie zmienia chemię atmosfery i obciąża wiele strategii oddechowych.",
       "Ekstremalny CO₂ jest toksyczny dla wielu modelowanych organizmów mimo dużej ilości węgla.",
     ] },
-    oxygen: { label: "💨 Ciśnienie parcjalne tlenu", unit: "atm", captions: [
+    oxygen: { label: "💨 Ciśnienie parcjalne tlenu", unit: "atm", earthReference: "Wartość Ziemi: ≈0,21 atm", captions: [
       "Brak tlenu wyłącza oddychanie tlenowe; pozostają tylko jawnie wspierane ścieżki alternatywne.",
       "Bardzo niskie ciśnienie parcjalne tlenu wspiera wyłącznie strategie niskotlenowe lub beztlenowe.",
       "Niski tlen ogranicza trwały metabolizm tlenowy i złożoność energetyczną.",
@@ -558,7 +629,7 @@ const polish: LabCopy = {
       "Wysoki tlen przekracza preferowany zakres oddechowy i zwiększa presję oksydacyjną.",
       "Ekstremalny tlen sprzyja spalaniu i stresowi oksydacyjnemu mimo dużej dostępności aerobowej.",
     ] },
-    temperature: { label: "🌡️ Średnia temperatura", unit: "°C", captions: [
+    temperature: { label: "🌡️ Średnia temperatura", unit: "°C", earthReference: "Wartość Ziemi: ≈15 °C średnio globalnie", captions: [
       "Warunki bliskie zeru absolutnemu zamrażają odsłonięte substancje lotne i ograniczają aktywną chemię.",
       "Głęboki mróz pozostawia dostępną wodę powierzchniową jako lód i silnie ogranicza metabolizm.",
       "Warunki chłodne i umiarkowane mogą wspierać ciekłą wodę, gdy pozwalają na to ciśnienie i lokalne ekstrema.",
@@ -566,7 +637,7 @@ const polish: LabCopy = {
       "Bazaltowa skała powierzchniowa zaczyna przechodzić od stałej skorupy do widocznie stopionego materiału zgodnie z konwencją renderera.",
       "Temperatury oceanu magmy tworzą przeważnie stopioną powierzchnię skalną; nie oznacza to aktywnego wulkanizmu.",
     ] },
-    temperatureVariation: { label: "🌡️↕️ Wahanie temperatury", unit: "°C", captions: [
+    temperatureVariation: { label: "🌡️↕️ Wahanie temperatury", unit: "°C", earthReference: "Wartość Ziemi: ±15 °C (konwencja modelu)", captions: [
       "Minimalne wahania tworzą termicznie jednolity świat z niewielką liczbą nisz klimatycznych.",
       "Małe wahania ograniczają stres cieplny, zachowując łagodne różnice regionalne.",
       "Umiarkowane wahania tworzą użyteczne nisze ciepła i zimna oraz kompromisy adaptacyjne.",
@@ -574,7 +645,7 @@ const polish: LabCopy = {
       "Silne wahania wymagają izolacji, uśpienia, migracji albo odporności na ciepło.",
       "Ekstremalne wahania cechują słabo moderowane powierzchnie i dominują warunki przetrwania.",
     ] },
-    water: { label: "🌊 Woda powierzchniowa", unit: "%", captions: [
+    water: { label: "🌊 Woda powierzchniowa", unit: "%", earthReference: "Wartość Ziemi: ≈71%", captions: [
       "Brak odsłoniętej wody oznacza brak oceanów, wilgotności zasilanej wodą i siedlisk wodnych.",
       "Śladowa woda wspiera izolowane osady, ale daje mało wilgotności i pojemności ekosystemu.",
       "Niewielka ilość wody tworzy ograniczone wybrzeża, źródła nawodnienia i lokalne chmury.",
@@ -582,7 +653,7 @@ const polish: LabCopy = {
       "Obfita woda wzmacnia siedliska wodne i wilgoć atmosferyczną, ograniczając suchy ląd.",
       "Powierzchnia zdominowana przez wodę maksymalizuje akweny i wilgotność, ale zostawia mało lądu.",
     ] },
-    humidity: { label: "💧 Wilgotność", unit: "%", captions: [
+    humidity: { label: "💧 Wilgotność", unit: "%", earthReference: "Wartość Ziemi: 60% (proksy modelu)", captions: [
       "Brak pary wodnej ogranicza chmury i silnie premiuje oszczędzanie wody.",
       "Bardzo suche powietrze pozwala tylko na rzadkie chmury i szybko odbiera wilgoć organizmom.",
       "Niska wilgotność ogranicza zachmurzenie i wspiera chronioną lub oszczędną gospodarkę wodną.",
@@ -590,7 +661,7 @@ const polish: LabCopy = {
       "Wysoka wilgotność daje duży potencjał chmur i ogranicza parowanie z organizmów.",
       "Powietrze bliskie nasycenia silnie wspiera chmury, gdy istnieją atmosfera i odsłonięty zasób wody.",
     ] },
-    magneticField: { label: "🧲 Pole magnetyczne", unit: "Ziemi", captions: [
+    magneticField: { label: "🧲 Pole magnetyczne", unit: "Ziemi", earthReference: "Wartość Ziemi: 1 pole Ziemi", captions: [
       "Brak globalnego pola nie zmniejsza modelowanej dawki promieniowania padającego.",
       "Śladowe pole daje pomijalną ochronę i jedynie słabą organizację zorzy.",
       "Słabe pole zmniejsza część efektywnej dawki, gdy promieniowanie rzeczywiście występuje.",
@@ -598,7 +669,7 @@ const polish: LabCopy = {
       "Silne pole dalej obniża ekspozycję, choć nie może stworzyć atmosfery ani wody.",
       "Ekstremalne pole maksymalizuje uproszczoną ochronę przy malejącej wartości kolejnych wzrostów.",
     ] },
-    radiation: { label: "☢️ Dawka promieniowania", unit: "mSv/h", captions: [
+    radiation: { label: "☢️ Dawka promieniowania", unit: "mSv/h", earthReference: "Wartość Ziemi: ≈0,0003 mSv/h naturalnego tła", captions: [
       "Pomijalne promieniowanie tworzy niewielką presję naprawczą i aktywność zorzową.",
       "Niskie promieniowanie jest możliwe do zniesienia bez specjalistycznej ochrony.",
       "Podwyższona dawka premiuje mechanizmy naprawcze i korzysta z ochrony magnetycznej.",
@@ -608,14 +679,49 @@ const polish: LabCopy = {
     ] },
   },
   parameterConstraints: {
-    storedPreference: "Zapamiętana preferencja",
-    requiresAtmosphere: "Zablokowane i zapamiętane: wyświetlana wartość efektywna pozostaje zerowa do czasu przywrócenia ciśnienia atmosferycznego.",
-    gravityLimited: "Ograniczenie grawitacyjne: grawitacja natychmiast ogranicza efektywną atmosferę; zmniejsz ją ręcznie albo zwiększ grawitację, aby przywrócić zapamiętane ciśnienie.",
-    requiresWaterPressure: "Zablokowane i zapamiętane: woda powierzchniowa jest niedostępna poniżej granicy ciśnienia i wróci, gdy ciśnienie na to pozwoli.",
-    surfaceWaterBoils: "Zablokowane i zapamiętane: wybrany zasób jest przy tej temperaturze parą i wróci na powierzchnię po ochłodzeniu.",
-    surfaceWaterLimited: "Wyświetlany udział powierzchniowy jest płynnie ograniczany przez ciśnienie i bilans fazowy; bazowy zasób pozostaje zapamiętany.",
-    requiresSurfaceWater: "Zablokowane i zapamiętane: efektywna wilgotność wymaga atmosfery oraz wspieranego fazowo zasobu wody powierzchniowej.",
-    humidityLimitedByWater: "Wyświetlana wilgotność efektywna płynnie skaluje się z atmosferą i odsłoniętą wodą; preferowane nasycenie pozostaje zapamiętane.",
+    requiresAtmosphere: "Ta wartość wymaga atmosfery, aby zadziałać.",
+    gravityLimited: "Grawitacja obecnie ogranicza efektywne ciśnienie atmosferyczne.",
+    requiresWaterPressure: "Odsłonięta woda powierzchniowa wymaga tu wyższego ciśnienia.",
+    surfaceWaterBoils: "W tej temperaturze odsłonięta woda jest parą.",
+    surfaceWaterLimited: "Ciśnienie i bilans fazowy obecnie ograniczają odsłoniętą wodę powierzchniową.",
+    requiresSurfaceWater: "Efektywna wilgotność wymaga atmosfery i wspieranej fazowo wody powierzchniowej.",
+    humidityLimitedByWater: "Atmosfera i odsłonięta woda obecnie ograniczają efektywną wilgotność.",
+  },
+  environment: {
+    title: "Aktywne dane środowiskowe",
+    planetDescription: "To aktywne deterministyczne konsekwencje bieżących parametrów planety.",
+    designDescription: "Te deterministyczne warunki kształtują kompromisy każdej cechy. Cechy pozostają dostępne, aby można było przetestować ryzykowną hipotezę.",
+    climate: "Klimat",
+    atmosphere: "Atmosfera i grawitacja",
+    hydrosphere: "Hydrosfera",
+    humidity: "Wilgoć atmosferyczna",
+    energyCarbon: "Energia i węgiel",
+    radiation: "Ochrona przed promieniowaniem",
+    mean: "Średnia",
+    variation: "Zmienność",
+    range: "Zakres",
+    gravity: "Grawitacja",
+    storedPressure: "Wybrane ciśnienie",
+    pressureCapacity: "Limit ciśnienia grawitacyjnego",
+    effectivePressure: "Ciśnienie efektywne",
+    oxygen: "Tlen pO₂",
+    waterInventory: "Zasób wody",
+    liquid: "Ciecz",
+    ice: "Lód",
+    vapor: "Para",
+    surfaceWater: "Woda powierzchniowa",
+    boilingPoint: "Temperatura wrzenia wody",
+    noBoilingPoint: "Brak ciśnienia dla ciekłej wody",
+    selected: "Wybrane",
+    effective: "Efektywne",
+    clouds: "Potencjał chmur",
+    stellarEnergy: "Energia gwiazdowa",
+    carbonDioxide: "Dwutlenek węgla pCO₂",
+    incident: "Docierające",
+    protected: "Po ochronie magnetycznej",
+    magneticField: "Pole magnetyczne",
+    earthFieldUnit: "× Ziemia",
+    shieldingColumn: "Kolumna osłonowa",
   },
   life: {
     title: "Projektant formy życia",

@@ -127,6 +127,21 @@ describe("world parameter interactions", () => {
     expect(humid.cloudPotential).toBeGreaterThan(0.5);
   });
 
+  it("retains a small evaporation-driven humidity floor over a fully liquid ocean", () => {
+    const state = deriveWorldInteractionState({
+      ...GENESIS_MISSION.planet.world,
+      atmosphericPressureAtm: 1,
+      averageTemperatureC: 20,
+      temperatureVariationC: 0,
+      waterAvailability: 1,
+      humidity: 0,
+    });
+
+    expect(state.liquidWaterFraction).toBeGreaterThan(0.99);
+    expect(state.effectiveHumidity).toBeGreaterThan(0.1);
+    expect(state.cloudPotential).toBeGreaterThan(0.1);
+  });
+
   it("changes pressure support gradually instead of as an on-off gate", () => {
     const createState = (atmosphericPressureAtm: number) =>
       deriveWorldInteractionState({
@@ -220,7 +235,7 @@ describe("world parameter interactions", () => {
                 state.iceWaterFraction + state.liquidWaterFraction,
                 8,
               );
-              if (waterAvailability === 0 || humidity === 0) {
+              if (waterAvailability === 0) {
                 expect(state.cloudPotential).toBe(0);
               }
             }

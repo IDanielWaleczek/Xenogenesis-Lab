@@ -65,8 +65,9 @@ The interface derives one of six ordered, parameter-specific captions from the c
 - below the water triple-point pressure (`0.006036 atm` in the model), the exposed-water effect smoothly approaches zero while the chosen inventory remains stored;
 - across `mean ± variation`, water is partitioned continuously among ice, liquid, and vapor around `0°C` and the pressure-dependent boiling point;
 - gas composition remains stored in vacuum, where its partial pressures correctly become zero;
-- effective humidity is the chosen humidity multiplied by continuous atmosphere and exposed-water-supply factors;
-- cloud potential is exactly zero when water or humidity is zero and otherwise changes continuously with humidity, pressure, and the thermal range;
+- effective humidity is the chosen humidity multiplied by continuous atmosphere and exposed-water-supply factors; a fully liquid aquatic world also receives a small documented evaporation floor under an atmosphere;
+- water inventory and humidity remain deliberately separate inputs: inventory does not set a general relative humidity or infer weather, but a near-complete liquid ocean cannot express exactly zero effective humidity in this educational model;
+- cloud potential is exactly zero when water is zero and otherwise changes continuously with humidity, pressure, the thermal range, and the aquatic evaporation floor;
 - gas, surface-water, and humidity controls lock only when their physical support is zero; partial support remains editable through an inverse mapping to the stored preference;
 - restoring compatible pressure or temperature automatically reapplies stored water, humidity, and composition preferences.
 
@@ -269,22 +270,23 @@ The WebGL planet is deterministic for the same seed and shader code. Layered val
 Most exposed sliders have a visual consequence. Independent inputs are converted once into a pure renderer state, and the GPU interpolates toward those targets:
 
 - gravity changes deterministic organism support, movement, and flight costs without redrawing continents or overwriting pressure, water, or humidity;
-- local shader temperature is calculated in degrees Celsius inside `mean ± variation`; `36±4°C` cannot create snow, while `−40±4°C` freezes the complete supplied exposed hydrosphere;
-- ice, liquid water, and vapor use the same available phase inventory as the deterministic layer; the renderer distributes visible liquid and ice locally from latitude temperature, so a warm equator and frozen poles can coexist;
+- local shader temperature is calculated in degrees Celsius inside `mean ± variation` using a curved insolation-like latitude response plus bounded seeded terrain variation; `36±4°C` cannot create snow, while `−40±4°C` freezes the complete supplied exposed hydrosphere;
+- ice, liquid water, and vapor use the same available phase inventory as the deterministic layer; terrain, rivers, and water bodies use the same local-temperature convention, so a warm equator and frozen poles can coexist without liquid rivers crossing a frozen region;
 - pressure changes water stability, atmosphere thickness, effective humidity, clouds, density, and aurora support;
 - oxygen and carbon dioxide change atmosphere color;
-- water changes phase-aware ocean/ice masks and cloud supply; `0%` renders no surface water and `100%` renders an aquatic or icy shell when pressure supports exposed water;
+- water changes phase-aware river, inland-water, ocean/ice masks, and cloud supply; `0–10%` prioritizes drainage, `10–25%` begins larger inland water bodies, and the slower `25–100%` shoreline curve preserves continents at `70%` while `100%` renders an aquatic or icy shell when pressure supports exposed water;
+- the renderer uses one seeded terrain field for mountain ranges, canyon cuts, and the water mask. A low nonzero liquid-water inventory receives a visual shoreline curve and may show lakes or drainage lines; this is a readability convention, not a prediction of exact surface-area coverage or a hydrological model;
 - radiation changes a labelled surface exposure map and a subtler animated exposure shell in the realistic view; the `0–3 mSv/h` UI demonstration range is normalized linearly before the documented `1 + 1.6 × field` magnetic-protection convention is applied;
 - magnetic field reduces the radiation-overlay exposure convention and, with atmosphere plus incident radiation, permits an auroral presentation; it has no distracting field-line geometry;
 - light changes world-space illumination; the reset camera begins on the day side and the night side remains darker but readable;
-- humidity changes moisture and clouds through a continuous water-supply factor; a dry zero-water world produces exactly zero clouds;
+- humidity changes moisture and clouds through a continuous water-supply factor; a dry zero-water world produces exactly zero clouds, while a fully liquid ocean has a small evaporation-driven humidity floor under an atmosphere;
 - pressure controls atmosphere density; zero pressure removes the visual atmosphere shell.
 
 Dry terrain becomes sandy from mild temperatures because sand is controlled primarily by aridity, not a `60°C` heat switch. Green macroscopic-biosphere coloring fades above `45°C` and is absent by `60°C`; this is a visualization boundary for plant-like coverage, not a universal limit on microbial life. The editable mean-temperature range is `−273…1800°C`. Assuming exposed basaltic surface rock for presentation, a smooth molten-rock fraction begins at `780°C` and reaches one at `1050°C`; procedural glowing channels indicate a magma-ocean surface, not an inferred volcanic eruption or geological heat source.
 
-Local shader temperature stays inside `mean ± variation`. The equator reaches the hot extreme and the poles reach the cold extreme, with small terrain noise only perturbing intermediate terrain latitudes. The water layer uses the same latitude extremes without the terrain perturbation: local water below the `−2…2°C` transition renders as ice when the shared phase inventory contains ice, while warm water remains liquid. Thus a `41°C` equator is never frozen merely because the planet also has sub-zero poles. The deterministic equatorial and polar region scores consume the same configured maximum and minimum temperatures.
+Local shader temperature stays inside `mean ± variation`. A curved latitude response reaches the hot equatorial and cold polar extremes, while bounded seeded terrain variation perturbs intermediate regions. Terrain, rivers, and water bodies share this local temperature: water below the `−2…2°C` transition renders as ice when the shared phase inventory contains ice, while warm water and rivers remain liquid. Thus a `41°C` equator is never frozen merely because the planet also has sub-zero poles. The deterministic equatorial and polar region scores consume the same configured maximum and minimum temperatures.
 
-Ocean height is illustrative rather than a fluid-volume calculation because the mission does not provide planetary radius, basin hypsometry, or ocean depth. The renderer maps exposed surface-water coverage from a level just above the deepest possible procedural basin to a level just below the tallest possible procedural summit. It does not enlarge the entire water mesh beyond the terrain.
+Ocean height is illustrative rather than a fluid-volume calculation because the mission does not provide planetary radius, basin hypsometry, or ocean depth. The renderer reserves low inventory for river drainage, starts inland water bodies above `10%`, then uses a deliberately slower continental shoreline curve after `25%`; it only reaches an all-water shell at `100%`. It does not enlarge the entire water mesh beyond the terrain except at the full-inventory shell required to cover the highest procedural summit.
 
 Temperature and radiation views include labelled low/mid/high legends so their colors are never the only interpretation aid.
 

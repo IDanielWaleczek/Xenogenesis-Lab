@@ -80,7 +80,6 @@ export const PlanetStateSchema = z
 export const LifeTraitSelectionSchema = z
   .array(LifeTraitIdSchema)
   .min(3)
-  .max(14)
   .refine(
     (values) => new Set(values).size === values.length,
     "Lifeform traits must not contain duplicates.",

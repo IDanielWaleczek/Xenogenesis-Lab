@@ -8,7 +8,7 @@ This file records decisions that materially affect product scope, architecture, 
 
 **Decision**
 
-Keep the hydrosphere as a separate masked mesh, but remove its global radial scale. Map exposed-water coverage from the deepest procedural basins to just below the theoretical maximum terrain elevation. Derive the visible water phase from local latitude temperature while limiting ice by the phase inventory produced by the deterministic interaction layer. Keep range inputs native and coalesce expensive world updates to at most one per animation frame.
+Keep the hydrosphere as a separate masked mesh, but remove its global radial scale. Map exposed-water coverage from the deepest procedural basins to above the theoretical maximum terrain elevation at full inventory, while using the identical elevation field for the mesh and fragment mask. Derive the visible water phase from local latitude temperature while limiting ice by the phase inventory produced by the deterministic interaction layer. Keep range inputs native and coalesce expensive world updates to at most one per animation frame.
 
 **Rationale**
 

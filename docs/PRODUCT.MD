@@ -35,10 +35,11 @@ The simulation may produce extinction, temporary survival, a regional refuge, a 
 5. Use realistic, temperature, and radiation views to form a strategy.
 6. Select compatible body, physiology, sensory, reproduction, and complexity traits.
 7. Keep the design within the 100-point biological energy budget.
-8. Run the deterministic suitability, region, and population model.
-9. Inspect the organism visualization, scores, regional evidence, and timeline.
-10. Optionally request GPT-5.6 scientific interpretation and a controlled field illustration.
-11. Change the planet or organism and compare the next run.
+8. Read the active parameter-backed climate, atmosphere, water-phase, humidity, energy, and radiation evidence while designing and reviewing the organism.
+9. Run the deterministic suitability, region, and population model.
+10. Inspect the organism visualization, scores, regional evidence, and timeline.
+11. Optionally request GPT-5.6 scientific interpretation and a controlled field illustration.
+12. Change the planet or organism and compare the next run.
 
 The initial submission completes this loop for one polished laboratory workspace before adding persistence or a library of saved worlds.
 
@@ -67,6 +68,8 @@ GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy, re
 The working local build implements a cinematic space-and-life boot requiring an explicit entry, eleven causally ordered environment controls in the right mode panel, six value-dependent captions per control, preserved user preferences with locked zero-support states and phase-aware effective values, a deterministic seeded 3D planet, world-space stars, separated white-grey clouds, custom terrain/water/ice/vapor/atmosphere/radiation/molten-rock shaders, a distant flared sun/day-night treatment, radiation and aurora presentation, labelled scientific overlays, regional analysis, 33 life traits with costs and conflicts, procedural organism morphology, simulator 1.5.0, population timeline, comparison state, server-only consultant and image routes, honest fallbacks, and complete English/Polish copy.
 
 The local deterministic loop and fallback paths were browser-verified. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed server credentials**. Accounts, persistence, sharing, a campaign, and durable caching are not implemented.
+
+Surface-water inventory and humidity remain distinct user inputs. Water sets the available hydrosphere; humidity is the preferred atmospheric moisture state. The model expresses humidity only when there is both atmosphere and phase-supported exposed water, so adding water does not silently force a particular humidity.
 
 ## Experience requirements
 

@@ -6,6 +6,7 @@ import {
   PLANET_TERRAIN_FRAGMENT_SHADER,
   PLANET_TERRAIN_MAX_ELEVATION,
   PLANET_TERRAIN_MIN_ELEVATION,
+  PLANET_TERRAIN_VERTEX_SHADER,
   PLANET_WATER_FRAGMENT_SHADER,
   PLANET_WATER_MAX_ELEVATION,
   PLANET_WATER_MIN_ELEVATION,
@@ -54,16 +55,19 @@ describe("planet shader scientific boundaries", () => {
     );
   });
 
-  it("uses the full thermal variation between equator and poles", () => {
+  it("uses a curved latitude response with bounded local terrain variation", () => {
     expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain(
-      "latitudeSignal * 1.12 + terrainSignal * 0.45",
+      "float thermalPosition = localThermalPosition(vObjectPosition, vElevation, uSeed);",
+    );
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain(
+      "2.0 * sqrt(max(0.0, 1.0 - latitude * latitude)) - 1.0",
     );
   });
 
-  it("raises the ocean through terrain basins without floating above the tallest summit", () => {
+  it("raises the ocean from terrain basins to a complete aquatic world", () => {
     expect(PLANET_WATER_MIN_ELEVATION).toBeGreaterThan(PLANET_TERRAIN_MIN_ELEVATION);
-    expect(PLANET_WATER_MAX_ELEVATION).toBeLessThan(PLANET_TERRAIN_MAX_ELEVATION);
-    expect(PLANET_WATER_MAX_ELEVATION + PLANET_ICE_SURFACE_EXPANSION).toBeLessThan(
+    expect(PLANET_WATER_MAX_ELEVATION).toBeGreaterThan(PLANET_TERRAIN_MAX_ELEVATION);
+    expect(PLANET_WATER_MAX_ELEVATION + PLANET_ICE_SURFACE_EXPANSION).toBeGreaterThan(
       PLANET_TERRAIN_MAX_ELEVATION,
     );
     expect(PLANET_WATER_VERTEX_SHADER).toContain(
@@ -71,6 +75,28 @@ describe("planet shader scientific boundaries", () => {
     );
     expect(PLANET_WATER_VERTEX_SHADER).toContain(
       PLANET_WATER_MAX_ELEVATION.toFixed(4),
+    );
+    expect(PLANET_WATER_VERTEX_SHADER).toContain("waterSeaProgress(uSurfaceWater)");
+    expect(PLANET_WATER_FRAGMENT_SHADER).toContain("waterSeaProgress(uSurfaceWater)");
+    expect(PLANET_WATER_VERTEX_SHADER).toContain("if (surfaceWater <= 0.10) return 0.0;");
+    expect(PLANET_WATER_VERTEX_SHADER).toContain("smoothstep(0.10, 0.25, surfaceWater)");
+  });
+
+  it("uses one terrain field for prominent mountains, canyon cuts, and water masking", () => {
+    expect(PLANET_TERRAIN_VERTEX_SHADER).toContain(
+      "float elevation = terrainElevation(samplePoint);",
+    );
+    expect(PLANET_TERRAIN_VERTEX_SHADER).toContain("vCanyon = terrainCanyon(samplePoint);");
+    expect(PLANET_TERRAIN_VERTEX_SHADER).toContain("float terrainRidges(vec3 p)");
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("varying float vCanyon;");
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("float river = riverLines");
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("float riverFreeze = localFreeze");
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("float thermalPosition = localThermalPosition");
+    expect(PLANET_WATER_FRAGMENT_SHADER).toContain(
+      "float localTerrainElevation = terrainElevation(samplePoint);",
+    );
+    expect(PLANET_WATER_FRAGMENT_SHADER).toContain(
+      "float thermalPosition = localThermalPosition(vObjectPosition, localTerrainElevation, uSeed);",
     );
   });
 

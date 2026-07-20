@@ -214,10 +214,13 @@ export function deriveWorldInteractionState(
     world.waterAvailability - exposedInventory,
   );
 
-  // Humidity remains an explicit preference. Water supply and air determine its effective expression.
-  const waterSupply = Math.sqrt(clamp(exposedInventory, 0, 1));
+  // Humidity remains an explicit preference, while a warm fully aquatic world retains a small evaporation floor.
+  const waterSupply = Math.pow(clamp(exposedInventory, 0, 1), 0.42);
+  const oceanEvaporationFloor =
+    smoothstep(0.85, 1, liquidWaterFraction) * 0.12;
   const effectiveHumidity =
-    world.humidity * waterSupply * atmospherePresence;
+    Math.max(world.humidity * waterSupply, oceanEvaporationFloor) *
+    atmospherePresence;
   const coldCloudSupport = averageAcrossTemperatureRange(
     world.averageTemperatureC,
     world.temperatureVariationC,

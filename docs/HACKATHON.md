@@ -32,6 +32,7 @@ The repository currently implements:
 - one continuous procedural laboratory workspace;
 - a deterministic seeded planet with layered custom GLSL terrain, water, ice, clouds, atmosphere, scientific overlays, and result-driven biosphere/region markers;
 - eleven reactive planet parameters with preserved preferences and continuous phase-aware consequences;
+- a static parameter-backed left evidence panel in Planet Engineering and Life Design, including climate, effective atmosphere, water phases, humidity, energy/carbon, and radiation protection;
 - 33 biological traits with costs, conflicts, modifiers, advantages, and tradeoffs;
 - simulator 1.5.0 with phase-aware water/humidity coupling, effective dependent controls, 11 continuous metrics, six representative regions, eight outcomes, stable hashing, and a 40-generation population model;
 - deterministic organism morphology;

@@ -24,7 +24,7 @@ There is no single hidden correct configuration. The tested model supports disti
 - Persistent terrain geometry with smoothly interpolated phase-aware water/ice/vapor, sand, thermally altered rock, clouds, atmosphere, day/night illumination, radiation exposure, aurora, and biosphere uniforms.
 - Interactive orbit camera, zoom, day-side reset, automatic-rotation control, and realistic/temperature/radiation modes with labelled legends.
 - Eleven live environmental controls with preserved preferences, a gravity-dependent `0–100 atm` atmospheric ceiling, and continuous derived interactions including conditional dense-atmosphere weather.
-- Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, and a 100-point biological energy budget.
+- Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, a 100-point biological energy budget, and a static parameter-backed world-evidence panel shared with Planet Engineering.
 - Deterministic simulator 1.6.0 with phase-aware water and humidity coupling, conditional dense-atmosphere thermal and storm behavior, effective dependent controls, 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
 - Deterministic code-native organism morphology that responds to the seed, environment, movement, body, sensory, and adaptation traits.
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
@@ -38,7 +38,7 @@ There is no single hidden correct configuration. The tested model supports disti
 2. Read the mission goal and first-use instruction.
 3. Change gravity, temperature, local pressure, oxygen, carbon dioxide, water, radiation, stellar energy, humidity, or magnetic-field strength.
 4. Rotate the planet and switch scientific overlays to inspect its response.
-5. Open the lifeform designer and select compatible traits within the energy budget.
+5. Open the lifeform designer, review the active climate, atmosphere, water-phase, humidity, energy, carbon, and radiation evidence, then select compatible traits within the energy budget.
 6. Run 40 generations locally. No AI is used for the calculation.
 7. Inspect suitability scores, regional survival, population growth, the organism field model, and the mission outcome.
 8. Optionally request GPT-5.6 interpretation or a generated field illustration.

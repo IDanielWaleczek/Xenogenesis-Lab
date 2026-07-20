@@ -25,7 +25,6 @@ import type {
 import { runSurvivalSimulation } from "@/domain/simulator/simulate";
 import {
   calculateTraitCost,
-  hasTraitConflict,
   LIFE_ENERGY_BUDGET,
   LIFE_TRAITS,
   type TraitCategory,
@@ -37,6 +36,7 @@ import {
 import {
   deriveGravityPressureLimitAtm,
 } from "@/domain/world/schema";
+import { deriveWorldContext, type WorldContext } from "@/domain/world/context";
 import { deriveWorldInteractionState } from "@/domain/world/interactions";
 import type { WorldParameters } from "@/domain/world/schema";
 import {
@@ -45,6 +45,10 @@ import {
 } from "@/domain/world/schema";
 
 import { COPY, type LabCopy, type LabPhase, type Language, type ParameterId } from "./copy";
+import {
+  deriveParameterSliderPosition,
+  deriveParameterValueFromSliderPosition,
+} from "./parameter-curves";
 
 const ProceduralPlanet = dynamic(
   () => import("@/components/planet/ProceduralPlanet"),
@@ -101,7 +105,7 @@ const PARAMETER_CONFIG: Array<{
   { id: "water", min: 0, max: 100, step: 0.1, captionThresholds: [1, 10, 35, 70, 90] },
   { id: "humidity", min: 0, max: 100, step: 0.1, captionThresholds: [1, 15, 40, 70, 90] },
   { id: "magneticField", min: 0, max: 3, step: 0.01, captionThresholds: [0.05, 0.3, 0.8, 1.8, 2.5] },
-  { id: "radiation", min: 0, max: 3, step: 0.01, captionThresholds: [0.01, 0.1, 0.5, 1.5, 2.5] },
+  { id: "radiation", min: 0, max: 3, step: 0.00001, captionThresholds: [0.01, 0.1, 0.5, 1.5, 2.5] },
 ];
 
 /** Creates a fresh validated copy of the immutable laboratory baseline. */
@@ -121,7 +125,7 @@ function deriveParameterControlState(
   parameter: (typeof PARAMETER_CONFIG)[number],
   world: WorldParameters,
   copy: LabCopy,
-): { constraint: string | null; disabled: boolean; influence: string; min: number; max: number; preferredValue: number | null; step: number; value: number } {
+): { constraint: string | null; disabled: boolean; influence: string; min: number; max: number; step: number; value: number } {
   const engineeringState = deriveWorldEngineeringControlState(
     world,
     parameter.id,
@@ -170,9 +174,6 @@ function deriveParameterControlState(
     influence: copy.parameters[parameter.id].captions[captionIndex],
     min,
     max,
-    preferredValue: engineeringState.disabled
-      ? engineeringState.preferredValue
-      : null,
     step: parameter.step,
     value,
   };
@@ -211,10 +212,9 @@ function ParameterControl({
   step,
   label,
   unit,
+  earthReference,
   influence,
   constraint,
-  preferredValue,
-  storedPreferenceLabel,
   disabled,
   language,
   onChange,
@@ -226,25 +226,18 @@ function ParameterControl({
   step: number;
   label: string;
   unit: string;
+  earthReference: string;
   influence: string;
   constraint: string | null;
-  preferredValue: number | null;
-  storedPreferenceLabel: string;
   disabled: boolean;
   language: Language;
   onChange: (value: number) => void;
 }) {
-  const digits = step < 0.001 ? 4 : step < 0.01 ? 3 : step < 0.1 ? 2 : step < 1 ? 1 : 0;
+  const digits = step < 0.0001 ? 5 : step < 0.001 ? 4 : step < 0.01 ? 3 : step < 0.1 ? 2 : step < 1 ? 1 : 0;
   const display = `${formatNumber(value, language, digits)} ${unit}`;
-  const usesTemperatureCurve = id === "temperature" && min < 90 && max > 90;
-  const position = usesTemperatureCurve
-    ? value <= 90
-      ? ((value - min) / (90 - min)) * 50
-      : 50 + ((value - 90) / (max - 90)) * 50
-    : max > min
-      ? ((value - min) / (max - min)) * 100
-      : 0;
+  const position = deriveParameterSliderPosition(id, value, min, max);
   const descriptionId = `parameter-${id}-description`;
+  const referenceId = `parameter-${id}-earth-reference`;
   const constraintId = `parameter-${id}-constraint`;
   const rangeRef = useRef<HTMLInputElement>(null);
   const pendingValueRef = useRef<number | null>(null);
@@ -258,9 +251,9 @@ function ParameterControl({
   useEffect(() => {
     const range = rangeRef.current;
     if (!range) return;
-    range.value = String(usesTemperatureCurve ? position : value);
+    range.value = String(position);
     range.style.setProperty("--range-position", `${position}%`);
-  }, [position, usesTemperatureCurve, value]);
+  }, [position]);
 
   useEffect(
     () => () => {
@@ -285,25 +278,14 @@ function ParameterControl({
   /** Keeps the thumb native and immediate while limiting expensive world updates to one per frame. */
   const queueValueChange = (range: HTMLInputElement) => {
     const rangeValue = Number(range.value);
-    const nextValue = usesTemperatureCurve
-      ? Math.min(
-          max,
-          Math.max(
-            min,
-            Math.round(
-              (rangeValue <= 50
-                ? min + (rangeValue / 50) * (90 - min)
-                : 90 + ((rangeValue - 50) / 50) * (max - 90)) / step,
-            ) * step,
-          ),
-        )
-      : rangeValue;
-    const nextPosition = usesTemperatureCurve
-      ? rangeValue
-      : max > min
-        ? ((rangeValue - min) / (max - min)) * 100
-        : 0;
-    range.style.setProperty("--range-position", `${nextPosition}%`);
+    const nextValue = deriveParameterValueFromSliderPosition(
+      id,
+      rangeValue,
+      min,
+      max,
+      step,
+    );
+    range.style.setProperty("--range-position", `${rangeValue}%`);
     pendingValueRef.current = nextValue;
     if (animationFrameRef.current !== null) return;
     animationFrameRef.current = requestAnimationFrame(() => {
@@ -321,17 +303,17 @@ function ParameterControl({
         <output htmlFor={`parameter-${id}`}>{display}</output>
       </div>
       <input
-        aria-describedby={`${descriptionId}${constraint ? ` ${constraintId}` : ""}`}
+        aria-describedby={`${descriptionId} ${referenceId}${constraint ? ` ${constraintId}` : ""}`}
         aria-valuemax={max}
         aria-valuemin={min}
         aria-valuenow={value}
         aria-valuetext={display}
         className="xl-range"
-        defaultValue={usesTemperatureCurve ? position : value}
+        defaultValue={position}
         disabled={disabled}
         id={`parameter-${id}`}
-        max={usesTemperatureCurve ? 100 : max}
-        min={usesTemperatureCurve ? 0 : min}
+        max={100}
+        min={0}
         onBlur={commitPendingValue}
         onInput={(event) => queueValueChange(event.currentTarget)}
         onPointerCancel={commitPendingValue}
@@ -345,19 +327,15 @@ function ParameterControl({
           commitPendingValue();
         }}
         ref={rangeRef}
-        step={usesTemperatureCurve ? 0.01 : step}
+        step={0.01}
         style={{ "--range-position": `${position}%` } as React.CSSProperties}
         type="range"
       />
+      <p className="parameter-earth-reference" id={referenceId}>{earthReference}</p>
       <p id={descriptionId}>{influence}</p>
       {constraint && (
         <p className="parameter-constraint" id={constraintId}>
           <span>{constraint}</span>
-          {preferredValue !== null && (
-            <strong>
-              {storedPreferenceLabel}: {formatNumber(preferredValue, language, 1)}%
-            </strong>
-          )}
         </p>
       )}
     </div>
@@ -411,6 +389,79 @@ function PopulationChart({
   );
 }
 
+/** Shows deterministic environmental evidence beside planet engineering and life design. */
+function WorldEvidence({
+  context,
+  copy,
+  language,
+  phase,
+}: {
+  context: WorldContext;
+  copy: LabCopy;
+  language: Language;
+  phase: "planet" | "design";
+}) {
+  const percentage = (value: number) => `${formatNumber(value * 100, language, 1)}%`;
+  const dose = (value: number) =>
+    `${formatNumber(value, language, value < 0.01 ? 4 : 2)} mSv/h`;
+  const boilingPoint =
+    context.estimatedWaterBoilingPointC === null
+      ? copy.environment.noBoilingPoint
+      : `${formatNumber(context.estimatedWaterBoilingPointC, language, 1)} °C`;
+
+  return (
+    <section className={`world-evidence world-evidence-${phase}`}>
+      <div className="world-evidence-heading">
+        <h3>{copy.environment.title}</h3>
+        <p>{phase === "design" ? copy.environment.designDescription : copy.environment.planetDescription}</p>
+      </div>
+      <dl className="world-evidence-grid">
+        <div>
+          <dt>{copy.environment.climate}</dt>
+          <dd><span>{copy.environment.mean}</span><strong>{formatNumber(context.meanTemperatureC, language, 0)} °C</strong></dd>
+          <dd><span>{copy.environment.variation}</span><strong>±{formatNumber(context.temperatureVariationC, language, 0)} °C</strong></dd>
+          <dd><span>{copy.environment.range}</span><strong>{formatNumber(context.temperatureMinimumC, language, 0)}–{formatNumber(context.temperatureMaximumC, language, 0)} °C</strong></dd>
+        </div>
+        <div>
+          <dt>{copy.environment.atmosphere}</dt>
+          <dd><span>{copy.environment.gravity}</span><strong>{formatNumber(context.gravityG, language, 2)} g</strong></dd>
+          <dd><span>{copy.environment.storedPressure}</span><strong>{formatNumber(context.storedPressureAtm, language, 3)} atm</strong></dd>
+          <dd><span>{copy.environment.pressureCapacity}</span><strong>{formatNumber(context.pressureCapacityAtm, language, 3)} atm</strong></dd>
+          <dd><span>{copy.environment.effectivePressure}</span><strong>{formatNumber(context.effectivePressureAtm, language, 3)} atm</strong></dd>
+          <dd><span>{copy.environment.oxygen}</span><strong>{formatNumber(context.oxygenPartialPressureAtm, language, 3)} atm</strong></dd>
+        </div>
+        <div>
+          <dt>{copy.environment.hydrosphere}</dt>
+          <dd><span>{copy.environment.waterInventory}</span><strong>{percentage(context.waterAvailability)}</strong></dd>
+          <dd><span>{copy.environment.surfaceWater}</span><strong>{percentage(context.surfaceWaterFraction)}</strong></dd>
+          <dd><span>{copy.environment.liquid}</span><strong>{percentage(context.liquidWaterFraction)}</strong></dd>
+          <dd><span>{copy.environment.ice}</span><strong>{percentage(context.iceWaterFraction)}</strong></dd>
+          <dd><span>{copy.environment.vapor}</span><strong>{percentage(context.vaporWaterFraction)}</strong></dd>
+          <dd><span>{copy.environment.boilingPoint}</span><strong>{boilingPoint}</strong></dd>
+        </div>
+        <div>
+          <dt>{copy.environment.humidity}</dt>
+          <dd><span>{copy.environment.selected}</span><strong>{percentage(context.configuredHumidity)}</strong></dd>
+          <dd><span>{copy.environment.effective}</span><strong>{percentage(context.effectiveHumidity)}</strong></dd>
+          <dd><span>{copy.environment.clouds}</span><strong>{percentage(context.cloudPotential)}</strong></dd>
+        </div>
+        <div>
+          <dt>{copy.environment.energyCarbon}</dt>
+          <dd><span>{copy.environment.stellarEnergy}</span><strong>{percentage(context.lightLevel)}</strong></dd>
+          <dd><span>{copy.environment.carbonDioxide}</span><strong>{formatNumber(context.carbonDioxidePartialPressureAtm, language, 4)} atm</strong></dd>
+        </div>
+        <div>
+          <dt>{copy.environment.radiation}</dt>
+          <dd><span>{copy.environment.incident}</span><strong>{dose(context.incidentRadiationMilliSvPerHour)}</strong></dd>
+          <dd><span>{copy.environment.protected}</span><strong>{dose(context.protectedRadiationMilliSvPerHour)}</strong></dd>
+          <dd><span>{copy.environment.magneticField}</span><strong>{formatNumber(context.magneticFieldStrengthEarth, language, 2)} {copy.environment.earthFieldUnit}</strong></dd>
+          <dd><span>{copy.environment.shieldingColumn}</span><strong>{formatNumber(context.shieldingColumnMassKgM2, language, 0)} kg/m²</strong></dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
 /** Full application surface for one repeatable procedural life-engineering workspace. */
 export default function Home() {
   const [screen, setScreen] = useState<SystemScreen>("boot");
@@ -435,8 +486,8 @@ export default function Home() {
   const stateEpoch = useRef(0);
   const copy = COPY[language];
   const traitCost = calculateTraitCost(traitIds);
-  const interactionState = useMemo(
-    () => deriveWorldInteractionState(planet.world),
+  const worldContext = useMemo(
+    () => deriveWorldContext(planet.world),
     [planet.world],
   );
 
@@ -504,18 +555,6 @@ export default function Home() {
     if (traitIds.includes(traitId)) {
       setTraitIds((current) => current.filter((id) => id !== traitId));
       invalidateCalculatedState();
-      return;
-    }
-    if (traitIds.length >= 14) {
-      setTraitNotice("selectionLimit");
-      return;
-    }
-    if (hasTraitConflict(traitIds, traitId)) {
-      setTraitNotice("conflict");
-      return;
-    }
-    if (calculateTraitCost([...traitIds, traitId]) > LIFE_ENERGY_BUDGET) {
-      setTraitNotice("budgetExceeded");
       return;
     }
     setTraitIds((current) => [...current, traitId]);
@@ -650,6 +689,16 @@ export default function Home() {
       </nav>
 
       <div className={`lab-grid phase-${phase}`}>
+        {phase !== "results" && (
+          <aside className="lab-panel world-evidence-panel">
+            <WorldEvidence
+              context={worldContext}
+              copy={copy}
+              language={language}
+              phase={phase === "planet" ? "planet" : "design"}
+            />
+          </aside>
+        )}
         <section className={`planet-stage planet-stage-${phase}`}>
           <div className="planet-stage-header">
             <div>
@@ -777,7 +826,7 @@ export default function Home() {
                 {PARAMETER_CONFIG.map((parameter) => {
                   const parameterCopy = copy.parameters[parameter.id];
                   const controlState = deriveParameterControlState(parameter, planet.world, copy);
-                  return <ParameterControl constraint={controlState.constraint} disabled={isSimulating || controlState.disabled} id={parameter.id} influence={controlState.influence} key={parameter.id} label={parameterCopy.label} language={language} max={controlState.max} min={controlState.min} onChange={(value) => updateParameter(parameter.id, value)} preferredValue={controlState.preferredValue} step={controlState.step} storedPreferenceLabel={copy.parameterConstraints.storedPreference} unit={parameterCopy.unit} value={controlState.value} />;
+                  return <ParameterControl constraint={controlState.constraint} disabled={isSimulating || controlState.disabled} earthReference={parameterCopy.earthReference} id={parameter.id} influence={controlState.influence} key={parameter.id} label={parameterCopy.label} language={language} max={controlState.max} min={controlState.min} onChange={(value) => updateParameter(parameter.id, value)} step={controlState.step} unit={parameterCopy.unit} value={controlState.value} />;
                 })}
               </div>
               <button className="button-primary wide" onClick={() => setPhase("life")} type="button">{copy.planet.openDesigner}<span aria-hidden="true">→</span></button>
@@ -788,7 +837,7 @@ export default function Home() {
             <div className="phase-content life-designer">
               <div className="phase-title-row">
                 <div><p className="eyebrow">{copy.phases.life.label}</p><h2>{copy.life.title}</h2></div>
-                <span className="status-chip">{traitIds.length}/14 {copy.life.selected}</span>
+                <span className="status-chip">{traitIds.length} {copy.life.selected}</span>
               </div>
               <p className="panel-intro">{copy.life.instruction}</p>
               <div className="budget-meter">
@@ -805,7 +854,7 @@ export default function Home() {
                 {(Object.values(LIFE_TRAITS).filter(({ category }) => category === activeCategory)).map((trait) => {
                   const selected = traitIds.includes(trait.id);
                   const traitCopy = copy.traits[trait.id];
-                  const unavailable = !selected && (hasTraitConflict(traitIds, trait.id) || calculateTraitCost([...traitIds, trait.id]) > LIFE_ENERGY_BUDGET);
+                  const unavailable = false;
                   return (
                     <button
                       aria-pressed={selected}

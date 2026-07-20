@@ -31,9 +31,9 @@ Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and
 
 ## 1:02–1:28 — Design life
 
-Open Design life. Show the organism, budget, one selected trait, one incompatibility, and two categories. Add or remove one affordable trait.
+Open Design life. Show the organism, the active world-evidence panel, budget, one selected trait, one incompatibility, and two categories. Add or remove one affordable trait.
 
-> The organism designer offers 33 biological traits with costs, advantages, vulnerabilities, and conflicts. High complexity improves adaptation but consumes energy. Radiation repair can slow reproduction. Flight depends on atmosphere and gravity. The procedural field model changes immediately from the seed, planet, and anatomy.
+> The organism designer offers 33 biological traits with costs, advantages, vulnerabilities, and conflicts. The same deterministic climate, effective atmosphere, water phases, humidity, energy, carbon, and radiation values shown here are used in the run. Water inventory and humidity are separate: water supplies the hydrosphere, while humidity only becomes effective with air and phase-supported exposed water. High complexity improves adaptation but consumes energy. Radiation repair can slow reproduction. Flight depends on atmosphere and gravity. The procedural field model changes immediately from the seed, planet, and anatomy.
 
 ## 1:28–1:55 — Deterministic simulation
 

@@ -29,19 +29,64 @@ float fbm(vec3 p) {
   }
   return value;
 }
+
+float terrainRidges(vec3 p) {
+  float value = 0.0;
+  float amplitude = 0.54;
+  for (int octave = 0; octave < 6; octave++) {
+    float ridge = 1.0 - abs(valueNoise(p) * 2.0 - 1.0);
+    value += ridge * amplitude;
+    p = p * 2.07 + vec3(11.8, 19.3, 7.4);
+    amplitude *= 0.5;
+  }
+  return value;
+}
+
+float terrainCanyon(vec3 samplePoint) {
+  float canyonLines = 1.0 - abs(fbm(samplePoint * 13.0 + vec3(3.1, 11.7, 6.4)) * 2.0 - 1.0);
+  return smoothstep(0.86, 0.97, canyonLines);
+}
+
+float terrainElevation(vec3 samplePoint) {
+  float warped = fbm(samplePoint * 0.75 + fbm(samplePoint * 1.8));
+  float continents = fbm(samplePoint + vec3(warped * 1.4));
+  float mountainProvince = smoothstep(0.44, 0.70, continents);
+  float mountainSpine = smoothstep(0.59, 0.84, terrainRidges(samplePoint * 4.8 + vec3(8.3, 2.1, 5.7)));
+  float alpineBreakup = smoothstep(0.67, 0.88, terrainRidges(samplePoint * 15.0 + vec3(2.4, 9.7, 14.2)));
+  float mountains = mountainProvince * (mountainSpine * 0.075 + alpineBreakup * 0.022);
+  return (continents - 0.5) * 0.080 + mountains - terrainCanyon(samplePoint) * 0.022;
+}
+
+float waterSeaProgress(float surfaceWater) {
+  if (surfaceWater <= 0.10) return 0.0;
+  if (surfaceWater <= 0.25) {
+    float inlandProgress = smoothstep(0.10, 0.25, surfaceWater);
+    return inlandProgress * 0.18;
+  }
+  float continentalProgress = (surfaceWater - 0.25) / 0.75;
+  return 0.18 + pow(continentalProgress, 1.85) * 0.82;
+}
+
+float localThermalPosition(vec3 objectPosition, float elevation, float seed) {
+  float latitude = abs(objectPosition.y);
+  float latitudeClimate = 2.0 * sqrt(max(0.0, 1.0 - latitude * latitude)) - 1.0;
+  float regionalNoise = fbm(objectPosition * 8.0 + vec3(seed * 0.01));
+  float terrainSignal = (regionalNoise - 0.5) * 0.34 - smoothstep(0.02, 0.10, elevation) * 0.26;
+  return clamp(latitudeClimate + terrainSignal * 0.55, -1.0, 1.0);
+}
 `;
 
 /** Lowest possible radial displacement produced by the terrain convention. */
-export const PLANET_TERRAIN_MIN_ELEVATION = -0.0475;
+export const PLANET_TERRAIN_MIN_ELEVATION = -0.062;
 
 /** Highest possible radial displacement produced by the terrain convention. */
-export const PLANET_TERRAIN_MAX_ELEVATION = 0.0825;
+export const PLANET_TERRAIN_MAX_ELEVATION = 0.14;
 
 /** Lowest rendered ocean level, kept just above the deepest terrain basin. */
-export const PLANET_WATER_MIN_ELEVATION = -0.045;
+export const PLANET_WATER_MIN_ELEVATION = -0.06;
 
-/** Highest liquid-ocean level, kept just below the tallest terrain summit. */
-export const PLANET_WATER_MAX_ELEVATION = 0.081;
+/** Highest liquid-ocean level, sufficient to cover the tallest terrain summit. */
+export const PLANET_WATER_MAX_ELEVATION = 0.145;
 
 /** Small radial expansion used for a completely frozen hydrosphere. */
 export const PLANET_ICE_SURFACE_EXPANSION = 0.001;
@@ -49,6 +94,7 @@ export const PLANET_ICE_SURFACE_EXPANSION = 0.001;
 export const PLANET_TERRAIN_VERTEX_SHADER = `
 uniform float uSeed;
 varying float vElevation;
+varying float vCanyon;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
 varying vec3 vViewNormal;
@@ -57,13 +103,11 @@ ${GLSL_NOISE}
 
 void main() {
   vec3 samplePoint = normalize(position) * 2.7 + vec3(uSeed * 0.017);
-  float warped = fbm(samplePoint * 0.75 + fbm(samplePoint * 1.8));
-  float continents = fbm(samplePoint + vec3(warped * 1.4));
-  float ridges = 1.0 - abs(fbm(samplePoint * 3.4) * 2.0 - 1.0);
-  float elevation = (continents - 0.5) * 0.095 + pow(ridges, 3.0) * 0.035;
+  float elevation = terrainElevation(samplePoint);
   vec3 displaced = position * (1.0 + elevation);
   vec4 viewPosition = modelViewMatrix * vec4(displaced, 1.0);
   vElevation = elevation;
+  vCanyon = terrainCanyon(samplePoint);
   vObjectPosition = normalize(position);
   vNormalDirection = normalize(mat3(modelMatrix) * normal);
   vViewNormal = normalize(normalMatrix * normal);
@@ -88,6 +132,7 @@ uniform float uMode;
 uniform float uLightLevel;
 uniform vec3 uLightDirection;
 varying float vElevation;
+varying float vCanyon;
 varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
 varying vec3 vViewNormal;
@@ -105,13 +150,10 @@ vec3 temperatureRamp(float temperatureC) {
 }
 
 void main() {
-  float latitude = abs(vObjectPosition.y);
   float localNoise = fbm(vObjectPosition * 8.0 + vec3(uSeed * 0.01));
   float moistureSupply = clamp(uEffectiveHumidity * 0.72 + uLiquidWater * 0.55 + uSurfaceWater * 0.08, 0.0, 1.0);
   float moisture = moistureSupply * (0.72 + localNoise * 0.42);
-  float latitudeSignal = 1.0 - latitude * 2.0;
-  float terrainSignal = (localNoise - 0.5) * 0.28 - smoothstep(0.02, 0.09, vElevation) * 0.18;
-  float thermalPosition = clamp(latitudeSignal * 1.12 + terrainSignal * 0.45, -1.0, 1.0);
+  float thermalPosition = localThermalPosition(vObjectPosition, vElevation, uSeed);
   float localTemperatureC = uMeanTemperatureC + uTemperatureVariationC * thermalPosition;
   float localFreeze = 1.0 - smoothstep(-2.0, 2.0, localTemperatureC);
   float iceSupply = smoothstep(0.001, 0.65, uIceWater);
@@ -122,7 +164,12 @@ void main() {
   float desert = dry * unfrozenGround * sandWeathering * uSandClimate * (1.0 - ice);
   float temperateMoisture = smoothstep(0.16, 0.68, moisture);
   float vegetationThermal = smoothstep(-8.0, 8.0, localTemperatureC) * (1.0 - smoothstep(45.0, 60.0, localTemperatureC));
-  float mountain = smoothstep(0.035, 0.075, vElevation);
+  float mountain = smoothstep(0.035, 0.105, vElevation);
+  float riverLines = 1.0 - smoothstep(0.018, 0.052, abs(fbm(vObjectPosition * 16.0 + vec3(uSeed * 0.043)) - 0.5));
+  float riverSupply = smoothstep(0.001, 0.10, uLiquidWater);
+  float largerWaterBodies = smoothstep(0.10, 0.25, uSurfaceWater);
+  float river = riverLines * riverSupply * (1.0 - largerWaterBodies * 0.72) * (1.0 - smoothstep(0.025, 0.105, vElevation));
+  float riverFreeze = localFreeze * smoothstep(0.0001, 0.02, uIceWater);
   float bioCoverage = smoothstep(0.24, 0.72, uBiosphere);
   float bioMask = smoothstep(0.42, 0.64, fbm(vObjectPosition * 11.0 + vec3(uSeed * 0.031))) * temperateMoisture * vegetationThermal * bioCoverage;
   float heatStress = smoothstep(65.0, 115.0, localTemperatureC);
@@ -132,16 +179,21 @@ void main() {
   vec3 rock = mix(vec3(0.19, 0.16, 0.15), vec3(0.38, 0.31, 0.25), localNoise);
   vec3 desertColor = vec3(0.64, 0.43, 0.22);
   vec3 dampSoilColor = vec3(0.24, 0.20, 0.17);
+  vec3 temperateGroundColor = vec3(0.12, 0.32, 0.18);
   vec3 biosphereColor = vec3(0.08, 0.47, 0.24);
+  float temperateGround = temperateMoisture * vegetationThermal * smoothstep(0.18, 0.7, uSurfaceWater) * uPressurePresence;
   vec3 color = rock;
   color = mix(color, desertColor, desert * 0.82);
-  color = mix(color, dampSoilColor, temperateMoisture * (1.0 - desert) * 0.55);
+  color = mix(color, mix(dampSoilColor, temperateGroundColor, temperateGround), temperateMoisture * (1.0 - desert) * 0.68);
+  color = mix(color, vec3(0.075, 0.052, 0.035), vCanyon * (1.0 - ice) * 0.58);
   color = mix(color, vec3(0.52, 0.49, 0.46), mountain * 0.75);
   color = mix(color, mix(vec3(0.13, 0.08, 0.06), vec3(0.32, 0.16, 0.08), localNoise), heatStress * 0.86);
   vec3 lavaColor = mix(vec3(0.24, 0.018, 0.004), vec3(1.0, 0.24, 0.008), lavaChannels);
   color = mix(color, lavaColor, moltenRock * (0.46 + lavaChannels * 0.54));
   color = mix(color, biosphereColor, bioMask * 0.98);
   color = mix(color, vec3(0.82, 0.91, 0.98), ice);
+  vec3 riverColor = mix(vec3(0.025, 0.19, 0.25), vec3(0.74, 0.88, 0.93), riverFreeze);
+  color = mix(color, riverColor, river * (0.82 - ice * 0.22));
 
   if (uMode > 0.5 && uMode < 1.5) {
     color = temperatureRamp(localTemperatureC);
@@ -171,11 +223,12 @@ varying vec3 vObjectPosition;
 varying vec3 vNormalDirection;
 varying vec3 vViewNormal;
 varying vec3 vViewDirection;
+${GLSL_NOISE}
 void main() {
   float seaLevel = mix(
     ${PLANET_WATER_MIN_ELEVATION.toFixed(4)},
     ${PLANET_WATER_MAX_ELEVATION.toFixed(4)},
-    smoothstep(0.0, 1.0, uSurfaceWater)
+    waterSeaProgress(uSurfaceWater)
   );
   seaLevel += smoothstep(0.0, 1.0, uIceWater) * ${PLANET_ICE_SURFACE_EXPANSION.toFixed(4)};
   vec3 displaced = position * (1.0 + seaLevel);
@@ -205,15 +258,17 @@ ${GLSL_NOISE}
 void main() {
   if (uSurfaceWater < 0.002) discard;
   vec3 samplePoint = vObjectPosition * 2.7 + vec3(uSeed * 0.017);
-  float warped = fbm(samplePoint * 0.75 + fbm(samplePoint * 1.8));
-  float terrain = fbm(samplePoint + vec3(warped * 1.4));
-  float threshold = mix(-0.05, 1.05, uSurfaceWater);
-  float oceanMask = 1.0 - smoothstep(threshold - 0.045, threshold + 0.045, terrain);
+  float localTerrainElevation = terrainElevation(samplePoint);
+  float seaLevel = mix(
+    ${PLANET_WATER_MIN_ELEVATION.toFixed(4)},
+    ${PLANET_WATER_MAX_ELEVATION.toFixed(4)},
+    waterSeaProgress(uSurfaceWater)
+  );
+  float oceanMask = 1.0 - smoothstep(seaLevel - 0.0035, seaLevel + 0.0035, localTerrainElevation);
   if (oceanMask < 0.02) discard;
   float wave = fbm(vObjectPosition * 18.0 + vec3(uTime * 0.025, 0.0, 0.0));
   float fresnel = pow(1.0 - max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0), 2.2);
-  float latitudeSignal = 1.0 - abs(vObjectPosition.y) * 2.0;
-  float thermalPosition = clamp(latitudeSignal * 1.12, -1.0, 1.0);
+  float thermalPosition = localThermalPosition(vObjectPosition, localTerrainElevation, uSeed);
   float localTemperatureC = uMeanTemperatureC + uTemperatureVariationC * thermalPosition;
   float localFreeze = 1.0 - smoothstep(-2.0, 2.0, localTemperatureC);
   float iceSupply = smoothstep(0.0001, 0.02, uIceWater);

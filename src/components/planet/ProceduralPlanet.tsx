@@ -495,10 +495,10 @@ function PlanetScene({
       <points frustumCulled={false} geometry={starGeometry} material={starMaterial} />
       <group ref={planetGroup} rotation={[0.08, -0.5, 0.03]}>
         <mesh material={terrainMaterial}>
-          <icosahedronGeometry args={[1, 7]} />
+          <icosahedronGeometry args={[1, 8]} />
         </mesh>
         <mesh material={waterMaterial}>
-          <icosahedronGeometry args={[1, 6]} />
+          <icosahedronGeometry args={[1, 7]} />
         </mesh>
         <mesh material={cloudMaterial} ref={cloudMesh} renderOrder={2} scale={1.105}>
           <icosahedronGeometry args={[1, 6]} />

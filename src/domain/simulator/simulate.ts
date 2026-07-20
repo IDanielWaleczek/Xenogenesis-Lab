@@ -17,7 +17,6 @@ import type {
 } from "./schema";
 import {
   calculateTraitCost,
-  hasTraitConflict,
   LIFE_ENERGY_BUDGET,
   sumTraitModifiers,
 } from "./traits";
@@ -52,14 +51,6 @@ export function runSurvivalSimulation(
   const world = normalizeWorldParameters(request.planet.world);
   const modifiers = sumTraitModifiers(request.traitIds);
   const traitCost = calculateTraitCost(request.traitIds);
-  if (traitCost > LIFE_ENERGY_BUDGET) {
-    throw new RangeError("Selected lifeform traits exceed the biological energy budget.");
-  }
-  for (const [index, traitId] of request.traitIds.entries()) {
-    if (hasTraitConflict(request.traitIds.slice(0, index), traitId)) {
-      throw new RangeError("Selected lifeform traits contain an incompatible combination.");
-    }
-  }
   const energyOverrun = clamp01(
     (traitCost - LIFE_ENERGY_BUDGET) / convention.energyOverrunScale,
   );

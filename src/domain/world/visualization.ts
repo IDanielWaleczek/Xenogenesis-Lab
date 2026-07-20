@@ -86,16 +86,17 @@ export function deriveSandClimateSuitability(
   );
 }
 
-/** Maps absolute normalized latitude to the configured hot-equator/cold-pole range. */
+/** Maps latitude and a small local terrain signal to the configured hot-equator/cold-pole range. */
 export function deriveLatitudinalTemperatureC(
   averageTemperatureC: number,
   temperatureVariationC: number,
   absoluteNormalizedLatitude: number,
   terrainSignal = 0,
 ): number {
-  const latitudeSignal = 1 - clamp(absoluteNormalizedLatitude, 0, 1) * 2;
+  const latitude = clamp(absoluteNormalizedLatitude, 0, 1);
+  const latitudeSignal = 2 * Math.sqrt(Math.max(0, 1 - latitude * latitude)) - 1;
   const thermalPosition = clamp(
-    latitudeSignal * 1.12 + clamp(terrainSignal, -1, 1) * 0.45,
+    latitudeSignal + clamp(terrainSignal, -1, 1) * 0.55,
     -1,
     1,
   );

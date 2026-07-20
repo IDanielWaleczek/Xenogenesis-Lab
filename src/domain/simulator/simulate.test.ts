@@ -486,11 +486,7 @@ describe("continuous survival simulator", () => {
     );
   });
 
-  it("rejects conflicting traits and selections above the energy budget", () => {
-    expect(() =>
-      runSurvivalSimulation(request(GENESIS_MISSION.planet, ["compactBody", "largeBody", "visibleVision"])),
-    ).toThrow(/incompatible/i);
-
+  it("allows unrestricted trait combinations for analysis", () => {
     const expensiveTraits: LifeTraitId[] = [
       "largeBody",
       "internalSkeleton",
@@ -509,8 +505,8 @@ describe("continuous survival simulator", () => {
     ];
 
     expect(calculateTraitCost(expensiveTraits)).toBeGreaterThan(LIFE_ENERGY_BUDGET);
-    expect(() => runSurvivalSimulation(request(GENESIS_MISSION.planet, expensiveTraits)))
-      .toThrow(/energy budget/i);
+    expect(runSurvivalSimulation(request(GENESIS_MISSION.planet, expensiveTraits)).traitIds)
+      .toEqual(expensiveTraits);
     expect(hasTraitConflict(["compactBody"], "largeBody")).toBe(true);
   });
 });
