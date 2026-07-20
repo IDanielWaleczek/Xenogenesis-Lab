@@ -146,6 +146,22 @@ describe("world parameter interactions", () => {
     expect(high.surfaceWaterFraction).toBeGreaterThan(medium.surfaceWaterFraction);
   });
 
+  it("uses the gravity-limited pressure for all atmospheric and water consequences", () => {
+    const state = deriveWorldInteractionState({
+      ...GENESIS_MISSION.planet.world,
+      gravityG: 0.2,
+      atmosphericPressureAtm: 5,
+      averageTemperatureC: 20,
+      temperatureVariationC: 0,
+      waterAvailability: 1,
+      humidity: 1,
+    });
+
+    expect(state.effectiveAtmosphericPressureAtm).toBe(4);
+    expect(state.exposedWaterPressureSupport).toBe(1);
+    expect(state.effectiveHumidity).toBeGreaterThan(0);
+  });
+
   it("reduces radiation continuously with the explicit magnetic field", () => {
     const unprotected = deriveEffectiveRadiationDose(3, 0);
     const partiallyProtected = deriveEffectiveRadiationDose(3, 0.5);
@@ -158,7 +174,7 @@ describe("world parameter interactions", () => {
   });
 
   it("keeps phase outputs finite, bounded, and mass-conserving across edge cases", () => {
-    const pressures = [0, 0.006, 0.007, 0.015, 0.03, 1, 5, 20];
+    const pressures = [0, 0.006, 0.007, 0.015, 0.03, 1, 5];
     const temperatures = [-273, -100, -40, 0, 36, 95, 150, 900, 1_800];
     const variations = [0, 4, 100];
     const inventories = [0, 0.5, 1];

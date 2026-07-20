@@ -23,9 +23,9 @@ There is no single hidden correct configuration. The tested model supports disti
 - Deterministic seeded WebGL planet rendered with Three.js, React Three Fiber, layered FBM/value noise, and custom GLSL shaders.
 - Persistent terrain geometry with smoothly interpolated phase-aware water/ice/vapor, sand, thermally altered rock, clouds, atmosphere, day/night illumination, radiation exposure, aurora, and biosphere uniforms.
 - Interactive orbit camera, zoom, day-side reset, automatic-rotation control, and realistic/temperature/radiation modes with labelled legends.
-- Eleven live environmental controls with preserved preferences and continuous derived interactions.
+- Eleven live environmental controls with preserved preferences, a gravity-dependent `0–100 atm` atmospheric ceiling, and continuous derived interactions including conditional dense-atmosphere weather.
 - Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, and a 100-point biological energy budget.
-- Deterministic simulator 1.5.0 with phase-aware water and humidity coupling, effective dependent controls, 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
+- Deterministic simulator 1.6.0 with phase-aware water and humidity coupling, conditional dense-atmosphere thermal and storm behavior, effective dependent controls, 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
 - Deterministic code-native organism morphology that responds to the seed, environment, movement, body, sensory, and adaptation traits.
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
 - Optional server-only `gpt-image-2` field illustration. GPT selects only validated art-direction enums; the server constructs the final prompt from calculated facts and selected traits.
@@ -84,7 +84,7 @@ In-memory caches use a stable hash of mission, planet, traits, result, and langu
 
 ## Scientific scope
 
-Simulator 1.5.0 is a scientifically inspired educational model, not a complete climate, geology, radiation-transport, ecosystem, genetics, or evolutionary model. Its formulas are continuous and deterministic, but its weights and success convention are documented model choices. Six representative habitats are scored instead of a spatial climate grid. The shader terrain consumes shared derived state but remains a visual interpretation.
+Simulator 1.6.0 is a scientifically inspired educational model, not a complete climate, geology, radiation-transport, ecosystem, genetics, or evolutionary model. Its formulas are continuous and deterministic, but its weights and success convention are documented model choices. Six representative habitats are scored instead of a spatial climate grid. The shader terrain consumes shared derived state but remains a visual interpretation.
 
 Important conservative boundaries include:
 

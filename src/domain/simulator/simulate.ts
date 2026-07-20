@@ -70,7 +70,7 @@ export function runSurvivalSimulation(
 
   // Independent user inputs are preserved; only their derived physical expression is coupled.
   const interactions = deriveWorldInteractionState(world);
-  const effectivePressureAtm = world.atmosphericPressureAtm;
+  const effectivePressureAtm = world.effectiveAtmosphericPressureAtm;
   const effectiveOxygenPartialPressureAtm = world.oxygenPartialPressureAtm;
   const effectiveMinimumTemperatureC = world.temperatureRangeC.minimum;
   const effectiveMaximumTemperatureC = world.temperatureRangeC.maximum;
@@ -479,7 +479,7 @@ export function runSurvivalSimulation(
   return SurvivalSimulationResultSchema.parse({
     missionId: request.missionId,
     simulatorVersion: SIMULATOR_VERSION,
-    stateHash: hashSimulationState(request),
+    stateHash: hashSimulationState({ simulatorVersion: SIMULATOR_VERSION, request }),
     outcome,
     missionSuccess,
     objectiveScore: advancedLifePotential,

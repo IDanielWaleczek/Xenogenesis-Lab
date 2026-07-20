@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  deriveEffectiveAtmosphericPressureAtm,
+  deriveGravityPressureLimitAtm,
   WorldParametersSchema,
   normalizeWorldParameters,
 } from "./schema";
@@ -78,6 +80,13 @@ describe("WorldParametersSchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("derives an immediate gravity-dependent pressure ceiling", () => {
+    expect(deriveGravityPressureLimitAtm(0.2)).toBe(0.2);
+    expect(deriveGravityPressureLimitAtm(1)).toBe(5);
+    expect(deriveGravityPressureLimitAtm(3)).toBe(5);
+    expect(deriveEffectiveAtmosphericPressureAtm(0.2, 5)).toBe(0.2);
+  });
 });
 
 describe("normalizeWorldParameters", () => {
@@ -111,8 +120,22 @@ describe("normalizeWorldParameters", () => {
     });
 
     expect(result.temperatureRangeC).toEqual({ minimum: 5, maximum: 35 });
+    expect(result.effectiveAtmosphericPressureAtm).toBe(1);
     expect(result.oxygenPartialPressureAtm).toBeCloseTo(0.21, 8);
     expect(result.atmosphericDensityKgM3).toBeCloseTo(1.204, 3);
+  });
+
+  it("uses the gravity-limited pressure for oxygen partial pressure and density", () => {
+    const result = normalizeWorldParameters({
+      ...createReferenceWorld(),
+      gravityG: 0.2,
+      atmosphericPressureAtm: 100,
+      atmosphericMeanMolarMassKgPerMol: 0.028_97,
+    });
+
+    expect(result.effectiveAtmosphericPressureAtm).toBe(4);
+    expect(result.oxygenPartialPressureAtm).toBeCloseTo(0.84, 8);
+    expect(result.atmosphericDensityKgM3).toBeCloseTo(4.817, 3);
   });
 
   it("accepts vacuum pressure and derives no oxygen partial pressure or atmospheric density", () => {

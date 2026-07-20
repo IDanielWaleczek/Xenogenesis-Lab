@@ -4,7 +4,7 @@ import { WorldParametersSchema } from "../world/schema";
 import { SIMULATOR_CONVENTIONS } from "./coefficients";
 
 /** Version of the continuous suitability and population model. */
-export const SIMULATOR_VERSION = "1.5.0";
+export const SIMULATOR_VERSION = "1.6.0";
 
 /** Meaningful traits available in the first lifeform designer. */
 export const LifeTraitIdSchema = z.enum([
@@ -102,7 +102,7 @@ const ScoreSchema = z.number().finite().min(0).max(1);
 export const SurvivalSimulationResultSchema = z
   .object({
     missionId: z.literal("genesis-01"),
-    simulatorVersion: z.literal("1.5.0"),
+    simulatorVersion: z.literal("1.6.0"),
     stateHash: z.string().min(8),
     outcome: z.enum([
       "immediateExtinction",

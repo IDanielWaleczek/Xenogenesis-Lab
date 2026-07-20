@@ -11,7 +11,6 @@ Avoid excessive neon, generic cyberpunk ornament, oversized mobile cards, long o
 ```text
 Cinematic boot
 └── Single-screen laboratory
-    ├── Left: mission guidance + live physical readouts
     ├── Center: planet while engineering; organism while designing; analysis while interpreting
     ├── Right: phase controls; Planet engineering always owns world parameters here
     └── Floating actions: camera and rotation
@@ -21,7 +20,7 @@ The important object changes with the phase. Planet engineering centers the proc
 
 ## Startup
 
-The application begins on a real startup state, not directly inside a mission. The animation presents the Xenogenesis mark in a field of stars, orbiting planets, and a small life-like orbital signal. It does not enter the laboratory automatically and offers one explicit Begin training action. It is an atmospheric introduction, not a fake loading or remote-system diagnostic. Reduced-motion preferences collapse its motion without blocking entry.
+The application begins on a real startup state, not directly inside the laboratory. The animation presents the Xenogenesis mark in a field of stars, orbiting planets, and a small life-like orbital signal. It does not enter the laboratory automatically and offers one explicit Open laboratory action. It is an atmospheric introduction, not a fake loading or remote-system diagnostic. Reduced-motion preferences collapse its motion without blocking entry.
 
 Do not imply a remote service is contacted during local shader or rules initialization.
 
@@ -29,7 +28,7 @@ Do not imply a remote service is contacted during local shader or rules initiali
 
 At widths above `1080px`, use a full-screen `100svh` shell without global page scrolling:
 
-- the left and right panels scroll independently;
+- the right panel scrolls independently;
 - the phase's primary visual stays centered;
 - the current phase and next action stay visible;
 - scientific overlays appear above the same persistent scene;
@@ -39,7 +38,7 @@ The central globe supports drag rotation, wheel zoom, camera reset, and paused/r
 
 ## Responsive behavior
 
-At narrower widths, phase navigation becomes a sticky three-tab control and the visual stage remains sticky below it. The planet therefore remains visible while the learner scrolls controls or results; during Design life, the organism is the persistent central visual and a smaller planet remains visible beside it. A separate mobile hint names one-finger rotation and two-finger pinch zoom. Environment controls may use two columns on tablet and one on phone. Do not horizontally compress all three desktop columns.
+At narrower widths, phase navigation becomes a sticky three-tab control and the visual stage remains sticky below it. The planet therefore remains visible while the learner scrolls controls or results; during Design life, the organism is the persistent central visual and a smaller planet remains visible beside it. A separate mobile hint names one-finger rotation and two-finger pinch zoom. Environment controls may use two columns on tablet and one on phone. Do not horizontally compress the desktop visual stage and controls.
 
 ## Visual system
 
@@ -66,11 +65,11 @@ The planet is not a static image or pre-rendered texture. It is a deterministic 
 8. conditional, broken polar auroral ovals without magnetic field-line geometry;
 9. result-driven representative region markers.
 
-All environment controls update shader targets. Uniforms ease toward those targets, so ice, water, cloud, atmosphere, illumination, relief, and biome changes appear as a process rather than a texture swap. Geometry remains allocated across changes. Range thumbs retain native immediate movement, use a larger hit area, and coalesce derived-world updates to one per rendered frame during a drag.
+All environment controls update shader targets. Uniforms ease toward those targets, so ice, water, cloud, atmosphere, illumination, relief, and biome changes appear as a process rather than a texture swap. Geometry remains allocated across changes. Range thumbs retain native immediate movement, use a larger hit area, and coalesce derived-world updates to one per rendered frame during a drag. The temperature slider maps its left half from the configured minimum to `90°C`, then maps its right half to the positive maximum so the broad high-temperature range remains practical to reach.
 
 Water coverage maps `0%` to no visible surface water and raises the ocean from the deepest basins toward the highest summit as it approaches `100%`; the water mesh is not globally enlarged above the terrain. Freezing requires supplied water and phase support: `36±4°C` cannot create snow, while `−40±4°C` freezes the complete exposed inventory. Mixed climates render phase locally: for example, an equator at `41°C` remains liquid while sub-zero polar water freezes. Mean temperature and variation produce local thermal zones in degrees Celsius; the equator reaches the configured hot extreme and the poles reach the cold extreme. Clouds require effective humidity, exposed water, and atmosphere; zero water or zero humidity produces exactly zero cloud cover. Dry terrain becomes sandy under mild conditions because aridity, not a `60°C` switch, is the primary visual control. Plant-like green coverage fades from `45°C` and is absent by `60°C`. The expanded `−273…1800°C` mean range uses a basaltic visual convention: melting blends in across `780–1050°C`, and glowing channels become visible without claiming active volcanism. At zero local pressure, exposed water, clouds, atmosphere, atmospheric rim light, and auroras disappear immediately; the radiation overlay remains available only after explicitly selecting its scientific view. A distant, enlarged sun supplies one world-space lighting direction; reset starts on its day side and the darker hemisphere remains readable. Its white-orange surface uses slowly animated multi-scale noise for convection-like cells, darker filaments, a bright limb, and a restrained corona. It rotates at a deliberately much slower rate than the planet, so it reads as a stellar body rather than a second planet. This is visual storytelling, not a stellar-physics calculation. Deep-space stars are Three.js points on seeded three-dimensional shells outside the rotating planet group. Temperature and radiation overlays have labelled three-point legends and remain communication overlays, not physical sensor products.
 
-Gravity does not reshape continents, recolor snow, or overwrite supplied atmosphere and water. It remains a deterministic biological and movement input; inferring volatile retention without mass, radius, composition, temperature history, stellar wind, and geology would be false precision. Magnetic field is communicated through radiation exposure and an atmospheric aurora rather than field lines. Auroras strengthen smoothly only when atmosphere, magnetic field, and incident radiation are all present; they are not a magnetosphere or particle-transport calculation.
+Gravity does not reshape continents or recolor snow. It immediately caps effective surface pressure with the documented educational ceiling `min(stored pressure, 5 × gravity²) atm`, capped at `5 atm`; the stored pressure preference remains available when gravity increases. This limit propagates to gas partial pressure, density, water stability, humidity, clouds, and aurora support. A complete escape model would still require radius, mass distribution, composition, temperature history, stellar wind, and high-energy stellar output. Magnetic field is communicated through radiation exposure and an atmospheric aurora rather than field lines. Auroras strengthen smoothly only when atmosphere, magnetic field, and incident radiation are all present; they are not a magnetosphere or particle-transport calculation.
 
 ## Environment controls
 

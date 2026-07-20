@@ -7,6 +7,8 @@ import type {
   SurvivalSimulationResult,
 } from "./schema";
 import { LifeConsultantContentSchema } from "./schema";
+import { normalizeWorldParameters } from "../world/schema";
+import { deriveWorldInteractionState } from "../world/interactions";
 
 const METRIC_LABELS: Record<
   SimulatorLanguage,
@@ -91,6 +93,8 @@ export function buildControlledOrganismImagePrompt(
   result: SurvivalSimulationResult,
   consultantDirection: LifeConsultantContent["imageDirection"],
 ): string {
+  const normalizedWorld = normalizeWorldParameters(request.planet.world);
+  const interactions = deriveWorldInteractionState(request.planet.world);
   const pose = {
     resting: "resting in a stable pose",
     foraging: "foraging for its configured energy source",
@@ -116,7 +120,7 @@ export function buildControlledOrganismImagePrompt(
   return [
     "Scientific astrobiology field illustration, square composition, no text, no labels, no logos.",
     `Planet seed: ${request.planet.seed}. Habitat: ${request.planet.world.habitat}.`,
-    `Local gravity ${request.planet.world.gravityG.toFixed(2)} g, pressure ${request.planet.world.atmosphericPressureAtm.toFixed(2)} atm, temperature ${request.planet.world.averageTemperatureC.toFixed(1)} C, water ${(request.planet.world.waterAvailability * 100).toFixed(0)} percent, radiation ${request.planet.world.radiationDoseRate.value.toFixed(3)} ${request.planet.world.radiationDoseRate.unit}.`,
+    `Local gravity ${request.planet.world.gravityG.toFixed(2)} g, effective pressure ${normalizedWorld.effectiveAtmosphericPressureAtm.toFixed(2)} atm, temperature ${request.planet.world.averageTemperatureC.toFixed(1)} C, water ${(request.planet.world.waterAvailability * 100).toFixed(0)} percent, radiation ${request.planet.world.radiationDoseRate.value.toFixed(3)} ${request.planet.world.radiationDoseRate.unit}.`,
     `Validated traits: ${request.traitIds.join(", ")}.`,
     `Deterministic outcome: ${result.outcome}; habitable regions: ${result.habitableRegions.join(", ") || "none"}.`,
     "Depict only anatomy supported by those traits. Show the organism inside a matching planetary environment. Neutral scientific concept art, realistic materials, full organism visible, restrained palette.",

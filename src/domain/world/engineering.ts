@@ -1,4 +1,8 @@
-import { WorldParametersSchema, type WorldParameters } from "./schema";
+import {
+  deriveGravityPressureLimitAtm,
+  WorldParametersSchema,
+  type WorldParameters,
+} from "./schema";
 import {
   ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM,
   deriveWorldInteractionState,
@@ -20,6 +24,7 @@ export type WorldEngineeringParameterId =
 
 export type WorldEngineeringConstraint =
   | "requiresAtmosphere"
+  | "gravityLimited"
   | "requiresWaterPressure"
   | "surfaceWaterBoils"
   | "surfaceWaterLimited"
@@ -72,16 +77,28 @@ export function deriveWorldEngineeringControlState(
   const interactions = deriveWorldInteractionState(world);
   const preferredValue = readWorldParameterPreference(world, id);
 
+  if (id === "pressure") {
+    const pressureLimit = deriveGravityPressureLimitAtm(world.gravityG);
+    const gravityLimited = preferredValue > pressureLimit + CONTROL_SUPPORT_EPSILON;
+    return {
+      disabled: false,
+      displayedValue: interactions.effectiveAtmosphericPressureAtm,
+      preferredValue,
+      constraint: gravityLimited ? "gravityLimited" : null,
+    };
+  }
+
   if (id === "oxygen" || id === "carbonDioxide") {
     const fraction =
       id === "oxygen"
         ? world.atmosphereComposition.oxygenFraction
         : world.atmosphereComposition.carbonDioxideFraction;
     const disabled =
-      world.atmosphericPressureAtm < ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM;
+      interactions.effectiveAtmosphericPressureAtm <
+      ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM;
     return {
       disabled,
-      displayedValue: world.atmosphericPressureAtm * fraction,
+      displayedValue: interactions.effectiveAtmosphericPressureAtm * fraction,
       preferredValue,
       constraint: disabled ? "requiresAtmosphere" : null,
     };
@@ -116,7 +133,8 @@ export function deriveWorldEngineeringControlState(
     const humiditySupport = fullPreferenceState.effectiveHumidity;
     const disabled = humiditySupport <= CONTROL_SUPPORT_EPSILON;
     const constraint =
-      world.atmosphericPressureAtm < ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM
+      interactions.effectiveAtmosphericPressureAtm <
+      ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM
         ? "requiresAtmosphere"
         : !interactions.supportsSurfaceWater
           ? "requiresSurfaceWater"
@@ -197,13 +215,15 @@ export function applyWorldEngineeringControlChange(
   displayedValue: number,
 ): WorldParameters {
   if (id === "oxygen" || id === "carbonDioxide") {
-    if (world.atmosphericPressureAtm < ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM) {
+    const effectivePressureAtm = deriveWorldInteractionState(world)
+      .effectiveAtmosphericPressureAtm;
+    if (effectivePressureAtm < ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM) {
       return world;
     }
     return applyWorldParameterChange(
       world,
       id,
-      (displayedValue / world.atmosphericPressureAtm) * 100,
+      (displayedValue / effectivePressureAtm) * 100,
     );
   }
 

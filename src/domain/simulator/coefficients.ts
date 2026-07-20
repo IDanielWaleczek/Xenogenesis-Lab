@@ -1,5 +1,5 @@
 /**
- * Versioned educational conventions for simulator 1.5.0.
+ * Versioned educational conventions for simulator 1.6.0.
  * Values are internally consistent tuning coefficients, not universal biological constants.
  */
 export const SIMULATOR_CONVENTIONS = {

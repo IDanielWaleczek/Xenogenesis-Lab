@@ -21,6 +21,33 @@ export const MIN_AVERAGE_TEMPERATURE_C = -273;
 /** Hottest editable mean temperature, sufficient for a molten rocky surface. */
 export const MAX_AVERAGE_TEMPERATURE_C = 1_800;
 
+/** Maximum exposed surface pressure represented by the planet-engineering control. */
+export const MAX_EFFECTIVE_SURFACE_PRESSURE_ATM = 5;
+
+/** Educational immediate-retention scale used to cap pressure by surface gravity. */
+export const GRAVITY_PRESSURE_CAP_ATM_PER_G_SQUARED = 5;
+
+/** Derives the pressure ceiling available at a supplied surface gravity. */
+export function deriveGravityPressureLimitAtm(gravityG: number): number {
+  const pressureLimit = Math.min(
+    MAX_EFFECTIVE_SURFACE_PRESSURE_ATM,
+    Math.pow(Math.max(0, gravityG), 2) *
+      GRAVITY_PRESSURE_CAP_ATM_PER_G_SQUARED,
+  );
+  return Math.round(pressureLimit * 1_000_000_000) / 1_000_000_000;
+}
+
+/** Applies the gravity ceiling immediately without mutating the stored pressure preference. */
+export function deriveEffectiveAtmosphericPressureAtm(
+  gravityG: number,
+  atmosphericPressureAtm: number,
+): number {
+  return Math.min(
+    Math.max(0, atmosphericPressureAtm),
+    deriveGravityPressureLimitAtm(gravityG),
+  );
+}
+
 /** Supported habitats for the MVP deterministic model. */
 export const HabitatSchema = z.enum([
   "open surface",
@@ -90,7 +117,7 @@ export const RadiationDoseRateSchema = z
 export const WorldParametersSchema = z
   .object({
     gravityG: z.number().finite().min(0.05).max(5),
-    atmosphericPressureAtm: z.number().finite().min(0).max(20),
+    atmosphericPressureAtm: z.number().finite().min(0).max(5),
     atmosphereComposition: AtmosphereCompositionSchema,
     averageTemperatureC: z
       .number()
@@ -177,6 +204,7 @@ export type TemperatureRangeC = {
 export type NormalizedWorldParameters = WorldParameters & {
   radiationDoseRateMilliSvPerHour: number;
   temperatureRangeC: TemperatureRangeC;
+  effectiveAtmosphericPressureAtm: number;
   oxygenPartialPressureAtm: number;
   atmosphericDensityKgM3?: number;
   hasUsableAlternativeEnergyPathway: boolean;
@@ -243,11 +271,15 @@ export function normalizeWorldParameters(
   input: WorldParametersInput,
 ): NormalizedWorldParameters {
   const parameters = WorldParametersSchema.parse(input);
+  const effectiveAtmosphericPressureAtm = deriveEffectiveAtmosphericPressureAtm(
+    parameters.gravityG,
+    parameters.atmosphericPressureAtm,
+  );
   const atmosphericDensityKgM3 =
     parameters.atmosphericMeanMolarMassKgPerMol === undefined
       ? undefined
       : calculateAtmosphericDensityKgM3(
-          parameters.atmosphericPressureAtm,
+          effectiveAtmosphericPressureAtm,
           parameters.averageTemperatureC,
           parameters.atmosphericMeanMolarMassKgPerMol,
         );
@@ -260,8 +292,9 @@ export function normalizeWorldParameters(
       parameters.averageTemperatureC,
       parameters.temperatureVariationC,
     ),
+    effectiveAtmosphericPressureAtm,
     oxygenPartialPressureAtm: calculateOxygenPartialPressureAtm(
-      parameters.atmosphericPressureAtm,
+      effectiveAtmosphericPressureAtm,
       parameters.atmosphereComposition.oxygenFraction,
     ),
     atmosphericDensityKgM3,

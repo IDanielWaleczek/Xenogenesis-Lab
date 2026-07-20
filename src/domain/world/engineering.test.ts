@@ -137,16 +137,37 @@ describe("world engineering preferences", () => {
     expect(world.humidity).toBeCloseTo(0.4, 6);
   });
 
-  it("does not rewrite pressure or temperature variation from gravity", () => {
+  it("limits effective pressure immediately while preserving the stored pressure preference", () => {
     let world = applyWorldParameterChange(
       GENESIS_MISSION.planet.world,
       "pressure",
       5,
     );
     world = applyWorldParameterChange(world, "temperatureVariation", 4);
-    world = applyWorldParameterChange(world, "gravity", 0.05);
+    world = applyWorldParameterChange(world, "oxygen", 21);
 
-    expect(world.atmosphericPressureAtm).toBe(5);
+    const supported = deriveWorldEngineeringControlState(world, "pressure");
+    expect(supported.displayedValue).toBe(5);
+    expect(supported.disabled).toBe(false);
+
+    world = applyWorldParameterChange(world, "gravity", 0.05);
+    const limited = deriveWorldEngineeringControlState(world, "pressure");
+    expect(limited.displayedValue).toBeCloseTo(0.25, 8);
+    expect(limited.preferredValue).toBe(5);
+    expect(limited.disabled).toBe(false);
+    expect(limited.constraint).toBe("gravityLimited");
+
+    world = applyWorldEngineeringControlChange(world, "pressure", 0.1);
+    expect(world.atmosphericPressureAtm).toBeCloseTo(0.1, 8);
+    expect(deriveWorldEngineeringControlState(world, "pressure").constraint).toBeNull();
+
+    const oxygen = deriveWorldEngineeringControlState(world, "oxygen");
+    expect(oxygen.displayedValue).toBeCloseTo(0.021, 8);
+
+    world = applyWorldParameterChange(world, "gravity", 1);
+
+    expect(world.atmosphericPressureAtm).toBe(0.1);
     expect(world.temperatureVariationC).toBe(4);
+    expect(deriveWorldEngineeringControlState(world, "pressure").displayedValue).toBe(0.1);
   });
 });

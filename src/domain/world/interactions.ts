@@ -1,4 +1,8 @@
-import { deriveTemperatureRangeC, type WorldParameters } from "./schema";
+import {
+  deriveEffectiveAtmosphericPressureAtm,
+  deriveTemperatureRangeC,
+  type WorldParameters,
+} from "./schema";
 
 /** Water triple-point pressure converted from 6.11657 mbar to atmospheres. */
 export const WATER_TRIPLE_POINT_PRESSURE_ATM = 0.006_036;
@@ -36,8 +40,22 @@ export type WaterPhaseFractions = {
   vapor: number;
 };
 
+/** Normalizes phase weights so floating-point rounding cannot create water mass. */
+function normalizeWaterPhaseFractions(
+  fractions: WaterPhaseFractions,
+): WaterPhaseFractions {
+  const total = fractions.ice + fractions.liquid + fractions.vapor;
+  if (total <= Number.EPSILON) return { ice: 0, liquid: 0, vapor: 0 };
+  return {
+    ice: fractions.ice / total,
+    liquid: fractions.liquid / total,
+    vapor: fractions.vapor / total,
+  };
+}
+
 export type WorldInteractionState = {
   hasAtmosphere: boolean;
+  effectiveAtmosphericPressureAtm: number;
   supportsSurfaceWater: boolean;
   supportsHumidity: boolean;
   estimatedWaterBoilingPointC: number | null;
@@ -138,7 +156,7 @@ export function deriveWaterPhaseFractions(
   };
 
   if (temperatureVariationC <= Number.EPSILON) {
-    return accumulate(averageTemperatureC);
+    return normalizeWaterPhaseFractions(accumulate(averageTemperatureC));
   }
 
   const range = deriveTemperatureRangeC(averageTemperatureC, temperatureVariationC);
@@ -152,18 +170,21 @@ export function deriveWaterPhaseFractions(
     vapor += weights.vapor;
   }
 
-  return {
+  return normalizeWaterPhaseFractions({
     ice: ice / TEMPERATURE_RANGE_SAMPLE_COUNT,
     liquid: liquid / TEMPERATURE_RANGE_SAMPLE_COUNT,
     vapor: vapor / TEMPERATURE_RANGE_SAMPLE_COUNT,
-  };
+  });
 }
 
 /** Derives continuous physical consequences from explicit inputs without mutating them. */
 export function deriveWorldInteractionState(
   world: WorldParameters,
 ): WorldInteractionState {
-  const pressureAtm = Math.max(0, world.atmosphericPressureAtm);
+  const pressureAtm = deriveEffectiveAtmosphericPressureAtm(
+    world.gravityG,
+    world.atmosphericPressureAtm,
+  );
   const hasAtmosphere = pressureAtm >= ATMOSPHERE_CONTROL_MIN_PRESSURE_ATM;
   const atmospherePresence = 1 - Math.exp(-pressureAtm / 0.05);
   const estimatedWaterBoilingPointC = estimateWaterBoilingPointC(pressureAtm);
@@ -212,9 +233,9 @@ export function deriveWorldInteractionState(
     0,
     1,
   );
-
   return {
     hasAtmosphere,
+    effectiveAtmosphericPressureAtm: pressureAtm,
     supportsSurfaceWater: surfaceWaterFraction > 0.000_001,
     supportsHumidity: effectiveHumidity > 0.000_001,
     estimatedWaterBoilingPointC,

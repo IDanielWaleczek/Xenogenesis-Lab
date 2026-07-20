@@ -178,7 +178,7 @@ export function derivePlanetVisualizationState(
     clamp(0.34 + oxygen * 1.45 - dust * 0.26, 0, 1),
   ] as const;
   const atmosphereDensity = clamp(
-    1 - Math.exp(-world.atmosphericPressureAtm / 1.1),
+    1 - Math.exp(-interactions.effectiveAtmosphericPressureAtm / 1.1),
     0,
     1,
   );

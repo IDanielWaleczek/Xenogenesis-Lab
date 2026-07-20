@@ -34,7 +34,10 @@ import {
   applyWorldEngineeringControlChange,
   deriveWorldEngineeringControlState,
 } from "@/domain/world/engineering";
-import { normalizeWorldParameters } from "@/domain/world/schema";
+import {
+  deriveGravityPressureLimitAtm,
+} from "@/domain/world/schema";
+import { deriveWorldInteractionState } from "@/domain/world/interactions";
 import type { WorldParameters } from "@/domain/world/schema";
 import {
   MAX_AVERAGE_TEMPERATURE_C,
@@ -90,7 +93,7 @@ const PARAMETER_CONFIG: Array<{
 }> = [
   { id: "gravity", min: 0.05, max: 3, step: 0.01, captionThresholds: [0.15, 0.35, 0.7, 1.2, 2] },
   { id: "light", min: 0, max: 100, step: 1, captionThresholds: [5, 20, 45, 75, 90] },
-  { id: "pressure", min: 0, max: 5, step: 0.01, captionThresholds: [0.001, 0.05, 0.5, 1.5, 3] },
+  { id: "pressure", min: 0, max: 5, step: 0.01, captionThresholds: [0.001, 0.05, 0.5, 1.5, 3.5] },
   { id: "carbonDioxide", min: 0, max: 0.6, step: 0.0001, captionThresholds: [0.0001, 0.005, 0.02, 0.08, 0.2] },
   { id: "oxygen", min: 0, max: 1.6, step: 0.001, captionThresholds: [0.001, 0.03, 0.1, 0.25, 0.5] },
   { id: "temperature", min: MIN_AVERAGE_TEMPERATURE_C, max: MAX_AVERAGE_TEMPERATURE_C, step: 1, captionThresholds: [-100, 0, 50, 800, 1_200] },
@@ -101,7 +104,7 @@ const PARAMETER_CONFIG: Array<{
   { id: "radiation", min: 0, max: 3, step: 0.01, captionThresholds: [0.01, 0.1, 0.5, 1.5, 2.5] },
 ];
 
-/** Creates a fresh validated copy of the immutable mission baseline. */
+/** Creates a fresh validated copy of the immutable laboratory baseline. */
 function createBaselinePlanet(): PlanetState {
   return PlanetStateSchema.parse(GENESIS_MISSION.planet);
 }
@@ -123,6 +126,8 @@ function deriveParameterControlState(
     world,
     parameter.id,
   );
+  const effectivePressureAtm = deriveWorldInteractionState(world)
+    .effectiveAtmosphericPressureAtm;
   const value = engineeringState.displayedValue;
   const thresholdIndex = parameter.captionThresholds.findIndex(
     (threshold) => value < threshold,
@@ -137,9 +142,9 @@ function deriveParameterControlState(
       : parameter.min;
   const max =
     parameter.id === "oxygen"
-      ? world.atmosphericPressureAtm * 0.32
+      ? effectivePressureAtm * 0.32
       : parameter.id === "carbonDioxide"
-        ? world.atmosphericPressureAtm * 0.12
+        ? effectivePressureAtm * 0.12
         : parameter.id === "water"
           ? deriveWorldEngineeringControlState(
               { ...world, waterAvailability: 1 },
@@ -150,12 +155,14 @@ function deriveParameterControlState(
                 { ...world, humidity: 1 },
                 "humidity",
               ).displayedValue
-        : parameter.id === "temperatureVariation"
-          ? Math.min(
-              parameter.max,
-              world.averageTemperatureC - MIN_AVERAGE_TEMPERATURE_C,
-            )
-          : parameter.max;
+            : parameter.id === "pressure"
+              ? deriveGravityPressureLimitAtm(world.gravityG)
+              : parameter.id === "temperatureVariation"
+                ? Math.min(
+                    parameter.max,
+                    world.averageTemperatureC - MIN_AVERAGE_TEMPERATURE_C,
+                  )
+                : parameter.max;
 
   return {
     constraint,
@@ -229,7 +236,14 @@ function ParameterControl({
 }) {
   const digits = step < 0.001 ? 4 : step < 0.01 ? 3 : step < 0.1 ? 2 : step < 1 ? 1 : 0;
   const display = `${formatNumber(value, language, digits)} ${unit}`;
-  const position = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  const usesTemperatureCurve = id === "temperature" && min < 90 && max > 90;
+  const position = usesTemperatureCurve
+    ? value <= 90
+      ? ((value - min) / (90 - min)) * 50
+      : 50 + ((value - 90) / (max - 90)) * 50
+    : max > min
+      ? ((value - min) / (max - min)) * 100
+      : 0;
   const descriptionId = `parameter-${id}-description`;
   const constraintId = `parameter-${id}-constraint`;
   const rangeRef = useRef<HTMLInputElement>(null);
@@ -244,9 +258,9 @@ function ParameterControl({
   useEffect(() => {
     const range = rangeRef.current;
     if (!range) return;
-    range.value = String(value);
+    range.value = String(usesTemperatureCurve ? position : value);
     range.style.setProperty("--range-position", `${position}%`);
-  }, [position, value]);
+  }, [position, usesTemperatureCurve, value]);
 
   useEffect(
     () => () => {
@@ -270,8 +284,25 @@ function ParameterControl({
 
   /** Keeps the thumb native and immediate while limiting expensive world updates to one per frame. */
   const queueValueChange = (range: HTMLInputElement) => {
-    const nextValue = Number(range.value);
-    const nextPosition = max > min ? ((nextValue - min) / (max - min)) * 100 : 0;
+    const rangeValue = Number(range.value);
+    const nextValue = usesTemperatureCurve
+      ? Math.min(
+          max,
+          Math.max(
+            min,
+            Math.round(
+              (rangeValue <= 50
+                ? min + (rangeValue / 50) * (90 - min)
+                : 90 + ((rangeValue - 50) / 50) * (max - 90)) / step,
+            ) * step,
+          ),
+        )
+      : rangeValue;
+    const nextPosition = usesTemperatureCurve
+      ? rangeValue
+      : max > min
+        ? ((rangeValue - min) / (max - min)) * 100
+        : 0;
     range.style.setProperty("--range-position", `${nextPosition}%`);
     pendingValueRef.current = nextValue;
     if (animationFrameRef.current !== null) return;
@@ -291,13 +322,16 @@ function ParameterControl({
       </div>
       <input
         aria-describedby={`${descriptionId}${constraint ? ` ${constraintId}` : ""}`}
+        aria-valuemax={max}
+        aria-valuemin={min}
+        aria-valuenow={value}
         aria-valuetext={display}
         className="xl-range"
-        defaultValue={value}
+        defaultValue={usesTemperatureCurve ? position : value}
         disabled={disabled}
         id={`parameter-${id}`}
-        max={max}
-        min={min}
+        max={usesTemperatureCurve ? 100 : max}
+        min={usesTemperatureCurve ? 0 : min}
         onBlur={commitPendingValue}
         onInput={(event) => queueValueChange(event.currentTarget)}
         onPointerCancel={commitPendingValue}
@@ -311,7 +345,7 @@ function ParameterControl({
           commitPendingValue();
         }}
         ref={rangeRef}
-        step={step}
+        step={usesTemperatureCurve ? 0.01 : step}
         style={{ "--range-position": `${position}%` } as React.CSSProperties}
         type="range"
       />
@@ -377,7 +411,7 @@ function PopulationChart({
   );
 }
 
-/** Full application surface for one repeatable procedural life-engineering mission. */
+/** Full application surface for one repeatable procedural life-engineering workspace. */
 export default function Home() {
   const [screen, setScreen] = useState<SystemScreen>("boot");
   const [language, setLanguage] = useState<Language>("en");
@@ -401,7 +435,10 @@ export default function Home() {
   const stateEpoch = useRef(0);
   const copy = COPY[language];
   const traitCost = calculateTraitCost(traitIds);
-  const normalizedWorld = useMemo(() => normalizeWorldParameters(planet.world), [planet.world]);
+  const interactionState = useMemo(
+    () => deriveWorldInteractionState(planet.world),
+    [planet.world],
+  );
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -434,7 +471,7 @@ export default function Home() {
     invalidateCalculatedState();
   };
 
-  const resetMission = () => {
+  const resetLab = () => {
     stateEpoch.current += 1;
     simulationRunId.current += 1;
     setPlanet(createBaselinePlanet());
@@ -595,21 +632,16 @@ export default function Home() {
           <Image alt="Xenogenesis Lab" className="lab-banner" height={38} priority src="/XenogenesisLabBanner.png" width={190} />
           <span>{copy.header.system}</span>
         </div>
-        <div className="lab-mission-id">
-          <strong>{copy.header.mission}</strong>
-          <span>{copy.header.seed} · {planet.seed}</span>
-          <small>{copy.mission.objective}</small>
-        </div>
         <div className="lab-header-actions">
           <div aria-label={copy.language.label} className="language-switch" role="group">
             <button aria-pressed={language === "en"} onClick={() => changeLanguage("en")} type="button">EN</button>
             <button aria-pressed={language === "pl"} onClick={() => changeLanguage("pl")} type="button">PL</button>
           </div>
-          <button className="button-quiet compact" onClick={resetMission} type="button">{copy.header.reset}</button>
+          <button className="button-quiet compact" onClick={resetLab} type="button">{copy.header.reset}</button>
         </div>
       </header>
 
-      <nav aria-label={copy.mission.loopLabel} className="mobile-phase-navigation">
+      <nav aria-label={copy.header.system} className="mobile-phase-navigation">
         {PHASES.map((item, index) => (
           <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => setPhase(item)} type="button">
             <span>{String(index + 1).padStart(2, "0")}</span>{copy.phases[item].label}
@@ -618,20 +650,6 @@ export default function Home() {
       </nav>
 
       <div className={`lab-grid phase-${phase}`}>
-        <aside className={`lab-panel environment-panel ${phase !== "planet" ? "mobile-hidden" : ""}`}>
-          <section className="mission-card">
-            <p className="eyebrow">{copy.mission.guidanceTitle}</p>
-            <h1>{copy.mission.title}</h1>
-            <p className="mission-context">{copy.mission.guidance}</p>
-            <dl className="world-readout">
-              <div><dt>{copy.planet.oxygenPartialPressure}</dt><dd>{formatNumber(normalizedWorld.oxygenPartialPressureAtm, language, 3)} atm</dd></div>
-              <div><dt>{copy.planet.atmosphericDensity}</dt><dd>{formatNumber(normalizedWorld.atmosphericDensityKgM3 ?? 0, language, 2)} kg/m³</dd></div>
-              <div><dt>{copy.planet.temperatureRange}</dt><dd>{formatNumber(normalizedWorld.temperatureRangeC.minimum, language, 0)}–{formatNumber(normalizedWorld.temperatureRangeC.maximum, language, 0)} °C</dd></div>
-            </dl>
-            <div className="scientific-note">{copy.planet.regionalModel}</div>
-          </section>
-        </aside>
-
         <section className={`planet-stage planet-stage-${phase}`}>
           <div className="planet-stage-header">
             <div>
@@ -738,7 +756,7 @@ export default function Home() {
         </section>
 
         <aside className={`lab-panel analysis-panel ${phase === "planet" ? "mobile-hidden" : ""}`}>
-          <nav aria-label={copy.mission.loopLabel} className="phase-tabs">
+          <nav aria-label={copy.header.system} className="phase-tabs">
             {PHASES.map((item, index) => (
               <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => setPhase(item)} type="button">
                 <span>{String(index + 1).padStart(2, "0")}</span>

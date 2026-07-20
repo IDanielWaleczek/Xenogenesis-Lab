@@ -21,6 +21,26 @@ The former water mesh combined a fixed `1.008` scale with as much as `0.115` add
 - global phase mass remains deterministic, while the shader's spatial distribution remains explicitly illustrative;
 - slider thumbs respond natively, have a larger hit target, and still update the renderer in real time at display-frame cadence.
 
+## 2026-07-20 — Apply an immediate gravity-dependent atmospheric ceiling
+
+**Status:** Accepted; superseded by the 1.6.0 hundred-atmosphere extension below.
+
+**Decision**
+
+Use the effective-pressure convention `P_eff = min(P_stored, 5 × g²) atm`, capped at `5 atm` for the current control range. Apply it immediately to the engineering readout, deterministic normalization, gas partial pressures, density, exposed water, humidity, clouds, aurora support, and simulation. Preserve the stored pressure and gas preferences so increasing gravity restores them, while keeping the pressure control active so the learner can deliberately lower the stored pressure under the ceiling.
+
+**Rationale**
+
+Surface gravity raises escape velocity and therefore sets the correct direction for atmospheric retention, but a complete escape-rate model would require planetary radius, mass distribution, gas composition, thermal history, stellar XUV, magnetic field, and geology. The learner asked for a direct physical constraint rather than a fictional annual loss rate. The quadratic hundred-atmosphere convention is therefore labelled as an educational ceiling, not a quantitative atmospheric-escape prediction.
+
+**Consequences**
+
+- at `0.2 g`, a stored `5 atm` atmosphere immediately presents as `0.2 atm` effective pressure;
+- oxygen and carbon-dioxide partial pressures use the capped pressure while their stored fractions remain unchanged;
+- water, humidity, density, clouds, aurora, and simulation receive the capped pressure through one shared interaction layer;
+- the pressure slider remains active while capped, exposes the gravity-derived maximum, and lets the learner lower the stored preference;
+- the deterministic simulator receives the same effective constraint as the UI.
+
 ## 2026-07-19 — Upgrade to simulator 1.5.0 with effective controls and molten-surface range
 
 **Status:** Accepted; extends the 1.4.0 preference-preservation and phase-rendering decision.

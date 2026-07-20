@@ -24,7 +24,7 @@ Identical validated input and simulator version must produce identical output an
 | Input | Unit or range |
 | --- | --- |
 | Gravity | Earth gravity, `g`; schema range `0.05–5` |
-| Local atmospheric pressure | `atm`; schema range `0–20` |
+| Local atmospheric pressure | `atm`; schema range `0–5` |
 | Atmospheric gases | fractions in `[0,1]` summing to `1` |
 | Mean temperature | `°C`; schema range `−273–1800` |
 | Temperature variation | symmetric half-range, `°C`; `0–100` |
@@ -61,7 +61,7 @@ All eleven editable controls are retained because each supplies an independent i
 The interface derives one of six ordered, parameter-specific captions from the current value. Inputs remain independent preferences; dependent controls display their physically expressed values instead of erasing user choices:
 
 - the editable order follows the dependency chain: gravity, stellar energy, atmosphere, gas composition, mean temperature, temperature variation, water, humidity, magnetic field, and radiation;
-- gravity, pressure, and temperature variation remain independently editable because radius, mass, composition, rotation, thermal inertia, and atmospheric history are not supplied;
+- gravity remains editable, but its immediate effective-pressure ceiling is `min(stored pressure, 5 × gravity²) atm`, capped at `5 atm`; the stored pressure preference is preserved and becomes effective again when gravity supports it;
 - below the water triple-point pressure (`0.006036 atm` in the model), the exposed-water effect smoothly approaches zero while the chosen inventory remains stored;
 - across `mean ± variation`, water is partitioned continuously among ice, liquid, and vapor around `0°C` and the pressure-dependent boiling point;
 - gas composition remains stored in vacuum, where its partial pressures correctly become zero;
@@ -74,7 +74,7 @@ The boiling boundary uses a constant-enthalpy Clausius-Clapeyron estimate anchor
 
 ### Independent-input boundary
 
-The first mission lacks radius, mass, gas molecular-velocity distributions, rotation period, thermal inertia, albedo, stellar spectrum, XUV history, and geologic replenishment. Simulator 1.5.0 therefore does not derive an atmosphere cap from surface gravity or a mandatory temperature variation from pressure alone. Both former rules produced false precision and destroyed explicitly supplied inputs. Gravity still affects biological body support and movement; pressure still affects gas partial pressure, density, water stability, humidity, clouds, respiration, and aerial movement.
+The first mission lacks radius, mass, gas molecular-velocity distributions, rotation period, thermal inertia, albedo, stellar spectrum, XUV history, and geologic replenishment. Simulator 1.5.0 therefore uses an explicit educational pressure ceiling rather than claiming a complete escape-rate prediction: `P_eff = min(P_stored, 5 × g²) atm`, capped at `5 atm`. This is an immediate constraint, not annual atmospheric-loss simulation. The quadratic curve intentionally makes a `0.2 g` world support at most `0.2 atm`, while an Earth-gravity world can express the full `5 atm` slider range. NASA describes the physical direction correctly — stronger gravity raises escape velocity and generally improves atmospheric retention — while also noting that composition, stellar energy, magnetic field, temperature, and history matter. Gravity still affects biological body support and movement; effective pressure affects gas partial pressure, density, water stability, humidity, clouds, respiration, and aerial movement.
 
 ## Deterministic physical derivations
 

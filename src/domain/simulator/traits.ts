@@ -32,7 +32,7 @@ export type TraitDefinition = {
   modifiers: TraitModifiers;
 };
 
-/** Versioned trait costs and modifiers used by simulator 1.5.0. */
+/** Versioned trait costs and modifiers used by simulator 1.6.0. */
 export const LIFE_TRAITS: Record<LifeTraitId, TraitDefinition> = {
   compactBody: { id: "compactBody", category: "body", cost: 7, conflicts: ["largeBody"], modifiers: { gravityTolerance: 0.2, hydration: 0.04 } },
   largeBody: { id: "largeBody", category: "body", cost: 16, conflicts: ["compactBody"], modifiers: { thermalCold: 0.16, complexity: 0.09, oxygenEfficiency: -0.12 } },

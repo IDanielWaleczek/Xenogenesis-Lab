@@ -46,6 +46,7 @@ describe("continuous survival simulator", () => {
     const second = runSurvivalSimulation(request());
 
     expect(second).toEqual(first);
+    expect(first.simulatorVersion).toBe("1.6.0");
     expect(first.stateHash).toMatch(/^xl-[0-9a-f]{8}$/);
     expect(first.populationTimeline).toHaveLength(41);
     expect(first.populationTimeline[0]).toEqual({ generation: 0, population: 120 });
@@ -160,7 +161,7 @@ describe("continuous survival simulator", () => {
     expect(defended.metrics.organismCompatibility).toBeGreaterThan(weak.metrics.organismCompatibility);
   });
 
-  it("keeps supplied pressure and water independent from gravity", () => {
+  it("keeps pressure preferences but applies the gravity ceiling to effective atmosphere", () => {
     const volatileWorld = { waterAvailability: 0.7, humidity: 0.55, atmosphericPressureAtm: 1 };
     const lowGravity = runSurvivalSimulation(request(planetVariant({ ...volatileWorld, gravityG: 0.2 })));
     const earthGravity = runSurvivalSimulation(request(planetVariant({ ...volatileWorld, gravityG: 1 })));
@@ -169,6 +170,14 @@ describe("continuous survival simulator", () => {
     expect(lowGravity.metrics.atmosphere).toBe(earthGravity.metrics.atmosphere);
     expect(lowGravity.metrics.organismCompatibility)
       .not.toBe(earthGravity.metrics.organismCompatibility);
+
+    const capped = runSurvivalSimulation(
+      request(planetVariant({ ...volatileWorld, atmosphericPressureAtm: 5, gravityG: 0.2 })),
+    );
+    const supported = runSurvivalSimulation(
+      request(planetVariant({ ...volatileWorld, atmosphericPressureAtm: 5, gravityG: 1 })),
+    );
+    expect(capped.metrics.atmosphere).not.toBe(supported.metrics.atmosphere);
   });
 
   it("treats water inventory and atmospheric pressure as hard phase prerequisites", () => {

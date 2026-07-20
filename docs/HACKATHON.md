@@ -29,7 +29,7 @@ Before Build Week, no complete production application, procedural WebGL planet, 
 The repository currently implements:
 
 - a cinematic boot with explicit entry;
-- one continuous Genesis 01 mission;
+- one continuous procedural laboratory workspace;
 - a deterministic seeded planet with layered custom GLSL terrain, water, ice, clouds, atmosphere, scientific overlays, and result-driven biosphere/region markers;
 - eleven reactive planet parameters with preserved preferences and continuous phase-aware consequences;
 - 33 biological traits with costs, conflicts, modifiers, advantages, and tradeoffs;
@@ -55,7 +55,7 @@ The local deterministic workflow and both fallback routes work without external 
 
 - **Area:** product, rendering, deterministic biology, AI boundaries, and documentation.
 - **Work:** replaced the hypothesis/quiz architecture with the continuous life-engineering loop; added Three.js/R3F/Drei and custom planet shaders; added environment controls, trait designer, centralized simulator coefficients, regional and population analysis, procedural organism, consultant and image routes, cinematic boot, responsive laboratory, and aligned documentation.
-- **Human decisions:** learner freedom, broad mission outcomes, real-time smooth planet changes, meaningful traits with tradeoffs, an animation-led boot, on-demand AI, and one polished mission.
+- **Human decisions:** learner freedom, broad simulation outcomes, real-time smooth planet changes, meaningful traits with tradeoffs, an animation-led boot, on-demand AI, and one polished laboratory workspace.
 - **Codex evidence:** current Codex task; **TODO:** capture the final `/feedback` session ID.
 - **Relevant commit or pull request:** **TODO:** current transformation is uncommitted.
 - **Verification:** 20 Vitest tests passed; `npx tsc --noEmit`, full `npm run lint`, and `npm run build` passed. The production build was smoke-tested locally: planet and designer loaded without dev tools, the deterministic outcome/population/hash rendered, consultant and image fallbacks rendered with correct provenance, Polish fallback copy exposed no internal enum IDs, `html[lang="pl"]` updated, and a language change discarded an in-flight response from the previous language. Cinematic boot and full desktop interaction were also inspected. A real narrow/mobile device and deployed OpenAI calls remain TODOs.
@@ -101,7 +101,7 @@ Never show mocked, manually prepared, local-fallback, or pre-generated output as
 
 ## Final checklist
 
-- [x] One complete deterministic mission loop works without AI credentials.
+- [x] One complete deterministic laboratory loop works without AI credentials.
 - [x] The planet is procedural, seeded, interactive, and controlled by live inputs.
 - [x] Life traits have costs, conflicts, and visible tradeoffs.
 - [x] Results include continuous metrics, regional survival, population, and multiple outcomes.

@@ -39,7 +39,7 @@ Open Design life. Show the organism, budget, one selected trait, one incompatibi
 
 Run the simulation. Keep the animation and then show the outcome, state hash, scores, region markers, and population graph.
 
-> Simulator 1.5.0 runs locally and reproducibly for 40 generations. It combines 11 continuous suitability scores rather than checking one correct threshold. It can produce extinction, a regional refuge, simple stability, ecological dominance, a multicellular ecosystem, or advanced adaptable life. Here the same result is tied to a stable state hash.
+> Simulator 1.6.0 runs locally and reproducibly for 40 generations. It combines 11 continuous suitability scores rather than checking one correct threshold. It can produce extinction, a regional refuge, simple stability, ecological dominance, a multicellular ecosystem, or advanced adaptable life. Here the same result is tied to a stable state hash.
 
 ## 1:55–2:13 — Adapt and compare
 
