@@ -69,6 +69,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+To enable the AI features locally, create a `.env.local` file in the project root and add your OpenAI API key:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key
+```
+
+The key is used by the server-only AI routes and must not be exposed in client-side code or committed to the repository. The hosted application already has its server configuration in place.
+
 ## Available commands
 
 ```bash
