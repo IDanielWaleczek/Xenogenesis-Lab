@@ -31,15 +31,15 @@ Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and
 
 ## 1:02–1:28 — Design life
 
-Open Design life. Show the organism, the active world-evidence panel, budget, one selected trait, one incompatibility, and two categories. Add or remove one affordable trait.
+Open Design life. Show the blank organism against the same engineered terrain, the active world-evidence panel, one selected trait, one incompatibility, and two categories. Add protected eggs so eggs appear, then add a structural or sensory trait and show the anatomy update.
 
-> The organism designer offers 33 biological traits with costs, advantages, vulnerabilities, and conflicts. The same deterministic climate, effective atmosphere, water phases, humidity, energy, carbon, and radiation values shown here are used in the run. Water inventory and humidity are separate: water supplies the hydrosphere, while humidity only becomes effective with air and phase-supported exposed water. High complexity improves adaptation but consumes energy. Radiation repair can slow reproduction. Flight depends on atmosphere and gravity. The procedural field model changes immediately from the seed, planet, and anatomy.
+> The blank-start organism designer offers 44 biological traits with advantages, vulnerabilities, and conflicts but no arbitrary construction budget. The same deterministic climate, effective atmosphere, water phases, humidity, energy, carbon, and radiation values shown here shape both the run and the organism's visible terrain. Every trait changes the field model: protected eggs add eggs, aquatic anatomy adds fins or gills, and advanced neural and grasping traits support primate-like or humanlike forms.
 
 ## 1:28–1:55 — Deterministic simulation
 
-Run the simulation. Keep the animation and then show the outcome, state hash, scores, region markers, and population graph.
+Run the simulation. Keep the animation and then show the outcome, survivability score, scores, regional mini-scenes, and population graph.
 
-> Simulator 1.6.0 runs locally and reproducibly for 40 generations. It combines 11 continuous suitability scores rather than checking one correct threshold. It can produce extinction, a regional refuge, simple stability, ecological dominance, a multicellular ecosystem, or advanced adaptable life. Here the same result is tied to a stable state hash.
+> Simulator 1.7.0 runs locally and reproducibly across 200 deterministic model steps, presented as model years for readability. It combines 11 continuous suitability scores with strict minimum life support and six parameter-driven event types. Unsupported biology reaches zero survival instead of receiving a polite score. The same world and lifeform always produce the same event impacts and outcome.
 
 ## 1:55–2:13 — Adapt and compare
 

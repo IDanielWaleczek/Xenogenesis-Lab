@@ -10,16 +10,13 @@ import {
   SurvivalSimulationResultSchema,
 } from "./schema";
 import type {
+  PopulationEventId,
   RegionId,
   SimulationMetricId,
   SurvivalSimulationRequest,
   SurvivalSimulationResult,
 } from "./schema";
-import {
-  calculateTraitCost,
-  LIFE_ENERGY_BUDGET,
-  sumTraitModifiers,
-} from "./traits";
+import { sumTraitModifiers } from "./traits";
 
 /** Restricts a deterministic suitability component to its normalized range. */
 function clamp01(value: number): number {
@@ -50,10 +47,6 @@ export function runSurvivalSimulation(
   const convention = SIMULATOR_CONVENTIONS;
   const world = normalizeWorldParameters(request.planet.world);
   const modifiers = sumTraitModifiers(request.traitIds);
-  const traitCost = calculateTraitCost(request.traitIds);
-  const energyOverrun = clamp01(
-    (traitCost - LIFE_ENERGY_BUDGET) / convention.energyOverrunScale,
-  );
   const effectiveRadiation = deriveEffectiveRadiationDose(
     world.radiationDoseRateMilliSvPerHour,
     world.magneticFieldStrengthEarth,
@@ -149,7 +142,6 @@ export function runSurvivalSimulation(
       carbonAvailability * convention.biologicalEnergy.carbonWeight +
       (modifiers.lightEnergy ?? 0) * world.lightLevel +
       (modifiers.chemicalEnergy ?? 0) * geochemicalEnergy -
-      energyOverrun * convention.biologicalEnergy.overrunPenalty -
       excessCarbonDioxide * convention.carbonDioxide.energyPenalty,
   );
 
@@ -184,7 +176,6 @@ export function runSurvivalSimulation(
       oxygenMetabolism,
       lowOxygenMetabolism,
       anaerobicMetabolism,
-      convention.metabolism.minimumPathwayScore,
     ) * convention.metabolism.pathwayWeight +
       biologicalEnergy * convention.metabolism.biologicalEnergyWeight +
       (modifiers.oxygenEfficiency ?? 0) *
@@ -313,7 +304,18 @@ export function runSurvivalSimulation(
   };
 
   const bestRegion = Math.max(...Object.values(regionScores));
-  const organismCompatibility = clamp01(
+  const hasSupportedMetabolism = Math.max(
+    oxygenMetabolism,
+    lowOxygenMetabolism,
+    anaerobicMetabolism,
+  ) > 0.01;
+  const coreViable =
+    liquidWater >= convention.viabilityGate.minimumLiquidWater &&
+    biologicalEnergy >= convention.viabilityGate.minimumBiologicalEnergy &&
+    thermalStability >= convention.viabilityGate.minimumThermalStability &&
+    radiationSafety >= convention.viabilityGate.minimumRadiationSafety &&
+    hasSupportedMetabolism;
+  const rawOrganismCompatibility = clamp01(
     gravityFitness * convention.organismCompatibility.gravity +
       pressureFitness * convention.organismCompatibility.pressure +
       thermalStability * convention.organismCompatibility.thermal +
@@ -321,10 +323,12 @@ export function runSurvivalSimulation(
       hydration * convention.organismCompatibility.hydration +
       metabolicViability * convention.organismCompatibility.metabolism +
       movement * convention.organismCompatibility.movement +
-      bestRegion * convention.organismCompatibility.bestRegion -
-      energyOverrun * convention.organismCompatibility.overrunPenalty,
+      bestRegion * convention.organismCompatibility.bestRegion,
   );
-  const reproductionPotential = clamp01(
+  // Keep component compatibility continuous for diagnosis; the viability gate below
+  // still forces reproduction, ecosystem, advanced-life score, and population to zero.
+  const organismCompatibility = rawOrganismCompatibility;
+  const rawReproductionPotential = clamp01(
     organismCompatibility * convention.reproduction.compatibility +
       biologicalEnergy * convention.reproduction.energy +
       hydration * convention.reproduction.hydration +
@@ -333,36 +337,39 @@ export function runSurvivalSimulation(
       Math.max(0, modifiers.complexity ?? 0) *
         convention.reproduction.complexityPenalty,
   );
+  const reproductionPotential = coreViable ? rawReproductionPotential : 0;
   const adaptability = clamp01(
     convention.adaptability.base +
       (modifiers.adaptability ?? 0) +
       bestRegion * convention.adaptability.bestRegion,
   );
-  const populationStability = clamp01(
+  const rawPopulationStability = clamp01(
     organismCompatibility * convention.populationStability.compatibility +
       reproductionPotential * convention.populationStability.reproduction +
       bestRegion * convention.populationStability.bestRegion +
       adaptability * convention.populationStability.adaptability,
   );
-  const ecosystemPotential = clamp01(
+  const populationStability = coreViable ? rawPopulationStability : 0;
+  const rawEcosystemPotential = clamp01(
     populationStability * convention.ecosystem.populationStability +
       biologicalEnergy * convention.ecosystem.energy +
       liquidWater * convention.ecosystem.liquidWater +
       atmosphere * convention.ecosystem.atmosphere +
       thermalStability * convention.ecosystem.thermal,
   );
+  const ecosystemPotential = coreViable ? rawEcosystemPotential : 0;
   const complexity = clamp01(
     convention.complexity.base +
       (modifiers.complexity ?? 0) +
-      request.traitIds.length * convention.complexity.perTrait -
-      energyOverrun * convention.complexity.overrunPenalty,
+      request.traitIds.length * convention.complexity.perTrait,
   );
-  const advancedLifePotential = clamp01(
+  const rawAdvancedLifePotential = clamp01(
     ecosystemPotential * convention.advancedLife.ecosystem +
       metabolicViability * convention.advancedLife.metabolism +
       adaptability * convention.advancedLife.adaptability +
       complexity * convention.advancedLife.complexity,
   );
+  const advancedLifePotential = coreViable ? rawAdvancedLifePotential : 0;
 
   const metrics = {
     liquidWater,
@@ -378,7 +385,7 @@ export function runSurvivalSimulation(
     advancedLifePotential,
   };
 
-  const carryingCapacity = Math.round(
+  const carryingCapacity = coreViable ? Math.round(
     convention.population.capacityBase *
       ecosystemPotential *
       Math.pow(
@@ -387,15 +394,31 @@ export function runSurvivalSimulation(
       ) *
       (convention.population.energyBase +
         biologicalEnergy * convention.population.energyWeight),
-  );
+  ) : 0;
   const growthRate =
     convention.population.growthBase +
     reproductionPotential * convention.population.reproductionGrowth +
     adaptability * convention.population.adaptabilityGrowth;
   const mortalityPressure =
     (1 - organismCompatibility) *
-      convention.population.incompatibilityMortality +
-    energyOverrun * convention.population.overrunMortality;
+      convention.population.incompatibilityMortality;
+  const candidatePopulationEvents: Array<{
+    id: PopulationEventId;
+    generation: number;
+    kind: "pressure" | "opportunity";
+    impactFraction: number;
+  }> = [
+    { id: "thermalShock", generation: 28, kind: "pressure", impactFraction: -clamp01(1 - thermalStability) * 0.34 },
+    { id: "radiationStorm", generation: 61, kind: "pressure", impactFraction: -clamp01(1 - radiationSafety) * 0.38 },
+    { id: "hydrosphereStress", generation: 94, kind: "pressure", impactFraction: -clamp01(1 - hydration) * 0.3 },
+    { id: "resourceBloom", generation: 121, kind: "opportunity", impactFraction: coreViable ? biologicalEnergy * 0.2 : 0 },
+    { id: "reproductiveBottleneck", generation: 156, kind: "pressure", impactFraction: -clamp01(1 - reproductionPotential) * 0.28 },
+    { id: "adaptiveBreakthrough", generation: 178, kind: "opportunity", impactFraction: coreViable ? adaptability * 0.16 : 0 },
+  ];
+  const populationEvents = candidatePopulationEvents.filter(
+    ({ impactFraction }) => Math.abs(impactFraction) >= 0.025,
+  );
+  const eventsByGeneration = new Map(populationEvents.map((event) => [event.generation, event]));
   const populationTimeline = [{ generation: 0, population: request.initialPopulation }];
   let population = request.initialPopulation;
   for (
@@ -403,10 +426,17 @@ export function runSurvivalSimulation(
     generation <= convention.population.generations;
     generation += 1
   ) {
+    if (!coreViable) {
+      population = 0;
+      populationTimeline.push({ generation, population: 0 });
+      continue;
+    }
     const capacity = Math.max(1, carryingCapacity);
     const logisticGrowth = growthRate * population * (1 - population / capacity);
     const mortality = mortalityPressure * population;
     population = Math.max(0, population + logisticGrowth - mortality);
+    const event = eventsByGeneration.get(generation);
+    if (event) population = Math.max(0, population * (1 + event.impactFraction));
     if (
       organismCompatibility < convention.population.collapseCompatibility
     ) {
@@ -479,12 +509,11 @@ export function runSurvivalSimulation(
     habitableRegions: (Object.entries(regionScores) as Array<[RegionId, number]>)
       .filter(([, score]) => score >= convention.regions.habitableScore)
       .map(([id]) => id),
-    selectedTraitCost: traitCost,
-    energyBudget: LIFE_ENERGY_BUDGET,
     carryingCapacity,
     peakPopulation,
     finalPopulation,
     populationTimeline,
+    populationEvents,
     strengths: sortedMetrics.slice(0, 3).map(([id]) => id),
     limitingFactors: sortedMetrics.slice(-3).reverse().map(([id]) => id),
   });

@@ -1,10 +1,9 @@
 /**
- * Versioned educational conventions for simulator 1.6.0.
+ * Versioned educational conventions for simulator 1.7.0.
  * Values are internally consistent tuning coefficients, not universal biological constants.
  */
 export const SIMULATOR_CONVENTIONS = {
   geochemicalEnergy: { none: 0, low: 0.28, moderate: 0.6, high: 0.9 },
-  energyOverrunScale: 35,
   radiation: {
     safetyDecayMilliSvPerHour: 0.55,
   },
@@ -42,7 +41,6 @@ export const SIMULATOR_CONVENTIONS = {
     liquidWaterWeight: 0.18,
     humidityWeight: 0.09,
     carbonWeight: 0.1,
-    overrunPenalty: 0.45,
   },
   metabolism: {
     oxygenIdealAtm: 0.2,
@@ -51,7 +49,6 @@ export const SIMULATOR_CONVENTIONS = {
     lowOxygenWidthAtm: 0.1,
     oxygenAvailabilityScaleAtm: 0.02,
     anaerobicEnergyFactor: 0.82,
-    minimumPathwayScore: 0.18,
     pathwayWeight: 0.72,
     biologicalEnergyWeight: 0.28,
     oxygenModifierWeight: 0.35,
@@ -112,7 +109,6 @@ export const SIMULATOR_CONVENTIONS = {
     metabolism: 0.17,
     movement: 0.08,
     bestRegion: 0.13,
-    overrunPenalty: 0.36,
   },
   reproduction: {
     compatibility: 0.4,
@@ -124,10 +120,10 @@ export const SIMULATOR_CONVENTIONS = {
   adaptability: { base: 0.18, bestRegion: 0.3 },
   populationStability: { compatibility: 0.42, reproduction: 0.28, bestRegion: 0.2, adaptability: 0.1 },
   ecosystem: { populationStability: 0.35, energy: 0.23, liquidWater: 0.16, atmosphere: 0.12, thermal: 0.14 },
-  complexity: { base: 0.12, perTrait: 0.018, overrunPenalty: 0.5 },
+  complexity: { base: 0.08, perTrait: 0.022 },
   advancedLife: { ecosystem: 0.33, metabolism: 0.17, adaptability: 0.22, complexity: 0.28 },
   population: {
-    generations: 40,
+    generations: 200,
     capacityBase: 80_000,
     minimumRegionFactor: 0.02,
     regionExponent: 1.35,
@@ -137,9 +133,14 @@ export const SIMULATOR_CONVENTIONS = {
     reproductionGrowth: 0.38,
     adaptabilityGrowth: 0.08,
     incompatibilityMortality: 0.22,
-    overrunMortality: 0.18,
     collapseCompatibility: 0.18,
     collapseRetention: 0.78,
+  },
+  viabilityGate: {
+    minimumLiquidWater: 0.005,
+    minimumBiologicalEnergy: 0.06,
+    minimumThermalStability: 0.05,
+    minimumRadiationSafety: 0.04,
   },
   missionSuccess: { advancedLife: 0.67, ecosystem: 0.55, finalPopulation: 1_000 },
   outcomes: {

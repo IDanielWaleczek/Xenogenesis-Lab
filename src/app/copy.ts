@@ -1,5 +1,6 @@
 import type {
   LifeTraitId,
+  PopulationEventId,
   RegionId,
   SimulationMetricId,
   SurvivalSimulationResult,
@@ -125,14 +126,9 @@ export type LabCopy = {
     title: string;
     instruction: string;
     selected: string;
-    budget: string;
-    budgetExplanation: string;
-    cost: string;
     advantage: string;
     tradeoff: string;
     conflict: string;
-    budgetExceeded: string;
-    selectionLimit: string;
     minimumTraits: string;
     clear: string;
     run: string;
@@ -160,6 +156,8 @@ export type LabCopy = {
     regionsTitle: string;
     habitable: string;
     populationTitle: string;
+    populationEventsTitle: string;
+    eventImpact: string;
     generation: string;
     population: string;
     initial: string;
@@ -176,6 +174,7 @@ export type LabCopy = {
   metrics: Record<SimulationMetricId, { label: string; description: string }>;
   regions: Record<RegionId, { label: string; description: string }>;
   outcomes: Record<SurvivalSimulationResult["outcome"], { title: string; description: string }>;
+  populationEvents: Record<PopulationEventId, { title: string; description: string }>;
   organism: {
     title: string;
     procedural: string;
@@ -184,6 +183,7 @@ export type LabCopy = {
     generating: string;
     fallback: string;
     error: string;
+    download: string;
     alt: string;
   };
   consultant: {
@@ -200,6 +200,7 @@ export type LabCopy = {
     experiment: string;
     error: string;
     retry: string;
+    temporaryUnavailable: string;
   };
   status: {
     local: string;
@@ -217,11 +218,11 @@ const english: LabCopy = {
   },
   language: { label: "Language", english: "English", polish: "Polski" },
   boot: {
-    eyebrow: "Xenogenesis research platform · remote node 07",
+    eyebrow: "Vespera expedition · research node 07",
     title: "XENOGENESIS LAB",
-    subtitle: "Procedural astrobiology simulation environment",
-    sceneLabel: "From orbit to organism",
-    enter: "Open laboratory",
+    subtitle: "A silent world is waiting. Rebuild its climate, engineer a living strategy, and discover whether your biosphere survives two centuries of change.",
+    sceneLabel: "Your expedition begins before the first cell exists",
+    enter: "Begin the Vespera experiment",
   },
   header: {
     system: "Dynamic life engineering system",
@@ -390,20 +391,15 @@ const english: LabCopy = {
   },
   life: {
     title: "Lifeform designer",
-    instruction: "Choose compatible adaptations. Advantages consume a shared biological energy budget and always carry costs.",
+    instruction: "Start with a blank organism and combine compatible adaptations. Every choice changes both its visible anatomy and deterministic survival strategy.",
     selected: "traits selected",
-    budget: "Biological energy budget",
-    budgetExplanation: "The budget prevents unlimited trait stacking. Costs are simulator conventions, not universal biological constants.",
-    cost: "Cost",
     advantage: "Advantage",
     tradeoff: "Tradeoff",
     conflict: "That trait conflicts with one of your current selections.",
-    budgetExceeded: "That trait would exceed the biological energy budget.",
-    selectionLimit: "The first model supports at most 14 selected traits.",
     minimumTraits: "Select at least three traits before running the simulation.",
     clear: "Clear traits",
     run: "Run survival simulation",
-    running: "Simulating 40 generations…",
+    running: "Simulating 200 model years and environmental events…",
     previewHint: "The procedural morphology updates from the seed, world, and selected traits.",
   },
   categories: {
@@ -447,16 +443,27 @@ const english: LabCopy = {
     toolUsePotential: { title: "Tool-use potential", advantage: "Allows flexible environmental modification.", tradeoff: "Demands exceptional energy and oxygen supply." },
     complexCommunication: { title: "Complex communication", advantage: "Coordinates learning and social adaptation.", tradeoff: "Requires costly neural processing and development." },
     adaptiveLearning: { title: "Adaptive learning", advantage: "Responds flexibly to changing conditions.", tradeoff: "Consumes energy and delays reproduction." },
+    unicellular: { title: "Unicellular form", advantage: "Supports bacteria-like simplicity and rapid replication.", tradeoff: "Cannot support limbs, organs, or advanced cognition." },
+    multicellular: { title: "Multicellular tissues", advantage: "Enables specialized organs and complex body plans.", tradeoff: "Raises coordination and energy demands." },
+    bilateralSymmetry: { title: "Bilateral symmetry", advantage: "Supports directed movement and a defined head-to-tail axis.", tradeoff: "Makes injury to paired structures more consequential." },
+    radialSymmetry: { title: "Radial symmetry", advantage: "Senses and reacts in every direction.", tradeoff: "Limits fast directional movement and bipedal posture." },
+    gills: { title: "Gills", advantage: "Extracts dissolved oxygen in aquatic habitats.", tradeoff: "Performs poorly outside water and conflicts with lungs." },
+    lungs: { title: "Lungs", advantage: "Supports sustained air breathing and active terrestrial life.", tradeoff: "Needs atmospheric oxygen and conflicts with gills." },
+    graspingLimbs: { title: "Grasping limbs", advantage: "Manipulates branches, terrain, prey, and tools.", tradeoff: "Requires nervous control and structural investment." },
+    opposableDigits: { title: "Opposable digits", advantage: "Adds precise grip and fine object manipulation.", tradeoff: "Specialized extremities are slower to grow and repair." },
+    centralizedBrain: { title: "Centralized brain", advantage: "Coordinates senses, learning, and complex movement.", tradeoff: "Demands reliable oxygen and continuous energy." },
+    bipedalPosture: { title: "Bipedal posture", advantage: "Frees grasping limbs and raises the visual field.", tradeoff: "Reduces stability and increases balance demands." },
+    culturalMemory: { title: "Cultural memory", advantage: "Preserves successful behavior across generations.", tradeoff: "Requires social learning and prolonged development." },
   },
   simulation: {
     title: "Survival analysis",
     emptyTitle: "No simulation yet",
-    emptyDescription: "Engineer the planet, select at least three compatible traits, and simulate 40 generations.",
+    emptyDescription: "Engineer the planet, select at least three compatible traits, and simulate 200 model years.",
     staleTitle: "Configuration changed",
     staleDescription: "These results belong to the previous configuration. Run again to evaluate the current world and organism.",
     deterministic: "Locally calculated",
     success: "Stable outcome reached",
-    continue: "Viable experiment — continue adapting",
+    continue: "Survival failed — revise the experiment",
     objective: "Advanced-life potential",
     outcome: "Model outcome",
     stateHash: "Reproducible state",
@@ -466,8 +473,10 @@ const english: LabCopy = {
     limits: "Limiting systems",
     regionsTitle: "Regional survival",
     habitable: "habitable under this model",
-    populationTitle: "Population across 40 generations",
-    generation: "Generation",
+    populationTitle: "Population across 200 model years",
+    populationEventsTitle: "Environmental events",
+    eventImpact: "population impact",
+    generation: "Year",
     population: "Population",
     initial: "Initial",
     peak: "Peak",
@@ -511,6 +520,14 @@ const english: LabCopy = {
     stableMulticellularEcosystem: { title: "Stable multicellular ecosystem", description: "Population and ecosystem scores support durable complex life." },
     advancedAdaptiveLife: { title: "Advanced adaptable life", description: "The configured world supports high complexity, adaptation, and long-term stability." },
   },
+  populationEvents: {
+    thermalShock: { title: "Thermal shock", description: "A temperature extreme tests insulation, heat tolerance, and dormancy." },
+    radiationStorm: { title: "Radiation storm", description: "A high-exposure interval tests magnetic and biological protection." },
+    hydrosphereStress: { title: "Hydrosphere stress", description: "A dry or phase-unstable interval reduces accessible water." },
+    resourceBloom: { title: "Resource bloom", description: "Available light, chemistry, and water briefly increase usable energy." },
+    adaptiveBreakthrough: { title: "Adaptive breakthrough", description: "Learning and flexible traits improve resource use." },
+    reproductiveBottleneck: { title: "Reproductive bottleneck", description: "Low replacement capacity amplifies a generational loss." },
+  },
   organism: {
     title: "Organism field model",
     procedural: "Deterministic procedural morphology",
@@ -519,22 +536,24 @@ const english: LabCopy = {
     generating: "Generating controlled illustration…",
     fallback: "The procedural field model remains available; no generated image was returned.",
     error: "Image generation is unavailable. The deterministic field model is unchanged.",
+    download: "Download 3:2 illustration",
     alt: "Procedural alien organism adapted to the current Vespera experiment",
   },
   consultant: {
     title: "Life Sciences Consultant",
-    description: "Ask GPT-5.4-mini to interpret the completed deterministic result. It cannot alter the scores.",
+    description: "Ask GPT-5.6 to interpret the completed deterministic result. It cannot alter the scores.",
     request: "Request consultant analysis",
     loading: "Consultant is reviewing the evidence…",
-    liveSource: "GPT-5.4-mini analysis",
+    liveSource: "GPT-5.6 analysis",
     localSource: "Local scientific fallback",
-    fallbackNotice: "GPT-5.4-mini was unavailable, so this clearly labelled local interpretation was used.",
+    fallbackNotice: "GPT-5.6 was unavailable, so this clearly labelled local interpretation was used.",
     assessment: "Planet assessment",
     traits: "Trait assessment",
     insights: "Key observations",
     experiment: "Suggested experiment",
     error: "Consultant analysis could not be loaded.",
     retry: "Try consultant again",
+    temporaryUnavailable: "The Mission Instructor cannot currently reach the OpenAI API. You can keep experimenting; deterministic results remain available.",
   },
   status: {
     local: "Local deterministic model",
@@ -552,11 +571,11 @@ const polish: LabCopy = {
   },
   language: { label: "Język", english: "English", polish: "Polski" },
   boot: {
-    eyebrow: "Platforma badawcza Xenogenesis · zdalny węzeł 07",
+    eyebrow: "Ekspedycja Vespera · węzeł badawczy 07",
     title: "XENOGENESIS LAB",
-    subtitle: "Środowisko proceduralnych symulacji astrobiologicznych",
-    sceneLabel: "Od orbity do organizmu",
-    enter: "Otwórz laboratorium",
+    subtitle: "Cichy świat czeka. Odbuduj jego klimat, zaprojektuj strategię życia i sprawdź, czy biosfera przetrwa dwa stulecia zmian.",
+    sceneLabel: "Twoja ekspedycja zaczyna się, zanim powstanie pierwsza komórka",
+    enter: "Rozpocznij eksperyment Vespera",
   },
   header: {
     system: "Dynamiczny system projektowania życia",
@@ -725,20 +744,15 @@ const polish: LabCopy = {
   },
   life: {
     title: "Projektant formy życia",
-    instruction: "Wybierz zgodne adaptacje. Zalety zużywają wspólny budżet energii biologicznej i zawsze wiążą się z kosztami.",
+    instruction: "Zacznij od pustego organizmu i połącz zgodne adaptacje. Każdy wybór zmienia jego widoczną anatomię oraz deterministyczną strategię przetrwania.",
     selected: "wybranych cech",
-    budget: "Budżet energii biologicznej",
-    budgetExplanation: "Budżet zapobiega łączeniu nieograniczonej liczby cech. Koszty są konwencjami symulatora, a nie uniwersalnymi stałymi biologicznymi.",
-    cost: "Koszt",
     advantage: "Zaleta",
     tradeoff: "Kompromis",
     conflict: "Ta cecha jest sprzeczna z jedną z obecnie wybranych.",
-    budgetExceeded: "Ta cecha przekroczyłaby budżet energii biologicznej.",
-    selectionLimit: "Pierwsza wersja modelu obsługuje najwyżej 14 wybranych cech.",
     minimumTraits: "Przed uruchomieniem symulacji wybierz co najmniej trzy cechy.",
     clear: "Wyczyść cechy",
     run: "Uruchom symulację przetrwania",
-    running: "Symulowanie 40 pokoleń…",
+    running: "Symulowanie 200 pokoleń i zdarzeń środowiskowych…",
     previewHint: "Proceduralna morfologia zmienia się zgodnie z ziarnem, światem i wybranymi cechami.",
   },
   categories: {
@@ -782,16 +796,27 @@ const polish: LabCopy = {
     toolUsePotential: { title: "Potencjał używania narzędzi", advantage: "Umożliwia elastyczne modyfikowanie środowiska.", tradeoff: "Wymaga wyjątkowej podaży energii i tlenu." },
     complexCommunication: { title: "Złożona komunikacja", advantage: "Koordynuje uczenie i adaptację społeczną.", tradeoff: "Wymaga kosztownego przetwarzania nerwowego i rozwoju." },
     adaptiveLearning: { title: "Uczenie adaptacyjne", advantage: "Pozwala elastycznie reagować na zmienne warunki.", tradeoff: "Zużywa energię i opóźnia rozmnażanie." },
+    unicellular: { title: "Forma jednokomórkowa", advantage: "Umożliwia bakteryjną prostotę i szybkie namnażanie.", tradeoff: "Nie może tworzyć kończyn, narządów ani zaawansowanego poznania." },
+    multicellular: { title: "Tkanki wielokomórkowe", advantage: "Umożliwiają wyspecjalizowane narządy i złożone plany ciała.", tradeoff: "Zwiększają zapotrzebowanie na koordynację i energię." },
+    bilateralSymmetry: { title: "Symetria dwuboczna", advantage: "Wspiera ruch kierunkowy i wyraźną oś głowa–ogon.", tradeoff: "Urazy sparowanych struktur mają większe znaczenie." },
+    radialSymmetry: { title: "Symetria promienista", advantage: "Pozwala wyczuwać i reagować we wszystkich kierunkach.", tradeoff: "Ogranicza szybki ruch kierunkowy i postawę dwunożną." },
+    gills: { title: "Skrzela", advantage: "Pobierają rozpuszczony tlen w siedliskach wodnych.", tradeoff: "Działają słabo poza wodą i wykluczają płuca." },
+    lungs: { title: "Płuca", advantage: "Wspierają wydajne oddychanie powietrzem i aktywne życie lądowe.", tradeoff: "Wymagają tlenu w atmosferze i wykluczają skrzela." },
+    graspingLimbs: { title: "Kończyny chwytne", advantage: "Manipulują gałęziami, terenem, zdobyczą i narzędziami.", tradeoff: "Wymagają kontroli nerwowej i inwestycji strukturalnej." },
+    opposableDigits: { title: "Przeciwstawne palce", advantage: "Zapewniają precyzyjny chwyt i dokładną manipulację.", tradeoff: "Wyspecjalizowane końce kończyn wolniej rosną i się regenerują." },
+    centralizedBrain: { title: "Scentralizowany mózg", advantage: "Koordynuje zmysły, uczenie i złożony ruch.", tradeoff: "Wymaga niezawodnego tlenu i stałego dopływu energii." },
+    bipedalPosture: { title: "Postawa dwunożna", advantage: "Uwalnia kończyny chwytne i podnosi pole widzenia.", tradeoff: "Zmniejsza stabilność i zwiększa wymagania równowagi." },
+    culturalMemory: { title: "Pamięć kulturowa", advantage: "Zachowuje skuteczne zachowania między pokoleniami.", tradeoff: "Wymaga uczenia społecznego i długiego rozwoju." },
   },
   simulation: {
     title: "Analiza przetrwania",
     emptyTitle: "Brak symulacji",
-    emptyDescription: "Przekształć planetę, wybierz co najmniej trzy zgodne cechy i zasymuluj 40 pokoleń.",
+    emptyDescription: "Przekształć planetę, wybierz co najmniej trzy zgodne cechy i zasymuluj 200 pokoleń.",
     staleTitle: "Konfiguracja została zmieniona",
     staleDescription: "Te wyniki dotyczą poprzedniej konfiguracji. Uruchom model ponownie, aby ocenić bieżący świat i organizm.",
     deterministic: "Obliczone lokalnie",
     success: "Osiągnięto stabilny rezultat",
-    continue: "Eksperyment możliwy — kontynuuj adaptację",
+    continue: "Przetrwanie nie powiodło się — zmień eksperyment",
     objective: "Potencjał zaawansowanego życia",
     outcome: "Wynik modelu",
     stateHash: "Odtwarzalny stan",
@@ -801,8 +826,10 @@ const polish: LabCopy = {
     limits: "Systemy ograniczające",
     regionsTitle: "Przetrwanie regionalne",
     habitable: "nadaje się do życia w tym modelu",
-    populationTitle: "Populacja przez 40 pokoleń",
-    generation: "Pokolenie",
+    populationTitle: "Populacja przez 200 lat modelowych",
+    populationEventsTitle: "Zdarzenia środowiskowe",
+    eventImpact: "wpływ na populację",
+    generation: "Rok",
     population: "Populacja",
     initial: "Początkowa",
     peak: "Szczytowa",
@@ -846,6 +873,14 @@ const polish: LabCopy = {
     stableMulticellularEcosystem: { title: "Stabilny ekosystem wielokomórkowy", description: "Wyniki populacji i ekosystemu wspierają trwałe złożone życie." },
     advancedAdaptiveLife: { title: "Zaawansowane życie adaptacyjne", description: "Skonfigurowany świat wspiera wysoką złożoność, adaptację i długotrwałą stabilność." },
   },
+  populationEvents: {
+    thermalShock: { title: "Szok termiczny", description: "Ekstremum temperatury testuje izolację, odporność na gorąco i uśpienie." },
+    radiationStorm: { title: "Burza radiacyjna", description: "Okres silnej ekspozycji testuje ochronę magnetyczną i biologiczną." },
+    hydrosphereStress: { title: "Stres hydrosfery", description: "Suchy lub niestabilny fazowo okres ogranicza dostępną wodę." },
+    resourceBloom: { title: "Rozkwit zasobów", description: "Dostępne światło, chemia i woda chwilowo zwiększają użyteczną energię." },
+    adaptiveBreakthrough: { title: "Przełom adaptacyjny", description: "Uczenie i elastyczne cechy poprawiają wykorzystanie zasobów." },
+    reproductiveBottleneck: { title: "Wąskie gardło rozrodcze", description: "Niska zdolność odtwarzania nasila stratę pokoleniową." },
+  },
   organism: {
     title: "Model terenowy organizmu",
     procedural: "Deterministyczna morfologia proceduralna",
@@ -854,22 +889,24 @@ const polish: LabCopy = {
     generating: "Generowanie kontrolowanej ilustracji…",
     fallback: "Proceduralny model terenowy pozostaje dostępny; nie zwrócono wygenerowanego obrazu.",
     error: "Generowanie obrazu jest niedostępne. Deterministyczny model terenowy nie uległ zmianie.",
+    download: "Pobierz ilustrację 3:2",
     alt: "Proceduralny obcy organizm dostosowany do bieżącego eksperymentu Vespera",
   },
   consultant: {
     title: "Konsultant nauk biologicznych",
-    description: "Poproś GPT-5.4-mini o interpretację ukończonego wyniku deterministycznego. Model nie może zmienić punktacji.",
+    description: "Poproś GPT-5.6 o interpretację ukończonego wyniku deterministycznego. Model nie może zmienić punktacji.",
     request: "Poproś o analizę konsultanta",
     loading: "Konsultant analizuje dane…",
-    liveSource: "Analiza GPT-5.4-mini",
+    liveSource: "Analiza GPT-5.6",
     localSource: "Lokalna analiza zapasowa",
-    fallbackNotice: "GPT-5.4-mini był niedostępny, dlatego użyto wyraźnie oznaczonej lokalnej interpretacji.",
+    fallbackNotice: "GPT-5.6 był niedostępny, dlatego użyto wyraźnie oznaczonej lokalnej interpretacji.",
     assessment: "Ocena planety",
     traits: "Ocena cech",
     insights: "Kluczowe obserwacje",
     experiment: "Sugerowany eksperyment",
     error: "Nie udało się pobrać analizy konsultanta.",
     retry: "Spróbuj ponownie",
+    temporaryUnavailable: "Instruktor misji nie może obecnie połączyć się z API OpenAI. Możesz kontynuować eksperymenty; wyniki deterministyczne pozostają dostępne.",
   },
   status: {
     local: "Lokalny model deterministyczny",

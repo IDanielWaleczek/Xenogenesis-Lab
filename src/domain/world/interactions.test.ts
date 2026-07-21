@@ -172,7 +172,7 @@ describe("world parameter interactions", () => {
       humidity: 1,
     });
 
-    expect(state.effectiveAtmosphericPressureAtm).toBe(4);
+    expect(state.effectiveAtmosphericPressureAtm).toBe(0.2);
     expect(state.exposedWaterPressureSupport).toBe(1);
     expect(state.effectiveHumidity).toBeGreaterThan(0);
   });

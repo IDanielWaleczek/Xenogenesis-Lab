@@ -33,8 +33,8 @@ The repository currently implements:
 - a deterministic seeded planet with layered custom GLSL terrain, water, ice, clouds, atmosphere, scientific overlays, and result-driven biosphere/region markers;
 - eleven reactive planet parameters with preserved preferences and continuous phase-aware consequences;
 - a static parameter-backed left evidence panel in Planet Engineering and Life Design, including climate, effective atmosphere, water phases, humidity, energy/carbon, and radiation protection;
-- 33 biological traits with costs, conflicts, modifiers, advantages, and tradeoffs;
-- simulator 1.5.0 with phase-aware water/humidity coupling, effective dependent controls, 11 continuous metrics, six representative regions, eight outcomes, stable hashing, and a 40-generation population model;
+- 44 biological traits with visible anatomy, conflicts, modifiers, advantages, and tradeoffs;
+- simulator 1.7.0 with phase-aware water/humidity coupling, strict viability gates, 11 continuous metrics, six representative regions, eight outcomes, and a 200-step population/event model presented as model years;
 - deterministic organism morphology;
 - a server-only GPT-5.6 consultant route with Zod structured output and honest local fallback;
 - a server-only `gpt-image-2` route with controlled server-built prompt and procedural fallback;
@@ -62,6 +62,14 @@ The local deterministic workflow and both fallback routes work without external 
 - **Verification:** 20 Vitest tests passed; `npx tsc --noEmit`, full `npm run lint`, and `npm run build` passed. The production build was smoke-tested locally: planet and designer loaded without dev tools, the deterministic outcome/population/hash rendered, consultant and image fallbacks rendered with correct provenance, Polish fallback copy exposed no internal enum IDs, `html[lang="pl"]` updated, and a language change discarded an in-flight response from the previous language. Cinematic boot and full desktop interaction were also inspected. A real narrow/mobile device and deployed OpenAI calls remain TODOs.
 - **Dependency audit:** `npm audit --omit=dev` reports two moderate findings in Next.js's bundled PostCSS dependency (`GHSA-qx2v-qp2m-jg93`) and reports no fix available. Monitor upstream; do not claim a clean audit.
 
+### 2026-07-21 — Vespera story, free life design, and event survival
+
+- **Area:** intro narrative, organism design, deterministic population analysis, GPT/image presentation, and bilingual documentation.
+- **Work:** replaced the abstract orbit-to-organism intro with the Vespera expedition and banner; moved flag language controls to bottom centre; expanded the blank-start designer to 44 visibly represented traits without a construction budget; made the organism terrain derive from the engineered planet; added a strict life-support gate, a 200-step timeline displayed as model years, and six deterministic environmental event types; hid irrelevant planet controls in Design and Analyze; changed the consultant to the GPT-5.6 alias with an explicit temporary-unavailable state; changed generated images to downloadable 3:2 output. The current refinement replaces CSS-only boot planets with the shared WebGL scene, adds deterministic teaching summaries, makes body form a single choice, and makes events and regional context easier to inspect.
+- **Human decisions:** learner freedom, exact-zero survival when essential support is absent, a parameter-driven event story, and visible anatomy for every trait.
+- **Live-service boundary:** **TODO:** verify GPT-5.6 and `gpt-image-2` with deployed server credentials; local fallback is not a live-model demonstration.
+- **Verification:** 77 Vitest tests, TypeScript, ESLint, and the optimized Next.js build passed. Browser QA at `1280×720` and `390×844` verified the requested phases, strict-zero run, event timeline, fallback message, and English/Polish state. Live API and deployed-HEAD verification remain TODOs.
+
 ## Codex and GPT-5.6 roles
 
 Codex accelerated repository analysis, architecture refactoring, deterministic modeling, shader and UI implementation, bilingual content, test design, browser QA, science-boundary corrections, and documentation. The human selected the product direction and owns the scientific conventions, educational goal, design review, deployment, and submitted claims.
@@ -77,7 +85,7 @@ The demo should visibly prove:
 1. cinematic boot and clear objective;
 2. a real seeded WebGL planet that changes as inputs change;
 3. temperature/radiation overlays and planet interaction;
-4. meaningful life traits, budget, and tradeoffs;
+4. meaningful life traits, incompatibilities, visible anatomy, and tradeoffs;
 5. a deterministic run with regional scores and population chart;
 6. a second controlled change or comparison;
 7. a live GPT-5.6 consultant result with provenance;

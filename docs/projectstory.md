@@ -14,7 +14,7 @@ The early Xenogenesis concept became too much like a quiz. It asked learners to 
 
 ## The solution
 
-Xenogenesis Lab is a dynamic procedural life-creation simulator. The learner boots an orbital research computer and enters one continuous laboratory. A seeded 3D planet dominates the workspace. Environmental controls reshape it smoothly. A lifeform designer forces biological choices through costs and incompatibilities. A local deterministic engine then calculates whether that particular organism can find energy, tolerate the world, reproduce, occupy regional refuges, and grow through 40 generations.
+Xenogenesis Lab is a dynamic procedural life-creation simulator framed as the Vespera expedition. The learner opens a WebGL research system between a frozen world and a warm world, then enters one continuous laboratory with a clear objective: create the first biosphere capable of surviving two centuries of planetary change. A seeded 3D planet dominates the workspace. Environmental controls reshape it smoothly and a plain-language evidence story explains the consequence. A blank-start lifeform designer supports bacteria-like, aquatic, primate-like, and humanlike plans through visible traits and incompatibilities; organism form is one explicit unicellular-or-multicellular choice. A local deterministic engine calculates whether that organism can find energy, tolerate the world, reproduce, occupy regional refuges, and survive 200 parameter-driven steps presented as model years.
 
 The loop is deliberately experimental:
 
@@ -30,7 +30,7 @@ The planet is not a static asset. Custom shaders use a deterministic seed and la
 
 The organism is not a paragraph. Its immediate procedural field model responds to the current seed and selected body, movement, support, sensory, thermal, radiation, and energy traits. During Design life it becomes the central visual while a smaller live planet remains in view. A static left panel, also present during Planet Engineering, shows the exact active climate, atmosphere, water phases, effective humidity, energy/carbon, and radiation protection behind the biological choices. Analyze reserves that space for deterministic outcome evidence. An optional AI-generated field illustration can replace it only after the server grounds the prompt in validated facts.
 
-The survival result is not just success or failure. It includes 11 interacting scores, six representative habitat regions, a population curve, carrying capacity, strongest systems, limiting systems, and one of eight outcomes. The learner can change one variable and compare the next run without restarting.
+The survival result is not just success or failure. It includes a prominent survivability measure, 11 interacting scores, six representative habitat regions with parameter-driven visual cues, a population curve, carrying capacity, up to five selected-trait strengths and tradeoffs, and one of eight outcomes. Event icons reveal the affected population and context. The learner can change one variable and compare the next run without restarting.
 
 ## Scientific integrity
 

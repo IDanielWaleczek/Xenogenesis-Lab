@@ -4,7 +4,7 @@ import { GENESIS_MISSION } from "./mission";
 import type { LifeTraitId, PlanetState, SurvivalSimulationRequest } from "./schema";
 import { PlanetStateSchema } from "./schema";
 import { runSurvivalSimulation } from "./simulate";
-import { calculateTraitCost, hasTraitConflict, LIFE_ENERGY_BUDGET } from "./traits";
+import { calculateTraitCost, hasTraitConflict } from "./traits";
 
 const BASELINE_TRAITS: LifeTraitId[] = [
   "compactBody",
@@ -46,10 +46,32 @@ describe("continuous survival simulator", () => {
     const second = runSurvivalSimulation(request());
 
     expect(second).toEqual(first);
-    expect(first.simulatorVersion).toBe("1.6.0");
+    expect(first.simulatorVersion).toBe("1.7.0");
     expect(first.stateHash).toMatch(/^xl-[0-9a-f]{8}$/);
-    expect(first.populationTimeline).toHaveLength(41);
+    expect(first.populationTimeline).toHaveLength(201);
     expect(first.populationTimeline[0]).toEqual({ generation: 0, population: 120 });
+    expect(second.populationEvents).toEqual(first.populationEvents);
+  });
+
+  it("forces survival and population to zero when no selected metabolism is supported", () => {
+    const world = planetVariant({
+      atmosphericPressureAtm: 1,
+      waterAvailability: 0.7,
+      averageTemperatureC: 18,
+      lightLevel: 1,
+      geochemicalEnergyAvailability: "none",
+      electronAcceptors: [],
+    });
+    const result = runSurvivalSimulation(request(world, [
+      "multicellular",
+      "terrestrialMovement",
+      "visibleVision",
+    ]));
+
+    expect(result.metrics.advancedLifePotential).toBe(0);
+    expect(result.metrics.reproductionPotential).toBe(0);
+    expect(result.finalPopulation).toBe(0);
+    expect(result.outcome).toBe("immediateExtinction");
   });
 
   it("supports an advanced aerobic surface strategy without a hidden exact solution", () => {
@@ -83,7 +105,7 @@ describe("continuous survival simulator", () => {
     ];
     const result = runSurvivalSimulation(request(temperateWorld, traits));
 
-    expect(calculateTraitCost(traits)).toBeLessThanOrEqual(LIFE_ENERGY_BUDGET);
+    expect(calculateTraitCost(traits)).toBeGreaterThan(0);
     expect(result.missionSuccess).toBe(true);
     expect(result.outcome).toMatch(/advanced|stableMulticellular/i);
     expect(result.finalPopulation).toBeGreaterThan(1_000);
@@ -166,8 +188,8 @@ describe("continuous survival simulator", () => {
     const lowGravity = runSurvivalSimulation(request(planetVariant({ ...volatileWorld, gravityG: 0.2 })));
     const earthGravity = runSurvivalSimulation(request(planetVariant({ ...volatileWorld, gravityG: 1 })));
 
-    expect(lowGravity.metrics.liquidWater).toBe(earthGravity.metrics.liquidWater);
-    expect(lowGravity.metrics.atmosphere).toBe(earthGravity.metrics.atmosphere);
+    expect(lowGravity.metrics.liquidWater).toBeLessThan(earthGravity.metrics.liquidWater);
+    expect(lowGravity.metrics.atmosphere).not.toBe(earthGravity.metrics.atmosphere);
     expect(lowGravity.metrics.organismCompatibility)
       .not.toBe(earthGravity.metrics.organismCompatibility);
 
@@ -210,7 +232,8 @@ describe("continuous survival simulator", () => {
       humidity: 0.5,
     })));
 
-    expect(denseStable.metrics.atmosphere).not.toBe(thinVariable.metrics.atmosphere);
+    // Both stored pressures express the same 0.2 atm after the 0.2 g ceiling.
+    expect(denseStable.metrics.atmosphere).toBe(thinVariable.metrics.atmosphere);
     expect(denseStable.metrics.thermalStability)
       .not.toBe(thinVariable.metrics.thermalStability);
 
@@ -504,9 +527,9 @@ describe("continuous survival simulator", () => {
       "adaptiveLearning",
     ];
 
-    expect(calculateTraitCost(expensiveTraits)).toBeGreaterThan(LIFE_ENERGY_BUDGET);
-    expect(runSurvivalSimulation(request(GENESIS_MISSION.planet, expensiveTraits)).traitIds)
-      .toEqual(expensiveTraits);
+    expect(calculateTraitCost(expensiveTraits)).toBeGreaterThan(100);
+    expect(() => runSurvivalSimulation(request(GENESIS_MISSION.planet, expensiveTraits)))
+      .not.toThrow();
     expect(hasTraitConflict(["compactBody"], "largeBody")).toBe(true);
   });
 });

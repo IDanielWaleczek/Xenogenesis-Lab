@@ -8,7 +8,7 @@
 
 ## What it does
 
-Xenogenesis Lab turns planetary habitability into an experiment rather than a quiz. The learner boots an orbital laboratory, changes a seeded procedural planet, sees its terrain and atmosphere transform in real time, designs an organism from biologically consequential traits, and runs a reproducible 40-generation survival model. The result explains continuous environmental scores, regional refuges, population behavior, and advanced-life potential so the learner can change one variable and try again.
+Xenogenesis Lab turns planetary habitability into the Vespera expedition: create the first biosphere capable of surviving two centuries of planetary change. The learner opens a story-led WebGL research system, reshapes a seeded procedural planet, designs an organism from biologically consequential visible traits, and runs a reproducible 200-step survival and event model presented as model years. The result explains survivability, continuous environmental scores, regional refuges, and population shocks so one variable can be changed and tested again.
 
 ```text
 Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt
@@ -18,30 +18,30 @@ There is no single hidden correct configuration. The tested model supports disti
 
 ## Main features
 
-- Cinematic space-and-life introduction with an explicit Begin training action into a single-screen astrobiology laboratory.
+- Story-led cinematic introduction with frozen and warm candidate worlds, Xenogenesis banner branding, background stars, and bottom-centred English/Polish flag controls.
 - One complete Genesis mission with a broad goal: create stable advanced multicellular life on Vespera 7A.
 - Deterministic seeded WebGL planet rendered with Three.js, React Three Fiber, layered FBM/value noise, and custom GLSL shaders.
 - Persistent terrain geometry with smoothly interpolated phase-aware water/ice/vapor, sand, thermally altered rock, clouds, atmosphere, day/night illumination, radiation exposure, aurora, and biosphere uniforms.
 - Interactive orbit camera, zoom, day-side reset, automatic-rotation control, and realistic/temperature/radiation modes with labelled legends.
-- Eleven live environmental controls with preserved preferences, a gravity-dependent `0–100 atm` atmospheric ceiling, and continuous derived interactions including conditional dense-atmosphere weather.
-- Lifeform designer with 33 traits in five categories, explicit advantages, tradeoffs, incompatibilities, a 100-point biological energy budget, and a static parameter-backed world-evidence panel shared with Planet Engineering.
-- Deterministic simulator 1.6.0 with phase-aware water and humidity coupling, conditional dense-atmosphere thermal and storm behavior, effective dependent controls, 11 continuous suitability metrics, six representative regional scores, a logistic-style population timeline, eight possible outcomes, and a stable state hash.
-- Deterministic code-native organism morphology that responds to the seed, environment, movement, body, sensory, and adaptation traits.
+- Eleven live environmental controls with preserved preferences, a gravity-dependent `0–5 atm` atmospheric ceiling, and continuous derived interactions including conditional dense-atmosphere weather.
+- Blank-start lifeform designer with 44 traits in five categories, explicit advantages, tradeoffs, and incompatibilities. Every trait changes the code-native organism, and its terrain, water/ice, atmosphere, temperature, and light always come from the engineered planet.
+- Deterministic simulator 1.7.0 with strict water, energy, metabolism, thermal, and radiation viability gates; 11 continuous suitability metrics; six representative regions; a 200-step timeline presented as model years; six parameter-driven event types; and eight outcomes.
+- Unsupported life can reach exactly zero advanced-life potential and population; diagnostic component scores remain visible so the learner can identify what to revise.
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
-- Optional server-only `gpt-image-2` field illustration. GPT selects only validated art-direction enums; the server constructs the final prompt from calculated facts and selected traits.
+- Optional server-only `gpt-image-2` field illustration in an uncropped downloadable 3:2 frame. GPT selects only validated art-direction enums; the server constructs the final prompt from calculated facts and selected traits.
 - Complete reviewed English and Polish interface copy, including accessible labels and failure states.
 - Responsive desktop-first layout; planet engineering, life design, and analysis each center their important visual, while mobile keeps a phase visual visible during scrolling.
 
 ## How it works for the learner
 
-1. On the startup screen, select **Begin training** when ready; it never advances automatically.
-2. Read the mission goal and first-use instruction.
+1. On the startup screen, choose English or Polish and begin the Vespera experiment; it never advances automatically.
+2. Read the expedition objective: create a biosphere that can survive two centuries of change.
 3. Change gravity, temperature, local pressure, oxygen, carbon dioxide, water, radiation, stellar energy, humidity, or magnetic-field strength.
 4. Rotate the planet and switch scientific overlays to inspect its response.
-5. Open the lifeform designer, review the active climate, atmosphere, water-phase, humidity, energy, carbon, and radiation evidence, then select compatible traits within the energy budget.
-6. Run 40 generations locally. No AI is used for the calculation.
-7. Inspect suitability scores, regional survival, population growth, the organism field model, and the mission outcome.
-8. Optionally request GPT-5.6 interpretation or a generated field illustration.
+5. Open the blank lifeform designer, review active world evidence, and combine compatible traits while watching the organism and terrain change.
+6. Run 200 model years and deterministic environmental events locally. No AI is used for the calculation.
+7. Inspect suitability scores, strict viability, regional survival, event impacts, population growth, the organism field model, and the mission outcome.
+8. Optionally request GPT-5.6 interpretation or a downloadable 3:2 field illustration. If the API is unavailable, the app says so and keeps the deterministic experiment usable.
 9. Return to the planet or organism without reloading and run a controlled comparison.
 
 ## Technology stack
@@ -57,6 +57,32 @@ There is no single hidden correct configuration. The tested model supports disti
 - Intended hosting: Vercel with GitHub deployments
 
 The domain and DNS may remain at GreenGeeks or OVH, but the application must never depend on GreenGeeks EcoSite Lite for its Node.js runtime.
+
+## Run locally
+
+Prerequisites: Node.js and npm. **TODO:** the repository does not currently pin a Node.js version.
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+To build and run the optimized production server locally:
+
+```bash
+npm run build
+npm run start
+```
+
+Repository checks supported by `package.json`:
+
+```bash
+npm run lint
+npm test
+npx tsc --noEmit
+```
 
 ## Architecture
 
@@ -77,14 +103,14 @@ Next.js server-only route handlers
 └── POST /api/organism-image   controlled gpt-image-2 request or procedural fallback
 ```
 
-The deterministic engine owns every score and outcome. GPT-5.6 can explain the validated result and choose constrained visual direction; it cannot change physics, trait costs, regional scores, population output, or mission success. Image generation represents an organism and never feeds facts back into the model.
+The deterministic engine owns every score, viability gate, event, and outcome. GPT-5.6 can explain the validated result and choose constrained visual direction; it cannot change physics, regional scores, population output, or mission success. Image generation represents an organism and never feeds facts back into the model.
 
 In-memory caches use a stable hash of mission, planet, traits, result, and language. They reduce repeated calls inside one server process but are not durable across serverless instances.
 
 
 ## Scientific scope
 
-Simulator 1.6.0 is a scientifically inspired educational model, not a complete climate, geology, radiation-transport, ecosystem, genetics, or evolutionary model. Its formulas are continuous and deterministic, but its weights and success convention are documented model choices. Six representative habitats are scored instead of a spatial climate grid. The shader terrain consumes shared derived state but remains a visual interpretation.
+Simulator 1.7.0 is a scientifically inspired educational model, not a complete climate, geology, radiation-transport, ecosystem, genetics, or evolutionary model. Its formulas, event schedule, weights, viability gates, and success convention are documented model choices. Six representative habitats are scored instead of a spatial climate grid. The shader terrain consumes shared derived state but remains a visual interpretation.
 
 Important conservative boundaries include:
 
@@ -106,7 +132,7 @@ Key human decisions were:
 - give learners freedom instead of one correct answer;
 - make the planet the dominant interactive object;
 - expose every major parameter’s world and biological consequence;
-- use meaningful biological traits with costs rather than cosmetic customization;
+- use meaningful biological traits and incompatibilities rather than cosmetic customization or an arbitrary construction budget;
 - preserve deterministic science and call AI only for visible explanatory or illustrative value;
 - keep English and Polish equally complete;
 - prioritize one polished mission before persistence or a campaign.
@@ -137,12 +163,13 @@ Detailed evidence and the final checklist live in [docs/HACKATHON.md](docs/HACKA
 
 ## Verified in the current change
 
-- 20 Vitest tests passed.
+- 77 Vitest tests passed across 10 test files, including strict-zero viability, 200-generation events, gravity-limited atmospheric consequences, and complete visual-trait registration.
 - TypeScript passed with `npx tsc --noEmit`.
 - Full repository lint passed with `npm run lint`.
 - The optimized Next.js build passed with `npm run build`.
-- A local production smoke test verified the planet, designer, deterministic result, population/hash output, English/Polish switch, explicit consultant/image fallbacks, localized fallback terminology, and stale-response protection during a language change.
-- Live OpenAI requests, the deployed URL, and a real narrow/mobile device remain TODOs.
+- Browser QA at `1280×720` and `390×844` verified the banner intro, bottom flag selector, blank designer, world-derived organism terrain, visible protected eggs, hidden Life/Analyze planet controls, 200-generation chart, deterministic events, exact-zero extinction path, local consultant fallback, and new Polish copy.
+- Browser console inspection found no errors; Three.js emits its existing `Clock` deprecation warning.
+- Live OpenAI requests and the deployed URL remain TODOs.
 
 ## Current limitations
 

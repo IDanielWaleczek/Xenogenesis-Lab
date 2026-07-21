@@ -2,7 +2,7 @@
 
 ## Model scope
 
-Simulator 1.5.0 is a deterministic, scientifically inspired educational model for exploring interactions among a planet, a designed organism, representative habitats, and population stability. It is not a complete climate, atmospheric-chemistry, geology, radiation-transport, ecosystem, genetics, or evolutionary model.
+Simulator 1.7.0 is a deterministic, scientifically inspired educational model for exploring interactions among a planet, a designed organism, representative habitats, and population stability. It is not a complete climate, atmospheric-chemistry, geology, radiation-transport, ecosystem, genetics, or evolutionary model.
 
 All coefficients are versioned model conventions. They express consistent tradeoffs for this experience and must not be presented as universal biological limits.
 
@@ -75,7 +75,7 @@ The boiling boundary uses a constant-enthalpy Clausius-Clapeyron estimate anchor
 
 ### Independent-input boundary
 
-The first mission lacks radius, mass, gas molecular-velocity distributions, rotation period, thermal inertia, albedo, stellar spectrum, XUV history, and geologic replenishment. Simulator 1.5.0 therefore uses an explicit educational pressure ceiling rather than claiming a complete escape-rate prediction: `P_eff = min(P_stored, 5 × g²) atm`, capped at `5 atm`. This is an immediate constraint, not annual atmospheric-loss simulation. The quadratic curve intentionally makes a `0.2 g` world support at most `0.2 atm`, while an Earth-gravity world can express the full `5 atm` slider range. NASA describes the physical direction correctly — stronger gravity raises escape velocity and generally improves atmospheric retention — while also noting that composition, stellar energy, magnetic field, temperature, and history matter. Gravity still affects biological body support and movement; effective pressure affects gas partial pressure, density, water stability, humidity, clouds, respiration, and aerial movement.
+The first mission lacks radius, mass, gas molecular-velocity distributions, rotation period, thermal inertia, albedo, stellar spectrum, XUV history, and geologic replenishment. Simulator 1.7.0 therefore uses an explicit educational pressure ceiling rather than claiming a complete escape-rate prediction: `P_eff = min(P_stored, 5 × g²) atm`, capped at `5 atm`. This is an immediate constraint, not annual atmospheric-loss simulation. The quadratic curve intentionally makes a `0.2 g` world support at most `0.2 atm`, while an Earth-gravity world can express the full `5 atm` slider range. NASA describes the physical direction correctly — stronger gravity raises escape velocity and generally improves atmospheric retention — while also noting that composition, stellar energy, magnetic field, temperature, and history matter. Gravity still affects biological body support and movement; effective pressure affects gas partial pressure, density, water stability, humidity, clouds, respiration, and aerial movement.
 
 ## Deterministic physical derivations
 
@@ -157,7 +157,7 @@ Uses the weighted mean/minimum/maximum calculation above and selected cold/heat 
 
 ### Radiation safety
 
-Simulator 1.5.0 uses the explicit magnetic field as a simplified incident-radiation protection convention:
+Simulator 1.7.0 uses the explicit magnetic field as a simplified incident-radiation protection convention:
 
 ```text
 effectiveDose = normalizedDose / (1 + 1.6 × EarthRelativeMagneticField)
@@ -191,14 +191,14 @@ Gravity and pressure use broad bell curves plus selected tolerance modifiers. Pr
 
 ## Trait system
 
-The life designer currently defines 33 traits in five categories. Every trait has:
+The life designer currently defines 44 traits in five categories. Every trait has:
 
-- an integer biological energy cost;
+- descriptive tuning metadata;
 - one or more continuous modifiers;
 - documented advantages and tradeoffs;
 - explicit conflicts where combinations are incompatible.
 
-The budget is `100`. Simulator input above the budget or containing a conflict is rejected, including server-side recalculation. Trait costs and modifiers are model conventions, not measured universal energy values.
+There is no construction budget or maximum trait count in simulator 1.7.0. Explicitly incompatible combinations remain blocked. This gives learners freedom to compare bacteria-like, aquatic, primate-like, and humanlike strategies while retaining biological tradeoffs. Trait modifiers are model conventions, not measured universal energy values.
 
 Complex traits increase adaptability or complexity but may reduce oxygen efficiency, reproduction, or both. Rapid reproduction trades against complexity; large bodies trade against oxygen demand; flight trades against gravity and density; insulation trades against heat tolerance.
 
@@ -225,7 +225,7 @@ Ecosystem potential combines population stability, energy, water, atmosphere, an
 
 ## Population model
 
-The model runs generations `0–40` from an initial population of `120` in the current mission.
+The model runs indexed steps `0–200` from an initial population of `120` in the current mission. The UI labels these steps as **model years** to make the trend more readable; this is a presentation convention, not a claim about organism generation time or evolutionary chronology. Before population growth, a conservative viability gate requires accessible liquid water, minimum usable biological energy, minimum thermal and radiation support, and at least one selected metabolic pathway that the configured world can actually sustain. When that gate fails, reproduction, ecosystem potential, advanced-life potential, carrying capacity, and final population are exactly zero. Component compatibility remains continuous so learners can still diagnose which physical fit improved.
 
 ```text
 K = 80,000 × ecosystemPotential
@@ -238,7 +238,7 @@ m = 0.22 × (1 − organismCompatibility)
 N(t+1) = max(0, N(t) + rN(t)(1 − N(t)/K) − mN(t))
 ```
 
-Very low organism compatibility adds a documented collapse multiplier. The chart represents a population trend, not simulated individuals or evolutionary generations with mutation.
+Very low organism compatibility adds a documented collapse multiplier. Six possible deterministic events are derived from the calculated thermal, radiation, hydration, resource, reproduction, and adaptability state. They occur at fixed generations for reproducibility and scale population by the displayed impact fraction. The chart represents a population trend and modelled pressures, not simulated individuals, random weather, genetics, or mutation.
 
 ## Mission evaluation and outcomes
 
@@ -322,7 +322,7 @@ These mappings are aesthetic explanations, not additional scientific calculation
 
 ## Versioning
 
-Current version: `1.5.0`.
+Current version: `1.7.0`.
 
 - Patch: coefficient correction that preserves contract shape.
 - Minor: compatible new metrics, regions, or traits.

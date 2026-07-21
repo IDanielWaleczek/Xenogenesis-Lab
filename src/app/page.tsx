@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- supplied flag CDN assets are intentionally rendered at their exact URLs. */
+
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -24,8 +26,6 @@ import type {
 } from "@/domain/simulator/schema";
 import { runSurvivalSimulation } from "@/domain/simulator/simulate";
 import {
-  calculateTraitCost,
-  LIFE_ENERGY_BUDGET,
   LIFE_TRAITS,
   type TraitCategory,
 } from "@/domain/simulator/traits";
@@ -58,8 +58,13 @@ const ProceduralPlanet = dynamic(
   },
 );
 
+const IntroPlanetaryScene = dynamic(
+  () => import("@/components/planet/ProceduralPlanet").then((module) => module.IntroPlanetaryScene),
+  { ssr: false },
+);
+
 type SystemScreen = "boot" | "lab";
-type TraitNotice = "conflict" | "budgetExceeded" | "selectionLimit" | "minimumTraits" | null;
+type TraitNotice = "conflict" | "minimumTraits" | null;
 
 const PHASES: LabPhase[] = ["planet", "life", "results"];
 const CATEGORIES: TraitCategory[] = ["body", "physiology", "senses", "reproduction", "intelligence"];
@@ -77,16 +82,7 @@ const METRIC_ORDER: SimulationMetricId[] = [
   "reproductionPotential",
 ];
 
-const DEFAULT_TRAITS: LifeTraitId[] = [
-  "compactBody",
-  "internalSkeleton",
-  "terrestrialMovement",
-  "lowOxygenMetabolism",
-  "photosynthesis",
-  "radiationResistance",
-  "protectedEggs",
-  "socialCoordination",
-];
+const DEFAULT_TRAITS: LifeTraitId[] = [];
 
 const PARAMETER_CONFIG: Array<{
   id: ParameterId;
@@ -111,6 +107,39 @@ const PARAMETER_CONFIG: Array<{
 /** Creates a fresh validated copy of the immutable laboratory baseline. */
 function createBaselinePlanet(): PlanetState {
   return PlanetStateSchema.parse(GENESIS_MISSION.planet);
+}
+
+/** Builds the two explicitly parameter-backed worlds used only as the boot-scene tableau. */
+function createBootPlanets(): { frozenPlanet: PlanetState; warmPlanet: PlanetState } {
+  const baseline = createBaselinePlanet();
+  return {
+    frozenPlanet: PlanetStateSchema.parse({
+      ...baseline,
+      seed: "vespera-boot-frozen",
+      world: {
+        ...baseline.world,
+        averageTemperatureC: -72,
+        temperatureVariationC: 16,
+        atmosphericPressureAtm: 0.9,
+        waterAvailability: 0.5,
+        humidity: 0.32,
+        lightLevel: 0.55,
+      },
+    }),
+    warmPlanet: PlanetStateSchema.parse({
+      ...baseline,
+      seed: "vespera-boot-warm",
+      world: {
+        ...baseline.world,
+        averageTemperatureC: 38,
+        temperatureVariationC: 12,
+        atmosphericPressureAtm: 1.15,
+        waterAvailability: 0.36,
+        humidity: 0.52,
+        lightLevel: 0.9,
+      },
+    }),
+  };
 }
 
 /** Formats numbers consistently for the active interface language. */
@@ -353,12 +382,14 @@ function PopulationChart({
   label: string;
 }) {
   const gradientId = `population-${useId().replaceAll(":", "")}`;
+  const [activeEvent, setActiveEvent] = useState(0);
   const width = 620;
   const height = 190;
   const padding = 18;
+  const finalGeneration = result.populationTimeline.at(-1)?.generation ?? 1;
   const maximum = Math.max(1, result.peakPopulation, result.carryingCapacity);
   const points = result.populationTimeline.map(({ generation, population }) => ({
-    x: padding + (generation / 40) * (width - padding * 2),
+    x: padding + (generation / finalGeneration) * (width - padding * 2),
     y: height - padding - (population / maximum) * (height - padding * 2),
   }));
   const line = points.map(({ x, y }) => `${x},${y}`).join(" ");
@@ -378,13 +409,18 @@ function PopulationChart({
         ))}
         <path d={area} fill={`url(#${gradientId})`} />
         <polyline fill="none" points={line} stroke="#67e8f9" strokeLinejoin="round" strokeWidth="3" />
+        {result.populationEvents.map((event, index) => {
+          const point = points[event.generation];
+          return point ? <g key={`${event.id}-${event.generation}`}><line className={`population-event-line ${event.kind}`} x1={point.x} x2={point.x} y1={padding} y2={height - padding} /><circle className={`population-event-dot ${event.kind}`} cx={point.x} cy={point.y} onClick={() => setActiveEvent(index)} onFocus={() => setActiveEvent(index)} r="7" tabIndex={0}><title>{`${EVENT_EMOJI[event.id]} ${label}: ${event.generation}; ${formatNumber(result.populationTimeline[event.generation]?.population ?? 0, language, 0)}`}</title></circle><text className="population-event-icon" x={point.x} y={Math.max(14, point.y - 11)}>{EVENT_EMOJI[event.id]}</text><text className="population-event-population" x={point.x} y={Math.min(height - 5, point.y + 15)}>{formatNumber(result.populationTimeline[event.generation]?.population ?? 0, language, 0)}</text></g> : null;
+        })}
         <circle cx={points.at(-1)?.x} cy={points.at(-1)?.y} fill="#ecfeff" r="4" />
       </svg>
       <figcaption>
         <span>0</span>
         <span>{formatNumber(maximum, language, 0)}</span>
-        <span>40</span>
+        <span>{finalGeneration}</span>
       </figcaption>
+      {result.populationEvents[activeEvent] && <p className="population-chart-event">{EVENT_EMOJI[result.populationEvents[activeEvent].id]} {language === "pl" ? "Rok" : "Year"} {result.populationEvents[activeEvent].generation} · {formatNumber(result.populationTimeline[result.populationEvents[activeEvent].generation]?.population ?? 0, language, 0)} {language === "pl" ? "organizmów" : "organisms"}</p>}
     </figure>
   );
 }
@@ -462,8 +498,76 @@ function WorldEvidence({
   );
 }
 
+/** Turns current deterministic evidence into short, explicitly non-predictive teaching copy. */
+function worldStory(context: WorldContext, language: Language): string {
+  const frozen = context.iceWaterFraction > context.liquidWaterFraction;
+  const water = context.liquidWaterFraction > 0.08;
+  const airless = context.effectivePressureAtm < 0.01;
+  const harshRadiation = context.protectedRadiationMilliSvPerHour > 0.1;
+  if (language === "pl") {
+    const air = airless ? "Świat ma praktycznie próżnię, więc na powierzchni nie utrzyma chmur ani stabilnej ciekłej wody." : "Atmosfera może przenosić ciepło i tworzyć warunki dla pogody.";
+    const hydro = frozen ? "Większość dostępnej wody pozostaje zamarznięta." : water ? "Część wody pozostaje ciekła, tworząc potencjalne nisze przy powierzchni." : "Dostępna ciekła woda jest obecnie zbyt rzadka dla rozległych siedlisk.";
+    const radiation = harshRadiation ? "Promieniowanie nadal jest silnym testem dla odsłoniętego życia." : "Ochrona magnetyczna utrzymuje promieniowanie na bardziej sprzyjającym poziomie modelowym.";
+    return `${air} ${hydro} ${radiation}`;
+  }
+  const air = airless ? "This world is close to vacuum, so its surface cannot hold clouds or stable liquid water." : "Its atmosphere can move heat and make weather possible.";
+  const hydro = frozen ? "Most available water is locked as ice." : water ? "Some water remains liquid, creating possible surface niches." : "Accessible liquid water is too scarce for broad habitats right now.";
+  const radiation = harshRadiation ? "Radiation remains a serious test for exposed life." : "Magnetic protection keeps radiation at a more forgiving model level.";
+  return `${air} ${hydro} ${radiation}`;
+}
+
+/** Explains the selected organism concept without presenting it as a simulation outcome. */
+function lifeStory(context: WorldContext, traitIds: LifeTraitId[], copy: LabCopy, language: Language): string {
+  if (traitIds.length === 0) {
+    return language === "pl"
+      ? "Organizm jest jeszcze pustą hipotezą. Wybierz formę ciała, a następnie cechy, które odpowiadają na warunki tej planety."
+      : "The organism is still an empty hypothesis. Choose a body form, then select traits that answer this planet’s conditions.";
+  }
+  const names = traitIds.slice(0, 3).map((id) => copy.traits[id].title).join(", ");
+  const challenge = context.liquidWaterFraction < 0.08
+    ? (language === "pl" ? "mało dostępnej ciekłej wody" : "scarce accessible liquid water")
+    : context.effectivePressureAtm < 0.1
+      ? (language === "pl" ? "cienka atmosfera" : "a thin atmosphere")
+      : context.protectedRadiationMilliSvPerHour > 0.1
+        ? (language === "pl" ? "silne promieniowanie" : "strong radiation")
+        : (language === "pl" ? "zmienne nisze klimatyczne" : "changing climate niches");
+  return language === "pl"
+    ? `Ta hipoteza łączy ${names}. Jej najważniejszym sprawdzianem będzie ${challenge}; kolejne cechy są eksperymentem, a nie gwarancją przetrwania.`
+    : `This hypothesis combines ${names}. Its main test will be ${challenge}; every further trait is an experiment, not a guarantee of survival.`;
+}
+
+function traitHighlights(traitIds: LifeTraitId[]): { strengths: LifeTraitId[]; limits: LifeTraitId[] } {
+  const scored = traitIds.map((id) => {
+    const values = Object.values(LIFE_TRAITS[id].modifiers);
+    return { id, benefit: values.reduce((sum, value) => sum + Math.max(0, value ?? 0), 0), cost: values.reduce((sum, value) => sum + Math.max(0, -(value ?? 0)), 0) };
+  });
+  return {
+    strengths: [...scored].sort((a, b) => b.benefit - a.benefit).slice(0, 5).map(({ id }) => id),
+    limits: [...scored].sort((a, b) => b.cost - a.cost || a.benefit - b.benefit).slice(0, 5).map(({ id }) => id),
+  };
+}
+
+const TRAIT_CATEGORY_EMOJI: Record<TraitCategory, string> = {
+  body: "🧬", physiology: "⚗️", senses: "👁️", reproduction: "🥚", intelligence: "🧠",
+};
+
+const EVENT_EMOJI = {
+  thermalShock: "🌡️", radiationStorm: "☢️", hydrosphereStress: "💧", resourceBloom: "🌿", adaptiveBreakthrough: "🧠", reproductiveBottleneck: "🥚",
+} as const;
+
+/** Compact, parameter-driven visual cue for each simulated regional score. */
+function RegionBiomePreview({ context, region, label }: { context: WorldContext; region: RegionId; label: string }) {
+  const hasLiquidWater = context.liquidWaterFraction > 0.08;
+  const frozen = context.iceWaterFraction > context.liquidWaterFraction;
+  const barren = context.effectivePressureAtm < 0.01;
+  const warm = context.meanTemperatureC > 65;
+  const className = `region-biome ${region} ${hasLiquidWater ? "has-water" : "dry"} ${frozen ? "frozen" : ""} ${barren ? "airless" : ""} ${warm ? "hot" : ""}`;
+  return <span aria-label={label} className={className} role="img"><i /><b /><em /></span>;
+}
+
 /** Full application surface for one repeatable procedural life-engineering workspace. */
 export default function Home() {
+  const bootPlanets = useMemo(() => createBootPlanets(), []);
   const [screen, setScreen] = useState<SystemScreen>("boot");
   const [language, setLanguage] = useState<Language>("en");
   const [phase, setPhase] = useState<LabPhase>("planet");
@@ -485,7 +589,6 @@ export default function Home() {
   const simulationRunId = useRef(0);
   const stateEpoch = useRef(0);
   const copy = COPY[language];
-  const traitCost = calculateTraitCost(traitIds);
   const worldContext = useMemo(
     () => deriveWorldContext(planet.world),
     [planet.world],
@@ -557,8 +660,22 @@ export default function Home() {
       invalidateCalculatedState();
       return;
     }
+    const conflicts = LIFE_TRAITS[traitId].conflicts.some((id) => traitIds.includes(id));
+    if (conflicts) {
+      setTraitNotice("conflict");
+      return;
+    }
     setTraitIds((current) => [...current, traitId]);
     invalidateCalculatedState();
+  };
+
+  const selectBodyForm = (next: "" | "unicellular" | "multicellular") => {
+    setTraitNotice(null);
+    invalidateCalculatedState();
+    setTraitIds((current) => [
+      ...current.filter((id) => id !== "unicellular" && id !== "multicellular"),
+      ...(next ? [next] : []),
+    ]);
   };
 
   const runSimulation = async () => {
@@ -633,22 +750,12 @@ export default function Home() {
     return (
       <main className="boot-screen">
         <div aria-hidden="true" className="boot-nebula" />
-        <div aria-hidden="true" className="boot-grid" />
-        <div aria-hidden="true" className="boot-horizon" />
-        <div aria-hidden="true" className="boot-starfield" />
-        <div aria-hidden="true" className="boot-planet boot-planet-far" />
-        <div aria-hidden="true" className="boot-planet boot-planet-near"><span /><i /></div>
-        <div aria-hidden="true" className="boot-life-orbit"><span /><span /><span /><i /></div>
-        <div className="boot-language">
-          <span>{copy.language.label}</span>
-          <button aria-pressed={language === "en"} onClick={() => changeLanguage("en")} type="button">EN</button>
-          <button aria-pressed={language === "pl"} onClick={() => changeLanguage("pl")} type="button">PL</button>
-        </div>
+        <IntroPlanetaryScene {...bootPlanets} />
         <section className="boot-hero">
           <div className="boot-identity">
-            <OrbitMark large />
+            <Image alt="Xenogenesis Lab" className="boot-banner" height={132} priority src="/XenogenesisLabBanner_Transparent.png" width={660} />
             <p>{copy.boot.eyebrow}</p>
-            <h1>{copy.boot.title}</h1>
+            <h1 className="sr-only">{copy.boot.title}</h1>
             <span>{copy.boot.subtitle}</span>
           </div>
           <p className="boot-scene-label"><span aria-hidden="true" />{copy.boot.sceneLabel}</p>
@@ -656,19 +763,33 @@ export default function Home() {
             <button className="button-primary" onClick={() => setScreen("lab")} type="button">{copy.boot.enter} <span aria-hidden="true">→</span></button>
           </div>
         </section>
+        <div className="boot-language">
+          <span>{copy.language.label}</span>
+          <div className="boot-language-buttons">
+            <button aria-label={copy.language.english} aria-pressed={language === "en"} onClick={() => changeLanguage("en")} type="button"><img alt="" height="18" src="https://flagcdn.io/flags/4x3/us.svg" width="24" /><span>EN</span></button>
+            <button aria-label={copy.language.polish} aria-pressed={language === "pl"} onClick={() => changeLanguage("pl")} type="button"><img alt="" height="18" src="https://flagcdn.io/flags/4x3/pl.svg" width="24" /><span>PL</span></button>
+          </div>
+        </div>
       </main>
     );
   }
 
   const visibleResult = result && !resultStale ? result : null;
   const biosphereLevel = visibleResult?.metrics.ecosystemPotential ?? 0;
+  const selectedBodyForm = traitIds.includes("unicellular") ? "unicellular" : traitIds.includes("multicellular") ? "multicellular" : "";
+  const highlights = traitHighlights(traitIds);
+  const survivability = result ? (result.finalPopulation === 0 ? 0 : result.metrics.organismCompatibility) : 0;
+  const failureExplanation = result && !result.missionSuccess
+    ? (language === "pl"
+      ? `Populacja spadła do ${formatNumber(result.finalPopulation, language, 0)}, ponieważ najsłabsze warunki to ${result.limitingFactors.slice(0, 3).map((metric) => copy.metrics[metric].label.toLowerCase()).join(", ")}. Zmień planetę lub cechy, a potem ponów eksperyment.`
+      : `The population fell to ${formatNumber(result.finalPopulation, language, 0)} because the weakest conditions are ${result.limitingFactors.slice(0, 3).map((metric) => copy.metrics[metric].label.toLowerCase()).join(", ")}. Change the planet or traits, then rerun the experiment.`)
+    : null;
 
   return (
     <main className="lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <OrbitMark />
-          <Image alt="Xenogenesis Lab" className="lab-banner" height={38} priority src="/XenogenesisLabBanner.png" width={190} />
+          <Image alt="Xenogenesis Lab" className="lab-banner" height={64} priority src="/XenogenesisLabBanner.png" width={240} />
           <span>{copy.header.system}</span>
         </div>
         <div className="lab-header-actions">
@@ -689,27 +810,17 @@ export default function Home() {
       </nav>
 
       <div className={`lab-grid phase-${phase}`}>
-        {phase !== "results" && (
-          <aside className="lab-panel world-evidence-panel">
-            <WorldEvidence
-              context={worldContext}
-              copy={copy}
-              language={language}
-              phase={phase === "planet" ? "planet" : "design"}
-            />
-          </aside>
-        )}
         <section className={`planet-stage planet-stage-${phase}`}>
           <div className="planet-stage-header">
             <div>
-              <p className="eyebrow">{copy.planet.liveView}</p>
-              <span>{copy.planet.visualTransition}</span>
+              <p className="eyebrow">{phase === "life" ? copy.life.title : phase === "results" ? copy.simulation.title : copy.planet.liveView}</p>
+              <span>{phase === "life" ? copy.life.previewHint : phase === "results" ? copy.simulation.populationTitle : copy.planet.visualTransition}</span>
             </div>
-            <div className="planet-mode-switch" aria-label={copy.planet.viewMode} role="group">
+            {phase === "planet" && <div className="planet-mode-switch" aria-label={copy.planet.viewMode} role="group">
               {(["realistic", "temperature", "radiation"] as PlanetVisualizationMode[]).map((mode) => (
                 <button aria-pressed={visualizationMode === mode} key={mode} onClick={() => setVisualizationMode(mode)} type="button">{copy.planet.modes[mode]}</button>
               ))}
-            </div>
+            </div>}
           </div>
 
           {phase === "life" ? (
@@ -720,7 +831,7 @@ export default function Home() {
               </div>
               <div className="planet-inset">
                 <ProceduralPlanet
-                  autoRotate={autoRotate}
+                  autoRotate={false}
                   biosphereLevel={biosphereLevel}
                   cameraResetSignal={cameraResetSignal}
                   label={copy.planet.liveView}
@@ -739,7 +850,8 @@ export default function Home() {
                     <span>{result.missionSuccess ? copy.simulation.success : copy.simulation.continue}</span>
                     <h2>{copy.outcomes[result.outcome].title}</h2>
                     <p>{copy.outcomes[result.outcome].description}</p>
-                    <div className="objective-score"><div><span>{copy.simulation.objective}</span><strong>{Math.round(result.objectiveScore * 100)}%</strong></div><span><i style={{ width: `${result.objectiveScore * 100}%` }} /></span></div>
+                    {failureExplanation && <p className="failure-explanation">⚠️ {failureExplanation}</p>}
+                    <div className="objective-score"><div><span>{language === "pl" ? "Przeżywalność" : "Survivability"}</span><strong>{Math.round(survivability * 100)}%</strong></div><span><i style={{ width: `${survivability * 100}%` }} /></span></div>
                   </>
                 ) : (
                   <>
@@ -750,7 +862,7 @@ export default function Home() {
               </section>
               <div className="planet-inset">
                 <ProceduralPlanet
-                  autoRotate={autoRotate}
+                  autoRotate={false}
                   biosphereLevel={biosphereLevel}
                   cameraResetSignal={cameraResetSignal}
                   label={copy.planet.liveView}
@@ -759,6 +871,7 @@ export default function Home() {
                   visualizationMode={visualizationMode}
                 />
               </div>
+              <div className="analysis-organism-inset"><OrganismPreview imageDataUrl={null} label={copy.organism.alt} planet={planet} traitIds={traitIds} /></div>
             </div>
           ) : (
             <ProceduralPlanet
@@ -772,7 +885,7 @@ export default function Home() {
             />
           )}
 
-          {visualizationMode !== "realistic" && (
+          {phase === "planet" && visualizationMode !== "realistic" && (
             <aside aria-label={copy.planet.legends[visualizationMode].title} className={`planet-legend ${visualizationMode}`}>
               <strong>{copy.planet.legends[visualizationMode].title}</strong>
               <div className="planet-legend-scale" aria-hidden="true" />
@@ -794,14 +907,14 @@ export default function Home() {
             </div>
           )}
 
-          <div className="planet-toolbar">
+          {phase === "planet" && <div className="planet-toolbar">
             <button className="button-quiet compact" onClick={() => setCameraResetSignal((value) => value + 1)} type="button">{copy.header.resetCamera}</button>
             <button className="button-quiet compact" onClick={() => setAutoRotate((value) => !value)} type="button">{autoRotate ? copy.header.rotationOn : copy.header.rotationOff}</button>
-          </div>
-          <div className="planet-control-hint" aria-live="polite">
+          </div>}
+          {phase === "planet" && <div className="planet-control-hint" aria-live="polite">
             <span className="desktop-control-hint">{copy.planet.controlsDesktop}</span>
             <span className="mobile-control-hint">{copy.planet.controlsMobile}</span>
-          </div>
+          </div>}
         </section>
 
         <aside className={`lab-panel analysis-panel ${phase === "planet" ? "mobile-hidden" : ""}`}>
@@ -822,6 +935,8 @@ export default function Home() {
                 <button className="text-button" onClick={restoreBaseline} type="button">{copy.planet.resetBaseline}</button>
               </div>
               <p className="panel-intro">{copy.planet.instruction}</p>
+              <section className="teaching-brief"><span>✦ {language === "pl" ? "Historia świata" : "World story"}</span><p>{worldStory(worldContext, language)}</p></section>
+              <WorldEvidence context={worldContext} copy={copy} language={language} phase="planet" />
               <div className="parameter-list">
                 {PARAMETER_CONFIG.map((parameter) => {
                   const parameterCopy = copy.parameters[parameter.id];
@@ -840,18 +955,23 @@ export default function Home() {
                 <span className="status-chip">{traitIds.length} {copy.life.selected}</span>
               </div>
               <p className="panel-intro">{copy.life.instruction}</p>
-              <div className="budget-meter">
-                <div><span>{copy.life.budget}</span><strong>{traitCost} / {LIFE_ENERGY_BUDGET}</strong></div>
-                <span><i style={{ width: `${Math.min(100, traitCost)}%` }} /></span>
-                <small>{copy.life.budgetExplanation}</small>
+              <section className="teaching-brief"><span>✦ {language === "pl" ? "Historia hipotezy" : "Hypothesis story"}</span><p>{lifeStory(worldContext, traitIds, copy, language)}</p></section>
+              <div className="life-facts">
+                <span>🧬 {language === "pl" ? "Cechy" : "Traits"}<b>{traitIds.length}</b></span>
+                <span>⚙️ {language === "pl" ? "Systemy ciała" : "Body systems"}<b>{traitIds.filter((id) => ["body", "physiology"].includes(LIFE_TRAITS[id].category)).length}</b></span>
+                <span>👁️ {language === "pl" ? "Zmysły" : "Senses"}<b>{traitIds.filter((id) => LIFE_TRAITS[id].category === "senses").length}</b></span>
               </div>
+              <WorldEvidence context={worldContext} copy={copy} language={language} phase="design" />
               <div className="category-tabs" role="tablist">
                 {CATEGORIES.map((category) => (
                   <button aria-selected={activeCategory === category} key={category} onClick={() => setActiveCategory(category)} role="tab" type="button">{copy.categories[category]}</button>
                 ))}
               </div>
+              {activeCategory === "body" && (
+                <label className="trait-select"><span>{language === "pl" ? "Forma organizmu" : "Organism form"}</span><select onChange={(event) => selectBodyForm(event.target.value as "" | "unicellular" | "multicellular")} value={selectedBodyForm}><option value="">{language === "pl" ? "Wybierz jedną formę" : "Choose one form"}</option><option value="unicellular">{copy.traits.unicellular.title}</option><option value="multicellular">{copy.traits.multicellular.title}</option></select></label>
+              )}
               <div className="trait-list">
-                {(Object.values(LIFE_TRAITS).filter(({ category }) => category === activeCategory)).map((trait) => {
+                {(Object.values(LIFE_TRAITS).filter(({ category, id }) => category === activeCategory && id !== "unicellular" && id !== "multicellular")).map((trait) => {
                   const selected = traitIds.includes(trait.id);
                   const traitCopy = copy.traits[trait.id];
                   const unavailable = false;
@@ -865,7 +985,7 @@ export default function Home() {
                     >
                       <span className="trait-check" aria-hidden="true">{selected ? "✓" : "+"}</span>
                       <span className="trait-copy">
-                        <span className="trait-title"><strong>{traitCopy.title}</strong><b>{copy.life.cost} {trait.cost}</b></span>
+                        <span className="trait-title"><strong>{traitCopy.title}</strong></span>
                         <small><em>{copy.life.advantage}</em>{traitCopy.advantage}</small>
                         <small><em>{copy.life.tradeoff}</em>{traitCopy.tradeoff}</small>
                       </span>
@@ -904,13 +1024,9 @@ export default function Home() {
                     <span>{result.missionSuccess ? copy.simulation.success : copy.simulation.continue}</span>
                     <h3>{copy.outcomes[result.outcome].title}</h3>
                     <p>{copy.outcomes[result.outcome].description}</p>
-                    <div className="objective-score"><div><span>{copy.simulation.objective}</span><strong>{Math.round(result.objectiveScore * 100)}%</strong></div><span><i style={{ width: `${result.objectiveScore * 100}%` }} /></span></div>
+                    {failureExplanation && <p className="failure-explanation">⚠️ {failureExplanation}</p>}
+                    <div className="objective-score"><div><span>{language === "pl" ? "Przeżywalność" : "Survivability"}</span><strong>{Math.round(survivability * 100)}%</strong></div><span><i style={{ width: `${survivability * 100}%` }} /></span></div>
                   </section>
-
-                  <dl className="result-meta">
-                    <div><dt>{copy.simulation.stateHash}</dt><dd>{result.stateHash}</dd></div>
-                    <div><dt>{copy.simulation.modelVersion}</dt><dd>{result.simulatorVersion}</dd></div>
-                  </dl>
 
                   <section className="result-section">
                     <h3>{copy.simulation.metricsTitle}</h3>
@@ -923,9 +1039,9 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                    <div className="factor-grid">
-                      <div><span>{copy.simulation.strengths}</span>{result.strengths.map((metric) => <b key={metric}>{copy.metrics[metric].label}</b>)}</div>
-                      <div><span>{copy.simulation.limits}</span>{result.limitingFactors.map((metric) => <b key={metric}>{copy.metrics[metric].label}</b>)}</div>
+                    <div className="factor-grid trait-highlights">
+                      <div><span>{language === "pl" ? "Najmocniejsze wybrane cechy" : "Strongest selected traits"}</span>{highlights.strengths.map((id) => <b key={id}>{TRAIT_CATEGORY_EMOJI[LIFE_TRAITS[id].category]} {copy.traits[id].title}</b>)}</div>
+                      <div><span>{language === "pl" ? "Największe kompromisy cech" : "Largest trait tradeoffs"}</span>{highlights.limits.map((id) => <b key={id}>{TRAIT_CATEGORY_EMOJI[LIFE_TRAITS[id].category]} {copy.traits[id].title}</b>)}</div>
                     </div>
                   </section>
 
@@ -934,6 +1050,7 @@ export default function Home() {
                     <div className="region-list">
                       {(Object.entries(result.regionScores) as Array<[RegionId, number]>).map(([region, score]) => (
                         <div key={region}>
+                          <RegionBiomePreview context={worldContext} label={copy.regions[region].label} region={region} />
                           <span><strong>{copy.regions[region].label}</strong><small>{score >= 0.5 ? copy.simulation.habitable : copy.regions[region].description}</small></span>
                           <b>{Math.round(score * 100)}</b>
                         </div>
@@ -944,6 +1061,15 @@ export default function Home() {
                   <section className="result-section">
                     <h3>{copy.simulation.populationTitle}</h3>
                     <PopulationChart label={copy.simulation.populationTitle} language={language} result={result} />
+                    <div className="population-events">
+                      <h4>{copy.simulation.populationEventsTitle}</h4>
+                      {result.populationEvents.map((event) => (
+                        <div className={event.kind} key={`${event.id}-${event.generation}`}>
+                          <span><strong>{EVENT_EMOJI[event.id]} {copy.populationEvents[event.id].title}</strong><small>{copy.populationEvents[event.id].description}</small></span>
+                          <b>{copy.simulation.generation} {event.generation}<em>{event.impactFraction > 0 ? "+" : ""}{Math.round(event.impactFraction * 100)}% {copy.simulation.eventImpact}</em></b>
+                        </div>
+                      ))}
+                    </div>
                     <dl className="population-stats">
                       <div><dt>{copy.simulation.initial}</dt><dd>120</dd></div>
                       <div><dt>{copy.simulation.peak}</dt><dd>{formatNumber(result.peakPopulation, language, 0)}</dd></div>
@@ -962,6 +1088,7 @@ export default function Home() {
                     {imageStatus === "fallback" && <p className="api-notice">{copy.organism.fallback}</p>}
                     {imageStatus === "error" && <p className="api-notice error">{copy.organism.error}</p>}
                     <button className="button-quiet wide" disabled={resultStale || imageStatus === "loading"} onClick={requestOrganismImage} type="button">{imageStatus === "loading" ? copy.organism.generating : copy.organism.requestImage}</button>
+                    {organismImage?.imageDataUrl && <a className="button-quiet wide download-image" download={`xenogenesis-${result.stateHash}.jpeg`} href={organismImage.imageDataUrl}>{copy.organism.download}</a>}
                   </section>
 
                   <section className="result-section consultant-section">
@@ -969,11 +1096,11 @@ export default function Home() {
                     <p>{copy.consultant.description}</p>
                     {!consultant && consultantStatus !== "loading" && <button className="button-quiet wide" disabled={resultStale} onClick={requestConsultant} type="button">{consultantStatus === "error" ? copy.consultant.retry : copy.consultant.request}</button>}
                     {consultantStatus === "loading" && <div className="consultant-loading"><span /><p>{copy.consultant.loading}</p></div>}
-                    {consultantStatus === "error" && <p className="api-notice error">{copy.consultant.error}</p>}
+                    {consultantStatus === "error" && <p className="api-notice error">{copy.consultant.temporaryUnavailable}</p>}
                     {consultant && (
                       <div className="consultant-report">
-                        <div className="consultant-source"><span className="status-dot" /><strong>{consultant.source === "gpt-5.4-mini" ? copy.consultant.liveSource : copy.consultant.localSource}</strong></div>
-                        {consultant.source === "local-fallback" && <p className="api-notice">{copy.consultant.fallbackNotice}</p>}
+                        <div className="consultant-source"><span className="status-dot" /><strong>{consultant.source === "gpt-5.6" ? copy.consultant.liveSource : copy.consultant.localSource}</strong></div>
+                        {consultant.source === "local-fallback" && <p className="api-notice error">{copy.consultant.temporaryUnavailable}</p>}
                         <h4>{consultant.content.organismName}</h4>
                         <p>{consultant.content.scientificDescription}</p>
                         <h5>{copy.consultant.assessment}</h5><p>{consultant.content.planetAssessment}</p>

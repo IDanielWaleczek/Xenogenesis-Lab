@@ -13,13 +13,14 @@ Deterministic baseline seed + WorldParameters
         │
         ├── learner changes validated planet state
         │       ├── shader target derivation → interpolated WebGL uniforms
-        │       └── life-trait selection → cost/conflict validation
+        │       └── life-trait selection → conflict validation + procedural anatomy
         │
         └── Run simulation
                 ├── normalize physical inputs
                 ├── calculate 11 continuous suitability metrics
                 ├── calculate six regional scores
-                ├── run 40-generation population model
+                ├── apply strict viability gate
+                ├── run 200-step population + event model (presented as model years in the UI)
                 └── validate SurvivalSimulationResult + stable hash
                         │
                         ├── local charts, markers, outcome, organism SVG
@@ -49,7 +50,7 @@ It does not infer radiation shielding, electron acceptors, molar mass, or altern
 
 - `schema.ts` defines the trait, request, result, consultant, and illustration contracts.
 - `mission.ts` contains the immutable baseline seed and barren starting state.
-- `traits.ts` centralizes 33 trait definitions, costs, conflicts, and modifiers.
+- `traits.ts` centralizes 44 trait definitions, conflicts, tradeoff metadata, and modifiers. Trait costs remain descriptive tuning metadata but no longer impose a selection budget.
 - `simulate.ts` calculates continuous metrics, representative regions, population, outcome, success, and stable hash.
 - `consultant.ts` builds the local fallback and final controlled image prompt.
 
@@ -65,13 +66,13 @@ This layer owns presentation only. It cannot produce habitability or population 
 
 ### Presentation — `src/app/page.tsx` and `src/components/life/`
 
-The client keeps one laboratory workspace state: language, phase, planet, traits, visualization mode, latest result, previous result, AI states, and fallback image. It derives one of six value-specific captions and concise physical-effect notices, preserves every independent preference, and runs the same pure deterministic simulator for immediate results. Dependent controls display physically expressed values: gas partial pressure, phase-supported surface water, and effective humidity. A shared deterministic world-context projection supplies a static left panel in Planet Engineering and Life Design with the exact active climate range, effective pressure and gas partial pressures, water phases, configured and effective humidity, stellar energy, carbon dioxide, incident and magnetically protected radiation. The panel is intentionally absent from Analyze, where the result evidence owns the workspace. A control is locked only when its physical support is zero; its stored preference is restored when support returns. Direct globe-region selection is absent; regional scores remain evidence in the analysis phase. The phase layout centers the planet, organism, or analysis according to the current task while retaining a contextual planet view. Every mode's editable controls belong to the right panel; the primary phase transition lives beside those controls rather than in the planet canvas.
+The client keeps one laboratory workspace state: language, phase, planet, traits, visualization mode, latest result, previous result, AI states, and fallback image. The cinematic intro uses the same WebGL renderer as the laboratory to display two non-interactive, slowly rotating parameter-backed worlds in a shared star field. Design Life starts with no traits; its central organism renderer always derives terrain, water, ice, atmosphere, light, and heat from the engineered planet. Plain-language world and life summaries consume deterministic context and selected traits only. Planet scientific modes and camera controls appear only in Planet Engineering. Analyze centres survival evidence, a 200-step event timeline labelled as model years for readability, and contextual planet/organism views without exposing irrelevant renderer controls. Generated images retain a 3:2 frame and can be downloaded locally.
 
 `src/app/copy.ts` is a compile-time checked English/Polish dictionary covering visible and accessible text. New UI text must be added and reviewed in both languages.
 
 ### Server-only OpenAI services — `src/server/`
 
-`life-consultant.ts` calls the Responses API with the `gpt-5.6` alias, low reasoning effort, and a Zod structured-output format. It receives only validated state and server-recalculated output.
+`life-consultant.ts` calls the Responses API with the `gpt-5.6` alias, `reasoning.effort: "none"`, and a Zod structured-output format. It receives only validated state and server-recalculated output.
 
 `organism-image.ts` calls the Image API with `gpt-image-2`. GPT output cannot provide a free-form final prompt: it selects a strict `imageDirection` object, and the server combines those enums with deterministic world facts and selected trait IDs.
 
@@ -102,7 +103,7 @@ type SurvivalSimulationRequest = {
 };
 
 type SurvivalSimulationResult = {
-  simulatorVersion: "1.6.0";
+  simulatorVersion: "1.7.0";
   stateHash: string;
   outcome: SimulationOutcome;
   missionSuccess: boolean;
@@ -110,6 +111,7 @@ type SurvivalSimulationResult = {
   metrics: Record<SimulationMetricId, number>;
   regionScores: Record<RegionId, number>;
   populationTimeline: Array<{ generation: number; population: number }>;
+  populationEvents: Array<{ id: PopulationEventId; generation: number; kind: "pressure" | "opportunity"; impactFraction: number }>;
   carryingCapacity: number;
   peakPopulation: number;
   finalPopulation: number;

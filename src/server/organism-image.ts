@@ -53,7 +53,7 @@ export async function createOrganismImageResponse(rawRequest: unknown) {
         simulation,
         consultant.content.imageDirection,
       ),
-      size: "1024x1024",
+      size: "1536x1024",
       quality: "low",
       output_format: "jpeg",
     });

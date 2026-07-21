@@ -332,3 +332,33 @@ All visible and accessible interface copy lives in one typed dictionary supporti
 - TypeScript detects missing structural keys;
 - content review remains a human responsibility;
 - additional languages are deferred.
+
+## 2026-07-21 — Replace the trait budget and 40-generation run with a free-design event model
+
+**Status:** Accepted; supersedes the 2026-07-19 trait-budget and 40-generation population decisions.
+
+**Decision**
+
+Start the lifeform designer with no selected traits, remove the 100-point construction limit, retain explicit incompatibilities, and expand the catalogue to 44 visible traits capable of bacteria-like, aquatic, primate-like, and humanlike plans. Run 200 deterministic generations with six world-derived pressure or opportunity event types. Apply a conservative viability gate so unsupported metabolism, inaccessible liquid water, or lethal thermal/radiation support produces zero advanced-life potential and zero final population.
+
+**Rationale**
+
+The arbitrary budget restricted experimentation without representing a defensible universal biological quantity. A longer event timeline makes the learner's planetary and anatomical decisions legible while remaining reproducible. Exact zero communicates genuinely unsupported biology more honestly than a reassuring residual score.
+
+**Consequences**
+
+- trait cost remains descriptive legacy tuning metadata and does not reject a simulation;
+- every trait must change the code-native organism preview;
+- the organism environment must always derive from the engineered planet;
+- event generations and impact formulas are versioned deterministic conventions, not random evolutionary forecasts;
+
+## 2026-07-21 — Make the explanatory layer visible without making it authoritative
+
+**Status:** Accepted.
+
+Keep the boot worlds, the laboratory planet, and the stars in one WebGL rendering system. Add short interface teaching summaries above deterministic evidence in Planet Engineering and Design Life. The text may synthesize existing calculated fields and selected traits, but cannot call GPT, add rules, or alter the simulator. Present the existing 200 deterministic time steps as model years in the UI, with event icons and displayed population values.
+
+The learner needs an intelligible story while experimenting, but the story cannot obscure the boundary between an explanatory visual/UI layer and deterministic evidence. Shared rendering prevents a mismatched CSS-only introduction. “Model years” improves chart comprehension while the documentation preserves the actual indexed-step convention.
+- Design Life and Analyze hide planet camera and scientific-overlay controls;
+- generated field illustrations use a downloadable 3:2 frame;
+- English and Polish copy, demo script, README, science rules, and product story must stay aligned.

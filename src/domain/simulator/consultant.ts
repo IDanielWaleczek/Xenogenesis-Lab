@@ -8,7 +8,6 @@ import type {
 } from "./schema";
 import { LifeConsultantContentSchema } from "./schema";
 import { normalizeWorldParameters } from "../world/schema";
-import { deriveWorldInteractionState } from "../world/interactions";
 
 const METRIC_LABELS: Record<
   SimulatorLanguage,
@@ -94,7 +93,6 @@ export function buildControlledOrganismImagePrompt(
   consultantDirection: LifeConsultantContent["imageDirection"],
 ): string {
   const normalizedWorld = normalizeWorldParameters(request.planet.world);
-  const interactions = deriveWorldInteractionState(request.planet.world);
   const pose = {
     resting: "resting in a stable pose",
     foraging: "foraging for its configured energy source",
@@ -118,7 +116,7 @@ export function buildControlledOrganismImagePrompt(
   }[consultantDirection.emphasis];
 
   return [
-    "Scientific astrobiology field illustration, square composition, no text, no labels, no logos.",
+    "Scientific astrobiology field illustration, landscape 3:2 composition, no text, no labels, no logos.",
     `Planet seed: ${request.planet.seed}. Habitat: ${request.planet.world.habitat}.`,
     `Local gravity ${request.planet.world.gravityG.toFixed(2)} g, effective pressure ${normalizedWorld.effectiveAtmosphericPressureAtm.toFixed(2)} atm, temperature ${request.planet.world.averageTemperatureC.toFixed(1)} C, water ${(request.planet.world.waterAvailability * 100).toFixed(0)} percent, radiation ${request.planet.world.radiationDoseRate.value.toFixed(3)} ${request.planet.world.radiationDoseRate.unit}.`,
     `Validated traits: ${request.traitIds.join(", ")}.`,
@@ -128,7 +126,7 @@ export function buildControlledOrganismImagePrompt(
   ].join(" ");
 }
 
-/** Creates a validated local consultant response when GPT-5.4-mini is unavailable. */
+/** Creates a validated local consultant response when GPT-5.6 is unavailable. */
 export function buildLocalLifeConsultant(
   language: SimulatorLanguage,
   request: SurvivalSimulationRequest,
@@ -147,7 +145,7 @@ export function buildLocalLifeConsultant(
   if (language === "pl") {
     return LifeConsultantContentSchema.parse({
       organismName: `Ksenotyp ${result.stateHash.slice(-4).toUpperCase()}`,
-      scientificDescription: `Projekt łączy ${request.traitIds.length} wybranych cech przy koszcie ${result.selectedTraitCost}/${result.energyBudget}. Model przewiduje wynik „${outcome}” oraz końcową populację ${result.finalPopulation.toLocaleString("pl-PL")} po 40 pokoleniach. To lokalna interpretacja deterministyczna, a nie odpowiedź GPT-5.6.`,
+      scientificDescription: `Projekt łączy ${request.traitIds.length} wybranych cech. Model przewiduje wynik „${outcome}” oraz końcową populację ${result.finalPopulation.toLocaleString("pl-PL")} po 200 pokoleniach. To lokalna interpretacja deterministyczna, a nie odpowiedź GPT-5.6.`,
       planetAssessment: `Najsilniejszym składnikiem środowiska jest ${strongest}, a głównym ograniczeniem ${limiting}. Obszary z wynikiem regionalnym co najmniej 0,50: ${regions}.`,
       traitAssessment: `Wybrane cechy zmieniają tolerancję, koszt energii, rozmnażanie i złożoność. Wynik zgodności organizmu wynosi ${(result.metrics.organismCompatibility * 100).toFixed(0)}%, a potencjał rozmnażania ${(result.metrics.reproductionPotential * 100).toFixed(0)}%.`,
       insights: [
@@ -167,7 +165,7 @@ export function buildLocalLifeConsultant(
 
   return LifeConsultantContentSchema.parse({
     organismName: `Xenotype ${result.stateHash.slice(-4).toUpperCase()}`,
-    scientificDescription: `This design combines ${request.traitIds.length} selected traits at a biological cost of ${result.selectedTraitCost}/${result.energyBudget}. The model predicts ${outcome} and a final population of ${result.finalPopulation.toLocaleString("en-US")} after 40 generations. This is a local deterministic interpretation, not a GPT-5.6 response.`,
+    scientificDescription: `This design combines ${request.traitIds.length} selected traits. The model predicts ${outcome} and a final population of ${result.finalPopulation.toLocaleString("en-US")} after 200 generations. This is a local deterministic interpretation, not a GPT-5.6 response.`,
     planetAssessment: `The strongest environmental component is ${strongest}, while the leading constraint is ${limiting}. Regions scoring at least 0.50 are: ${regions}.`,
     traitAssessment: `The chosen traits modify tolerance, energy cost, reproduction, and complexity. Organism compatibility is ${(result.metrics.organismCompatibility * 100).toFixed(0)}% and reproduction potential is ${(result.metrics.reproductionPotential * 100).toFixed(0)}%.`,
     insights: [

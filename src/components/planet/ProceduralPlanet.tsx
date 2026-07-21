@@ -60,6 +60,16 @@ type ProceduralPlanetProps = {
   label: string;
 };
 
+type PlanetSceneOptions = {
+  position?: [number, number, number];
+  scale?: number;
+  showStars?: boolean;
+  showSun?: boolean;
+  sunPosition?: [number, number, number];
+  interactive?: boolean;
+  rotationSpeed?: number;
+};
+
 type VisualTargets = {
   surfaceWater: number;
   liquidWater: number;
@@ -91,10 +101,10 @@ const REGION_MARKERS: Record<RegionId, [number, number, number]> = {
 };
 
 const SUN_POSITION: [number, number, number] = [...PLANET_SUN_POSITION];
-const SUN_DIRECTION = new Vector3(...SUN_POSITION).normalize();
 const INITIAL_CAMERA_POSITION: [number, number, number] = [
   ...PLANET_INITIAL_CAMERA_POSITION,
 ];
+const BOOT_SUN_POSITION: [number, number, number] = [6, 5, 10];
 
 /** Builds a deterministic three-dimensional star field anchored in world space. */
 function createStarGeometry(seed: number, count: number): BufferGeometry {
@@ -218,12 +228,20 @@ function PlanetScene({
   autoRotate,
   cameraResetSignal,
   regionScores,
-}: Omit<ProceduralPlanetProps, "label">) {
+  position = [0, 0, 0],
+  scale = 1,
+  showStars = true,
+  showSun = true,
+  sunPosition = SUN_POSITION,
+  interactive = true,
+  rotationSpeed = 0.055,
+}: Omit<ProceduralPlanetProps, "label"> & PlanetSceneOptions) {
   const planetGroup = useRef<Group>(null);
   const sunGroup = useRef<Group>(null);
   const cloudMesh = useRef<Mesh>(null);
   const controlsRef = useRef<OrbitControlsType>(null);
   const seed = useMemo(() => seedToFloat(planet.seed), [planet.seed]);
+  const sunDirection = useMemo(() => new Vector3(...sunPosition).normalize(), [sunPosition]);
   const [initialTargets] = useState(() =>
     deriveVisualTargets(planet, biosphereLevel, visualizationMode),
   );
@@ -264,12 +282,12 @@ function PlanetScene({
           uBiosphere: { value: initialTargets.biosphere },
           uMode: { value: initialTargets.mode },
           uLightLevel: { value: initialTargets.lightLevel },
-          uLightDirection: { value: SUN_DIRECTION },
+          uLightDirection: { value: sunDirection },
         },
         vertexShader: PLANET_TERRAIN_VERTEX_SHADER,
         fragmentShader: PLANET_TERRAIN_FRAGMENT_SHADER,
       }),
-    [initialTargets, seed],
+    [initialTargets, seed, sunDirection],
   );
   const waterMaterial = useMemo(
     () =>
@@ -282,14 +300,14 @@ function PlanetScene({
           uTemperatureVariationC: { value: initialTargets.temperatureVariation },
           uBiosphere: { value: initialTargets.biosphere },
           uTime: { value: 0 },
-          uLightDirection: { value: SUN_DIRECTION },
+          uLightDirection: { value: sunDirection },
         },
         vertexShader: PLANET_WATER_VERTEX_SHADER,
         fragmentShader: PLANET_WATER_FRAGMENT_SHADER,
         transparent: true,
         depthWrite: false,
       }),
-    [initialTargets, seed],
+    [initialTargets, seed, sunDirection],
   );
   const cloudMaterial = useMemo(
     () =>
@@ -300,7 +318,7 @@ function PlanetScene({
           uPressurePresence: { value: initialTargets.pressurePresence },
           uVaporWater: { value: initialTargets.vaporWater },
           uTime: { value: 0 },
-          uLightDirection: { value: SUN_DIRECTION },
+          uLightDirection: { value: sunDirection },
         },
         vertexShader: PLANET_CLOUD_VERTEX_SHADER,
         fragmentShader: PLANET_CLOUD_FRAGMENT_SHADER,
@@ -308,7 +326,7 @@ function PlanetScene({
         depthWrite: false,
         side: DoubleSide,
       }),
-    [initialTargets, seed],
+    [initialTargets, seed, sunDirection],
   );
   const atmosphereMaterial = useMemo(
     () =>
@@ -317,7 +335,7 @@ function PlanetScene({
           uAtmosphereColor: { value: initialTargets.atmosphereColor.clone() },
           uDensity: { value: initialTargets.atmosphereDensity },
           uDaylight: { value: initialTargets.daylight },
-          uLightDirection: { value: SUN_DIRECTION },
+          uLightDirection: { value: sunDirection },
         },
         vertexShader: ATMOSPHERE_VERTEX_SHADER,
         fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
@@ -326,7 +344,7 @@ function PlanetScene({
         side: BackSide,
         blending: AdditiveBlending,
       }),
-    [initialTargets],
+    [initialTargets, sunDirection],
   );
   const radiationMaterial = useMemo(
     () =>
@@ -473,7 +491,7 @@ function PlanetScene({
     sunSurfaceMaterial.uniforms.uTime.value = clock.elapsedTime;
     sunCoronaMaterial.uniforms.uTime.value = clock.elapsedTime;
 
-    if (autoRotate && planetGroup.current) planetGroup.current.rotation.y += delta * 0.055;
+    if (autoRotate && planetGroup.current) planetGroup.current.rotation.y += delta * rotationSpeed;
     if (autoRotate && sunGroup.current) sunGroup.current.rotation.y += delta * 0.006;
     if (cloudMesh.current) cloudMesh.current.rotation.y += delta * 0.018;
   });
@@ -481,9 +499,9 @@ function PlanetScene({
   return (
     <>
       <ambientLight intensity={0.035} />
-      <directionalLight intensity={2.4} position={SUN_POSITION} />
-      <pointLight color="#ffe4a3" distance={0} intensity={9} position={SUN_POSITION} />
-      <group ref={sunGroup} position={SUN_POSITION}>
+      <directionalLight intensity={2.4} position={sunPosition} />
+      <pointLight color="#ffe4a3" distance={0} intensity={9} position={sunPosition} />
+      {showSun && <group ref={sunGroup} position={sunPosition}>
         <mesh material={sunSurfaceMaterial} renderOrder={2}>
           <sphereGeometry args={[4.5, 64, 48]} />
         </mesh>
@@ -491,9 +509,9 @@ function PlanetScene({
           <sphereGeometry args={[4.5, 64, 48]} />
         </mesh>
         <sprite material={sunFlareMaterial} renderOrder={0} scale={[14, 14, 1]} />
-      </group>
-      <points frustumCulled={false} geometry={starGeometry} material={starMaterial} />
-      <group ref={planetGroup} rotation={[0.08, -0.5, 0.03]}>
+      </group>}
+      {showStars && <points frustumCulled={false} geometry={starGeometry} material={starMaterial} />}
+      <group ref={planetGroup} position={position} rotation={[0.08, -0.5, 0.03]} scale={scale}>
         <mesh material={terrainMaterial}>
           <icosahedronGeometry args={[1, 8]} />
         </mesh>
@@ -524,7 +542,7 @@ function PlanetScene({
             </mesh>
           ))}
       </group>
-      <OrbitControls
+      {interactive && <OrbitControls
         enableDamping
         enablePan={false}
         maxDistance={5.2}
@@ -532,8 +550,8 @@ function PlanetScene({
         ref={controlsRef}
         rotateSpeed={0.55}
         zoomSpeed={0.7}
-      />
-      <CameraController controlsRef={controlsRef} resetSignal={cameraResetSignal} />
+      />}
+      {interactive && <CameraController controlsRef={controlsRef} resetSignal={cameraResetSignal} />}
     </>
   );
 }
@@ -548,6 +566,53 @@ export default function ProceduralPlanet({ label, ...props }: ProceduralPlanetPr
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       >
         <PlanetScene {...props} />
+      </Canvas>
+    </div>
+  );
+}
+
+/** A non-interactive shared WebGL tableau used by the laboratory boot sequence. */
+export function IntroPlanetaryScene({
+  frozenPlanet,
+  warmPlanet,
+}: {
+  frozenPlanet: PlanetState;
+  warmPlanet: PlanetState;
+}) {
+  return (
+    <div aria-hidden="true" className="boot-webgl-scene">
+      <Canvas
+        camera={{ fov: 48, near: 0.1, far: 100, position: [0, 0, 8] }}
+        dpr={[1, 1.5]}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+      >
+        <PlanetScene
+          autoRotate
+          biosphereLevel={0}
+          cameraResetSignal={0}
+          interactive={false}
+          planet={frozenPlanet}
+          position={[-4.15, 1.65, 0]}
+          rotationSpeed={0.018}
+          scale={1.55}
+          showSun={false}
+          sunPosition={BOOT_SUN_POSITION}
+          visualizationMode="realistic"
+        />
+        <PlanetScene
+          autoRotate
+          biosphereLevel={0}
+          cameraResetSignal={0}
+          interactive={false}
+          planet={warmPlanet}
+          position={[4.15, -1.65, -0.45]}
+          rotationSpeed={0.014}
+          scale={1.75}
+          showStars={false}
+          showSun={false}
+          sunPosition={BOOT_SUN_POSITION}
+          visualizationMode="realistic"
+        />
       </Canvas>
     </div>
   );

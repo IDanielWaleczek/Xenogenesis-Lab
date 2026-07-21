@@ -12,7 +12,7 @@ import {
 import type { LifeConsultantResponse } from "@/domain/simulator/schema";
 import { hashSimulationState, runSurvivalSimulation } from "@/domain/simulator/simulate";
 
-const LIFE_CONSULTANT_MODEL = "gpt-5.4-mini";
+const LIFE_CONSULTANT_MODEL = "gpt-5.6";
 const responseCache = new Map<string, LifeConsultantResponse>();
 
 /** Returns one cached, validated scientific interpretation for a stable simulation state. */
@@ -75,7 +75,7 @@ export async function createLifeConsultantResponse(rawRequest: unknown) {
       },
     });
     const result = LifeConsultantResponseSchema.parse({
-      source: "gpt-5.4-mini",
+      source: "gpt-5.6",
       model: response.model,
       fallbackReason: null,
       cacheKey,
@@ -87,7 +87,7 @@ export async function createLifeConsultantResponse(rawRequest: unknown) {
     const response = LifeConsultantResponseSchema.parse({
       source: "local-fallback",
       model: null,
-      fallbackReason: "The GPT-5.4-mini request failed or returned invalid output.",
+      fallbackReason: "The GPT-5.6 request failed or returned invalid output.",
       cacheKey,
       content: fallback,
     });

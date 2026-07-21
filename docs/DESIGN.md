@@ -9,18 +9,18 @@ Avoid excessive neon, generic cyberpunk ornament, oversized mobile cards, long o
 ## Information hierarchy
 
 ```text
-Cinematic boot
+Cinematic WebGL boot
 └── Single-screen laboratory
     ├── Center: planet while engineering; organism while designing; analysis while interpreting
     ├── Right: phase controls; Planet engineering always owns world parameters here
-    └── Floating actions: camera and rotation
+    └── Planet phase only: camera, rotation, and scientific views
 ```
 
 The important object changes with the phase. Planet engineering centers the procedural planet. Design life centers the organism while retaining a smaller live planet inset. Analyze centers calculated evidence while keeping the planet as a smaller contextual view. The interface does not navigate through briefing, hypothesis, quiz, debrief, archive, and competency screens.
 
 ## Startup
 
-The application begins on a real startup state, not directly inside the laboratory. The animation presents the Xenogenesis mark in a field of stars, orbiting planets, and a small life-like orbital signal. It does not enter the laboratory automatically and offers one explicit Open laboratory action. It is an atmospheric introduction, not a fake loading or remote-system diagnostic. Reduced-motion preferences collapse its motion without blocking entry.
+The application begins on a real startup state, not directly inside the laboratory. The Xenogenesis banner sits between a frozen candidate world and a warmer world in a projection-like star field. Short Vespera expedition copy establishes the objective before one explicit entry action. English and Polish flag controls remain bottom-centred. There is no central orbital/loading animation. Reduced-motion preferences collapse ambient planet and star movement without blocking entry.
 
 Do not imply a remote service is contacted during local shader or rules initialization.
 
@@ -34,7 +34,7 @@ At widths above `1080px`, use a full-screen `100svh` shell without global page s
 - scientific overlays appear above the same persistent scene;
 - the simulation animation overlays the planet without rebuilding it.
 
-The central globe supports drag rotation, wheel zoom, camera reset, and paused/resumed automatic rotation. A compact desktop hint explicitly names left-button drag and mouse-wheel zoom.
+In Planet Engineering only, the central globe supports drag rotation, wheel zoom, camera reset, paused/resumed automatic rotation, and scientific views. Design Life and Analyze are static inspection stages and do not show these controls or input hints.
 
 ## Responsive behavior
 
@@ -84,12 +84,11 @@ Changing a parameter after a simulation marks the old calculation stale. Results
 Traits are grouped into Body, Physiology, Senses, Reproduction, and Complexity. Every card shows:
 
 - name;
-- integer cost;
 - advantage;
 - tradeoff;
 - selection state.
 
-Conflicting or over-budget traits remain inspectable but cannot be added. The budget meter and selected count remain visible. The procedural field model updates from seed, world, and traits and should resemble neutral scientific documentation rather than a mascot.
+Design Life starts with an empty trait set. Conflicting traits remain inspectable but cannot be combined; there is no budget meter or trait-count ceiling. Mutually exclusive organism form is a single dropdown: the learner chooses either unicellular or multicellular tissues, never both. The procedural field model always uses the engineered planet's terrain, surface water or ice, atmosphere, temperature, and light. Every selectable trait produces a visible anatomical or life-cycle response, including eggs for protected reproduction, gills and fins for aquatic plans, grasping hands and neural structures for advanced plans, and cell-scale morphology for unicellular plans. The central heading reads Lifeform Designer. Planet scientific-mode buttons, camera reset, rotation pause, and input hints remain hidden in this static inspection phase.
 
 ## Results
 
@@ -97,15 +96,16 @@ The Analyze panel presents evidence in this order:
 
 1. provenance and summarized outcome;
 2. advanced-life objective score;
-3. reproducible state hash and simulator version;
 4. 11 metric bars with descriptions;
 5. strongest and limiting systems;
 6. six regional scores linked to planet markers;
-7. 40-generation population trend and summary values;
+7. 200-step population trend labelled as model years, deterministic pressure/opportunity events with icons and population values, and summary values;
 8. comparison against the previous run;
 9. organism field model and optional generated illustration;
 10. optional consultant interpretation;
 11. Adapt planet / Adapt lifeform actions and educational limitation.
+
+If essential water, energy, metabolic, thermal, or radiation support is absent, survivability and population are zero. Analyze centres this evidence, explains the limiting deterministic conditions in the failure state, and hides planet scientific-mode and camera controls. Its regional cards use parameter-driven illustrative mini-scenes; they are not a spatial climate model. Optional AI field images use an uncropped 3:2 frame and expose a download control.
 
 Do not reduce the model to success/failure or hide scores behind prose.
 

@@ -152,17 +152,17 @@ describe("world engineering preferences", () => {
 
     world = applyWorldParameterChange(world, "gravity", 0.05);
     const limited = deriveWorldEngineeringControlState(world, "pressure");
-    expect(limited.displayedValue).toBeCloseTo(0.25, 8);
+    expect(limited.displayedValue).toBeCloseTo(0.0125, 8);
     expect(limited.preferredValue).toBe(5);
     expect(limited.disabled).toBe(false);
     expect(limited.constraint).toBe("gravityLimited");
 
     world = applyWorldEngineeringControlChange(world, "pressure", 0.1);
     expect(world.atmosphericPressureAtm).toBeCloseTo(0.1, 8);
-    expect(deriveWorldEngineeringControlState(world, "pressure").constraint).toBeNull();
+    expect(deriveWorldEngineeringControlState(world, "pressure").constraint).toBe("gravityLimited");
 
     const oxygen = deriveWorldEngineeringControlState(world, "oxygen");
-    expect(oxygen.displayedValue).toBeCloseTo(0.021, 8);
+    expect(oxygen.displayedValue).toBeCloseTo(0.002625, 8);
 
     world = applyWorldParameterChange(world, "gravity", 1);
 

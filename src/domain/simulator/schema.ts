@@ -4,7 +4,7 @@ import { WorldParametersSchema } from "../world/schema";
 import { SIMULATOR_CONVENTIONS } from "./coefficients";
 
 /** Version of the continuous suitability and population model. */
-export const SIMULATOR_VERSION = "1.6.0";
+export const SIMULATOR_VERSION = "1.7.0";
 
 /** Meaningful traits available in the first lifeform designer. */
 export const LifeTraitIdSchema = z.enum([
@@ -15,6 +15,14 @@ export const LifeTraitIdSchema = z.enum([
   "aquaticMovement",
   "terrestrialMovement",
   "aerialMovement",
+  "unicellular",
+  "multicellular",
+  "bilateralSymmetry",
+  "radialSymmetry",
+  "gills",
+  "lungs",
+  "graspingLimbs",
+  "opposableDigits",
   "oxygenRespiration",
   "lowOxygenMetabolism",
   "anaerobicMetabolism",
@@ -37,10 +45,23 @@ export const LifeTraitIdSchema = z.enum([
   "spores",
   "parentalInvestment",
   "simpleNeuralSystem",
+  "centralizedBrain",
+  "bipedalPosture",
   "socialCoordination",
   "toolUsePotential",
   "complexCommunication",
   "adaptiveLearning",
+  "culturalMemory",
+]);
+
+/** Deterministic environmental events shown on the population timeline. */
+export const PopulationEventIdSchema = z.enum([
+  "thermalShock",
+  "radiationStorm",
+  "hydrosphereStress",
+  "resourceBloom",
+  "adaptiveBreakthrough",
+  "reproductiveBottleneck",
 ]);
 
 /** Planet regions evaluated independently by the local model. */
@@ -101,7 +122,7 @@ const ScoreSchema = z.number().finite().min(0).max(1);
 export const SurvivalSimulationResultSchema = z
   .object({
     missionId: z.literal("genesis-01"),
-    simulatorVersion: z.literal("1.6.0"),
+    simulatorVersion: z.literal("1.7.0"),
     stateHash: z.string().min(8),
     outcome: z.enum([
       "immediateExtinction",
@@ -118,8 +139,6 @@ export const SurvivalSimulationResultSchema = z
     metrics: z.record(SimulationMetricIdSchema, ScoreSchema),
     regionScores: z.record(RegionIdSchema, ScoreSchema),
     habitableRegions: z.array(RegionIdSchema),
-    selectedTraitCost: z.number().int().min(0),
-    energyBudget: z.number().int().min(1),
     carryingCapacity: z.number().int().min(0),
     peakPopulation: z.number().int().min(0),
     finalPopulation: z.number().int().min(0),
@@ -133,6 +152,14 @@ export const SurvivalSimulationResultSchema = z
           .strict(),
       )
       .length(SIMULATOR_CONVENTIONS.population.generations + 1),
+    populationEvents: z.array(
+      z.object({
+        id: PopulationEventIdSchema,
+        generation: z.number().int().min(1).max(SIMULATOR_CONVENTIONS.population.generations),
+        kind: z.enum(["pressure", "opportunity"]),
+        impactFraction: z.number().finite().min(-0.95).max(0.95),
+      }).strict(),
+    ),
     strengths: z.array(SimulationMetricIdSchema).max(4),
     limitingFactors: z.array(SimulationMetricIdSchema).max(4),
   })
@@ -149,7 +176,7 @@ export const LifeConsultantRequestSchema = z
   })
   .strict();
 
-/** Structured interpretation produced by GPT-5.4-mini or the local fallback. */
+/** Structured interpretation produced by GPT-5.6 or the local fallback. */
 export const LifeConsultantContentSchema = z
   .object({
     organismName: z.string().trim().min(3).max(90),
@@ -172,7 +199,7 @@ export const LifeConsultantContentSchema = z
 /** Provenance-preserving consultant response. */
 export const LifeConsultantResponseSchema = z
   .object({
-    source: z.enum(["gpt-5.4-mini", "local-fallback"]),
+    source: z.enum(["gpt-5.6", "local-fallback"]),
     model: z.string().min(1).nullable(),
     fallbackReason: z.string().min(1).nullable(),
     cacheKey: z.string().min(8),
@@ -197,6 +224,7 @@ export const OrganismImageResponseSchema = z
   .strict();
 
 export type LifeTraitId = z.infer<typeof LifeTraitIdSchema>;
+export type PopulationEventId = z.infer<typeof PopulationEventIdSchema>;
 export type RegionId = z.infer<typeof RegionIdSchema>;
 export type SimulationMetricId = z.infer<typeof SimulationMetricIdSchema>;
 export type PlanetState = z.infer<typeof PlanetStateSchema>;

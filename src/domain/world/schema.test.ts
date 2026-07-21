@@ -129,13 +129,13 @@ describe("normalizeWorldParameters", () => {
     const result = normalizeWorldParameters({
       ...createReferenceWorld(),
       gravityG: 0.2,
-      atmosphericPressureAtm: 100,
+      atmosphericPressureAtm: 5,
       atmosphericMeanMolarMassKgPerMol: 0.028_97,
     });
 
-    expect(result.effectiveAtmosphericPressureAtm).toBe(4);
-    expect(result.oxygenPartialPressureAtm).toBeCloseTo(0.84, 8);
-    expect(result.atmosphericDensityKgM3).toBeCloseTo(4.817, 3);
+    expect(result.effectiveAtmosphericPressureAtm).toBe(0.2);
+    expect(result.oxygenPartialPressureAtm).toBeCloseTo(0.042, 8);
+    expect(result.atmosphericDensityKgM3).toBeCloseTo(0.241, 3);
   });
 
   it("accepts vacuum pressure and derives no oxygen partial pressure or atmospheric density", () => {
