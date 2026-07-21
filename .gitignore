@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Temporary local voiceover generation
+/generate-voiceover.mjs
+/voiceover.txt
+/voiceover*.wav

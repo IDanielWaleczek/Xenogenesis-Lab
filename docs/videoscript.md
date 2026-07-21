@@ -1,63 +1,205 @@
-# Xenogenesis Lab — 2:45 Working-Build Demo Script
+# Xenogenesis Lab — 2:55 Story-Led Demo Script
 
-## 0:00–0:16 — Cinematic boot
+## Recording promise
 
-Show startup from a fresh reload, then select **Begin training** to enter the lab.
+This is a story about one question: **can a designed lineage earn a future on
+Vespera?** The recording should show an experiment, not a tour of features.
+Begin with a lifeless planet, make one plausible but incomplete choice, let the
+deterministic model expose the consequence, then revise a single cause and
+read the changed future.
 
-> Xenogenesis Lab is a procedural astrobiology simulator. This is a cinematic introduction to a world, its orbit, and the life we might engineer there. Then the lab gives the learner one broad goal: design stable, advanced life.
+Use the English interface for the submitted narration unless the submission is
+being recorded in Polish. Keep the exact same sequence in either language.
+The complete take must stay below three minutes; the timings below total about
+2:55 and leave a few seconds for transitions.
 
-## 0:16–0:34 — Experimental loop
+## Before recording
 
-Pause on the objective and point to the five-step loop.
+- Prepare the built-in temperate starting experiment: `1 atm`, `21%` oxygen,
+  moderate water, light, magnetic protection, and a moderate temperature range.
+  It is a reproducible demonstration state, not the application's one correct
+  answer.
+- For the first run, open Design life and apply the first available temperate
+  organism preset. It is a plausible starting design, not a correct answer.
+- For the revision, keep that organism and change one planetary slider. The
+  comparison should show how the same life responds to a different world; do
+  not change the organism between these two runs.
+- Have the consultant button ready, but do not pre-stage its answer. The final
+  submission take requires a live `GPT-5.6 analysis` provenance label. A local
+  fallback is useful for rehearsal and resilience, but does not demonstrate the
+  required live GPT-5.6 path. Show an image only when it was generated live
+  during the recording.
 
-> This is not a quiz with one hidden answer. The loop is observe, modify, design, simulate, and adapt. The first instruction tells a new learner exactly what to do without asking them to write a hypothesis.
+## 0:00–0:15 — Start from the main screen
 
-## 0:34–1:02 — Procedural planet
+**Show:** Begin on the main screen and hold on the Xenogenesis Lab identity,
+the short invitation, and the language controls. Do not reveal the planet yet.
+Select **Begin the Vespera experiment**; let the transition reveal the barren
+world and pause there.
 
-Rotate and zoom the planet. Change temperature, water, atmospheric pressure, and magnetic field. Switch briefly to Temperature and Radiation, then return to Realistic.
+**Say:**
 
-> Vespera is generated from a deterministic seed using Three.js, React Three Fiber, layered procedural noise, and custom GLSL. The model preserves every selected preference while dependent controls show effective gas pressure, surface water, and humidity. A dry world has no clouds, `−40±4°C` freezes its exposed ocean, and the expanded range reaches a documented basaltic melt transition only above `780°C`. Vacuum has no atmospheric glow. The reset camera starts on the day side while the night side stays readable, and the full configured temperature variation makes the equator hotter and poles colder. Radiation has a labelled animated exposure layer, while polar auroral ovals explain how atmosphere, field, and radiation interact.
+> Xenogenesis Lab is a place to build a world and see if life can live there.
+> We start with a blank experiment: no creature, no fixed answer, and no plan
+> to follow. First, let’s open the lab.
 
-## 1:02–1:28 — Design life
+**After the click, as Vespera appears, say:**
 
-Open Design life. Show the blank organism against the same engineered terrain, the active world-evidence panel, one selected trait, one incompatibility, and two categories. Add protected eggs so eggs appear, then add a structural or sensory trait and show the anatomy update.
+> This is Vespera, a lifeless planet with the potential to become a living
+> world. Right now it has no atmosphere, no accessible water, and no life.
+> Radiation reaches the ground. What would it take to give Vespera a future?
 
-> The blank-start organism designer offers 44 biological traits with advantages, vulnerabilities, and conflicts but no arbitrary construction budget. The same deterministic climate, effective atmosphere, water phases, humidity, energy, carbon, and radiation values shown here shape both the run and the organism's visible terrain. Every trait changes the field model: protected eggs add eggs, aquatic anatomy adds fins or gills, and advanced neural and grasping traits support primate-like or humanlike forms.
+## 0:15–0:38 — Build conditions, not a backdrop
 
-## 1:28–1:55 — Deterministic simulation
+**Show:** Reset to the temperate starting experiment. Focus only on four story
+beats: use the pressure, carbon dioxide, and oxygen controls to establish the
+atmosphere; then adjust temperature, water, and humidity. Keep the other
+controls out of the close-up and leave the final temperate values in place.
 
-Run the simulation. Keep the animation and then show the outcome, survivability score, scores, regional mini-scenes, and population graph.
+**Say:**
 
-> Simulator 2.1.0 runs locally and reproducibly across 200 deterministic model steps, presented as model years for readability. It combines 11 continuous suitability scores with strict minimum life support and sixteen condition-backed event types selected by seeded probability: up to three chart-visible pressures or recovery opportunities can occur from years 10–190, with at least 33 years between them. Where hard life support exists, the designer offers four checked extreme-life starting strategies; unsupported biology still reaches zero survival instead of receiving a polite score. The same world and lifeform always produce the same event draw, impacts, and outcome.
+> First, I give Vespera an atmosphere. Then I set the temperature so water can
+> exist. I add water to the surface, and finally humidity to the air. These are
+> simple choices, but together they turn a silent planet into a place where
+> life might begin. The planet reacts, and the evidence shows me why.
 
-## 1:55–2:13 — Adapt and compare
+## 0:38–0:58 — Choose a starting lifeform
 
-Return to the planet or life designer, change one variable, rerun, and show the comparison delta.
+**Show:** Open Design life and apply the first available temperate organism
+preset. Keep the planet inset and the active world evidence visible. Let the
+procedural organism settle before running the first test.
 
-> The evidence identifies the strongest and limiting systems, so the learner can run a controlled experiment. Multiple strategies work: an aerobic surface organism and a geochemically powered aquatic organism can survive for different reasons.
+**Say:**
 
-## 2:13–2:32 — GPT-5.6 consultant and illustration
+> I start with a preset: a land organism with senses and a complex body. It
+> gives me a clear starting point, but it is not a promised answer. In the full
+> lab, I can also build the organism myself, trait by trait. I use the preset
+> here only to keep this short demo moving. The real question is whether these
+> traits fit the world I have built.
 
-Request the consultant and keep its provenance label visible.
+## 0:58–1:18 — Read the first result
 
-If the label says **GPT-5.6 analysis**:
+**Show:** Run the simulation. Show the survivability result, population chart,
+regional view, and one event or limiting metric before moving on.
 
-> GPT-5.6 receives only validated state and a server-recalculated result. It explains tradeoffs and suggests one experiment; it cannot change a score. Its image direction is restricted to four enums, and the server builds the final organism prompt from deterministic facts.
+**Say:**
 
-If the label says **Local scientific fallback**:
+> First, I let this well-matched life meet a temperate world. The run shows
+> where it can live, how its population grows, and which regions support it.
+> Now I want to see what happens when the world itself becomes extreme.
 
-> This environment did not return a verified live GPT-5.6 response, so the app clearly labels its deterministic local fallback. I would not submit this recording as proof of the required live model path.
+## 1:18–1:43 — Change one part of the world
 
-If a live generated image appears:
+**Show:** Return to Planet Engineering. Keep the organism unchanged and move
+the temperature slider to `900°C`. Let the planet and evidence update, then run
+the same organism again.
 
-> `gpt-image-2` now visualizes the validated organism. The image is representation, never simulation evidence.
+**Say:**
 
-If the procedural fallback remains:
+> I leave the life untouched and turn the temperature up to 900 degrees. One
+> extreme change, one fair comparison. Can this lineage survive the new world,
+> or has Vespera finally pushed it too far?
 
-> Image generation was unavailable, so the deterministic field model remains intact and honestly labelled.
+## 1:43–2:05 — Read a future, not a verdict
 
-## 2:32–2:45 — Codex development story
+**Show:** Reveal the second result: survivability, outcome, regional scenes,
+population curve, events, and comparison. Hover or open one event description.
 
-Return to a strong three-panel view.
+**Say:**
 
-> Codex accelerated the repository refactor, deterministic contracts, continuous population model, custom shaders, bilingual interface, tests, browser QA, and documentation. I directed the product shift, scientific boundaries, learner freedom, and final design decisions. Together they produced one complete educational experiment instead of disconnected AI features.
+> The same organism now tells a different story. The simulator checks eleven
+> parts of the environment, six regions, and a population across 200 model
+> years. The comparison shows exactly what the heat changed—and whether this
+> lineage still has a future on Vespera. It didn't stand any chance.
+
+## 2:05–2:15 — Give the lineage a face
+
+**Show:** Request the organism field illustration first and wait for the live
+image to finish. Keep the generated image, organism result, and world context
+visible.
+
+> First, I give this lineage a face. The image is built from the organism and
+> world we just tested. GPT-5.6 Luna first reads the validated life, its world,
+> and its result, then prepares the image direction and prompt. Finally,
+> `gpt-image-2` turns that prompt into the field illustration. The image helps
+> me imagine the life—it does not change the result.
+
+## 2:15–2:30 — Ask GPT-5.6 about this life
+
+**Show:** Now request the Life Sciences Consultant. Keep its provenance label,
+result, and suggested experiment visible.
+
+**If the label says `GPT-5.6 analysis`, say:**
+
+> Now I ask GPT-5.6 about this life and the world around it. The server checks
+> the run again, then sends the evidence for an explanation and one careful next
+> test. GPT-5.6 can explain the tradeoffs, but it cannot change the score or
+> invent new facts.
+
+## 2:30–2:55 — The collaboration behind the lab
+
+**Show:** For about twelve seconds, show the actual Codex task used during
+development: first a concise diff or test result for the deterministic
+simulator, then the implementation or review of the WebGL planet or life
+designer. Do not show prompts, secrets, terminals with errors, or unrelated
+work. Return to the successful three-panel laboratory view for the final eight
+seconds, keeping the comparison visible if it remains readable.
+
+**Say:**
+
+> I set the educational goal, science boundaries, and design decisions. Codex
+> helped turn them into a tested deterministic simulator, a procedural WebGL
+> planet, the life designer, multilingual application, and documentation
+> kept current throughout development. Work that once needed a whole team for
+> months took just over 19 real Toggl-tracked hours. GPT-5.6 interprets validated
+> evidence; it never calculates outcomes. This is not a game of guesses. It is a
+> laboratory for testing how a biosphere might earn a future. The next hypothesis
+> is yours to test.
+
+## Build Week video compliance checklist
+
+The script covers the official video requirements when the final take follows
+the live-GPT branch above:
+
+- [ ] It shows a working project rather than slides or a pre-rendered mockup.
+- [ ] It is narrated, public on YouTube, and shorter than three minutes.
+- [ ] Its audio explicitly explains both Codex's development role and GPT-5.6's
+  in-product role.
+- [ ] It visibly shows a live GPT-5.6 result with provenance; it never presents
+  a local fallback as a live model response.
+- [ ] It shows what was built, how the deterministic simulation works, and a
+  concrete educational use case: test and revise a life-design hypothesis.
+- [ ] It highlights human key decisions and concrete Codex acceleration,
+  including the user-reported Toggl time of just over 19 real hours.
+
+## Capture checklist
+
+- [ ] Total duration is below three minutes.
+- [ ] The recording visibly contains the causal arc: barren world, failed first
+  design, evidence-based revision, changed deterministic outcome.
+- [ ] A real planet control visibly changes both the planet and its evidence.
+- [ ] A trait advantage and tradeoff are readable.
+- [ ] The second result visibly includes survivability, regions, population,
+  and an event or comparison.
+- [ ] The final take shows the live `GPT-5.6 analysis` label; fallback footage
+  is excluded.
+- [ ] A generated image is shown only if it is created live in this take.
+- [ ] Audio explicitly explains Codex and GPT-5.6's distinct roles.
+- [ ] The recording briefly shows a real Codex development artifact that
+  substantiates the stated acceleration.
+- [ ] No API key, internal prompt, console, dev tools, error trace, or TODO UI
+  is visible.
+
+## Submission items outside the video
+
+The film cannot satisfy these on its own. Complete them in Devpost before
+submitting:
+
+- [ ] Select the Education category and add the project description.
+- [ ] Add the public repository URL, appropriate license, and README with setup
+  and run instructions; if the repository is private, share it with the two
+  addresses specified by Devpost.
+- [ ] Paste the primary Codex `/feedback` session ID for the work containing
+  most core functionality.
+- [ ] Verify that the deployed project shown in the film matches repository
+  HEAD and that the live GPT-5.6 route succeeds there.

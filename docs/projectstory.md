@@ -1,82 +1,67 @@
-# Xenogenesis Lab — Project Story Draft
+# Xenogenesis Lab
 
-## Submission-integrity note
+## Inspiration
 
-This story describes the current repository unless a limitation is explicitly marked. The deterministic simulator, WebGL planet, life designer, population analysis, procedural organism, server routes, and local fallbacks are implemented. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed credentials**. The public URL remains **TODO: verify against repository HEAD**.
+Xenogenesis Lab began with a simple question: if we could change a planet’s gravity, atmosphere, water, temperature, radiation, and available energy, what kinds of life could survive there?
 
-Do not submit fallback output as live AI or shader output as measured planetary science.
+Astrobiology is often presented through articles, lectures, and diagrams. They explain the science, but they rarely let people experiment with it. I wanted to create an experience where you can change a world, design an organism for it, observe the consequences, and learn through iteration rather than by looking for one correct answer.
 
-## The problem
+## What it does
 
-Astrobiology is full of coupled tradeoffs, but it is often experienced as a list of facts. Gravity shapes support structures. Pressure and gas composition change respiration and movement. Water, temperature, radiation, and energy determine where metabolism can persist. Reading those relationships is useful; changing them and watching a designed organism succeed in one region but fail globally makes them understandable.
-
-The early Xenogenesis concept became too much like a quiz. It asked learners to commit a hypothesis before they could comfortably see and manipulate the planet. That created a writing barrier and implied there might be one expected answer.
-
-## The solution
-
-Xenogenesis Lab is the story of Vespera's first biosphere. Between a frozen world and a warm world, the learner enters a continuous laboratory with one personal role: give a silent planet conditions in which a chosen lineage may endure two centuries of change. A seeded 3D planet dominates the workspace. Environmental controls reshape it smoothly and plain-language evidence shows what each decision means for the life about to arrive. A blank-start lifeform designer supports bacteria-like, aquatic, primate-like, and humanlike plans through visible traits and incompatibilities; organism form is one explicit unicellular-or-multicellular choice. The local rules engine follows whether that lineage can find energy, tolerate the world, reproduce, occupy regional refuges, and endure 200 parameter-driven steps presented as model years.
-
-The loop is deliberately experimental:
+Xenogenesis Lab is an AI-guided astrobiology simulator set during the first biosphere experiment on the fictional world Vespera. You enter a continuous laboratory where you engineer a planet, design a lifeform, and explore whether that lineage can endure.
 
 ```text
 Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt
 ```
 
-There is no single planet recipe. A high-energy aerobic surface strategy and a low-light geochemical ocean strategy can both be viable for different reasons.
+You can adjust eleven connected planetary conditions, including gravity, temperature, atmospheric pressure and composition, water, humidity, radiation, stellar energy, and magnetic protection. A responsive 3D planet changes with these decisions: terrain, oceans, ice, clouds or vapor, atmosphere and radiation.
 
-## What the learner sees
+Then you design a lifeform from compatible traits spanning body structure, physiology, senses, reproduction, and complexity. Every trait has a benefit and a tradeoff, and changes the procedural organism preview. There is no single correct creature: an aerobic surface organism and a geochemically powered aquatic organism can each succeed under different conditions.
 
-The planet is not a static asset. Custom shaders use a deterministic seed and layered noise to generate orbital-scale terrain, ridges, phase-aware oceans and ice, dry sand, thermally altered or molten basaltic rock, moisture, clouds or steam, atmosphere, and biosphere patches. A distant flared sun gives the world a readable day and night side; zero pressure removes the exposed hydrosphere and every atmosphere-like glow, `−40±4°C` freezes the hydrosphere completely, and hot water becomes vapor when its pressure-dependent boiling point is crossed. The expanded range reaches a documented `780–1050°C` basaltic melt transition without implying volcanism. The radiation view combines a labelled surface map with an animated exposure shell visible only in that scientific mode. Polar auroral ovals make the atmosphere–field–radiation relationship visible without presenting it as measured magnetospheric science.
+When you run the simulation, Xenogenesis Lab evaluates life support, eleven suitability metrics, six representative regions, and a population across 200 model years. Environmental pressure and recovery events make losses and rebounds visible. You can inspect survivability, regional refuges, population stability, trait tradeoffs, and the final outcome, then change a condition and run the next experiment.
 
-The organism is not a paragraph. Its immediate procedural field model responds to the current seed and selected body, movement, support, sensory, thermal, radiation, and energy traits. During Design life it becomes the central visual while a smaller live planet remains in view. When deterministic hard life support exists, the designer offers four distinct, checked extreme-life starting strategies; their cold, heat, shielding, biofilm, brine, dormancy, and symbiotic traits remain bound to the same water and metabolism gates. A static left panel, also present during Planet Engineering, shows the exact active climate, atmosphere, water phases, effective humidity, energy/carbon, and radiation protection behind the biological choices. Analyze reserves that space for deterministic outcome evidence. An optional AI-generated field illustration can replace it only after the server grounds the prompt in validated facts.
+## How I built it
 
-The survival result is not just success or failure. It includes a prominent survivability measure, 11 interacting scores, six representative habitat regions with parameter-driven visual cues, a population curve, carrying capacity, up to five selected-trait strengths and tradeoffs, and one of eight outcomes. Event icons reveal the affected population and context. The learner can change one variable and compare the next run without restarting.
+Xenogenesis Lab is a full-stack TypeScript application built with Next.js, React, React Three Fiber, Three.js, custom GLSL shaders, Zod, Vitest, and the OpenAI JavaScript SDK.
 
-## Scientific integrity
+The project keeps three responsibilities separate:
 
-The simulation is intentionally educational, but deterministic and inspectable. It derives oxygen partial pressure and local atmospheric density, evaluates both configured temperature extremes, requires explicit geochemical energy and electron acceptors, and never reduces radiation because a habitat is labelled cave or deep ocean.
+- A deterministic simulation engine calculates world conditions, viability, trait effects, regional survival, population events, and outcomes.
+- A persistent WebGL renderer turns those calculated conditions into an explorable visual planet and organism.
+- GPT-5.6 acts as a Life Sciences Consultant, explaining the result, identifying tradeoffs, and suggesting one focused next experiment.
 
-All coefficients live in a versioned convention module. Trait costs and advanced-life qualification thresholds are disclosed as model choices rather than universal biology. A stable input hash makes repeated experiments reproducible.
+The optional organism field illustration uses `gpt-image-2`. Its visual direction is grounded in the chosen traits and simulated world, so the imagery supports the experiment instead of replacing it with an unrelated creature prompt.
 
-The shader scene explains state visually but never becomes the source of scientific truth.
+Codex with GPT-5.6 accelerated the implementation across interface design, simulation logic, shader work, structured AI integration, tests, bilingual copy, and documentation. I directed the key product choices: make the planet central, let learners experiment freely, keep the science understandable, and use AI for explanation and visualization rather than as a black-box answer generator.
 
-## Where GPT-5.6 adds value
+## Challenges I ran into
 
-GPT-5.6 is a scientific consultant, not the simulator. On request, the server validates the current state, reruns the deterministic model, and asks GPT-5.6 to explain the evidence, tradeoffs, unexpected result, and one controlled next experiment. Zod validates the structured response.
+The main challenge was balancing generative AI with scientific coherence. Letting a model invent the simulation would make the result difficult to understand and reproduce. Using only a calculator, on the other hand, would make a complex world less approachable. The solution was to let the deterministic simulator calculate the experiment, while GPT-5.6 explains its implications in clear language and helps visualize the designed organism.
 
-For organism art, GPT-5.6 may choose only a pose, viewpoint, lighting setup, and emphasis. The server constructs the final prompt from selected traits and calculated world facts before calling `gpt-image-2`. This lets AI add interpretation and presentation without inventing a new organism or changing the outcome.
+Keeping the visual result consistent was another challenge. A striking alien organism is not useful if it contradicts the planet it lives on. The illustration workflow is therefore built around the actual world conditions, selected traits, survivability, and habitat context.
 
-If either service is unavailable, the deterministic experiment remains complete and the interface labels its local or procedural fallback honestly.
+The interface also had to communicate a dense model without turning into a spreadsheet. The result is a focused laboratory experience: the planet is central while engineering, the organism is central while designing, and survival evidence is central during analysis. The experience is available in English and Polish.
 
-## Why the architecture matters
+## Accomplishments that I'm proud of
 
-The project is one full-stack Next.js application, but it preserves strict boundaries:
+I am proud that Xenogenesis Lab is more than a parameter form or an AI creature generator. It is a connected experiment where your planetary decisions, organism design, and survival evidence remain linked.
 
-- world validation and scientific derivations are independent of React;
-- continuous biology and population calculations are independent of GPT;
-- WebGL shaders consume presentation targets, not hidden science;
-- server-only routes protect credentials and recompute client state;
-- every model response is untrusted until validation;
-- English and Polish are compile-time parallel copy structures.
+- A seeded 3D planet with responsive custom GLSL layers.
+- Eleven interconnected world controls with visible consequences.
+- A lifeform designer with meaningful anatomy, benefits, tradeoffs, and compatible traits.
+- A deterministic 200-year survival model with regional context and population events.
+- A GPT-5.6 Sciences Consultant and optional AI-guided field illustration.
+- English and Polish interface support.
+- One focused loop built around curiosity, experimentation, and revision.
 
-This makes the demo visually ambitious without turning its core into an untestable prompt.
+## What I learned
 
-## Codex and human collaboration
+The most useful role for AI in education is not necessarily generating more information. It can help people interpret evidence after they have made a decision. In Xenogenesis Lab, you can change one environmental factor, see how it changes the experiment, inspect why a lineage succeeded or failed, and decide what to test next.
 
-Codex accelerated the work that benefited from fast iteration across many layers: repository audit, product reframing, Zod contracts, continuous simulation, coefficient centralization, custom shaders, React implementation, trait data, population tests, server routes, bilingual copy, browser QA, and documentation reconciliation.
+I also learned that AI becomes more valuable when it has a clear role. Keeping calculation, explanation, and visualization distinct makes the experience creative without losing the scientific thread that gives experimentation meaning.
 
-The human made the important product choices: replace the quiz with learner freedom, expose all major world systems, make the planet respond smoothly, use multiple biological strategies, keep an animated boot, preserve English and Polish, and prioritize one convincing simulator workspace before optional infrastructure.
+## What's next for Xenogenesis Lab
 
-The result demonstrates a useful division of labor: human direction and scientific boundaries, Codex-accelerated implementation and verification, deterministic local computation, and GPT-5.6 only where explanation and controlled creative interpretation are valuable.
+Xenogenesis Lab can grow with new worlds, additional scientifically reviewed rules, comparative experiments, more organism strategies, evolving ecosystems, educator-authored scenarios, and collaborative exploration.
 
-## Current limitations
-
-The first build contains one baseline seed, six representative regions rather than a spatial climate grid, and one dominant organism rather than a food web. It has no accounts, persistence, campaign, detailed evolution, creature animation, or production rate limiting. Live model behavior and the public deployment must be verified before final submission claims.
-
-## Submission TODOs
-
-- add the primary Codex `/feedback` session ID;
-- link the public sub-three-minute YouTube demo;
-- verify production equals repository HEAD;
-- run live GPT-5.6 and `gpt-image-2` paths;
-- update the final verification record and Devpost submission text together.
+The long-term goal is to make astrobiology feel less like a distant theory and more like a world you can investigate with your own hands.
