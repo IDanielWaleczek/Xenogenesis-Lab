@@ -78,6 +78,11 @@ export type LabCopy = {
     sceneLabel: string;
     enter: string;
   };
+  desktopOnly: {
+    eyebrow: string;
+    title: string;
+    description: string;
+  };
   header: {
     system: string;
     reset: string;
@@ -250,6 +255,8 @@ export type LabCopy = {
     error: string;
     download: string;
     alt: string;
+    openPreview: string;
+    closePreview: string;
   };
   consultant: {
     title: string;
@@ -300,6 +307,11 @@ const english: LabCopy = {
     subtitle: "A silent world is waiting. Rebuild its climate, engineer a living strategy, and discover whether your biosphere survives two centuries of change.",
     sceneLabel: "Your expedition begins before the first cell exists",
     enter: "Begin the Vespera experiment",
+  },
+  desktopOnly: {
+    eyebrow: "Desktop workspace",
+    title: "Xenogenesis Lab currently works on computers only",
+    description: "Open this experiment in a desktop browser at least 1081 pixels wide. Mobile and tablet layouts are temporarily unavailable.",
   },
   header: {
     system: "Vespera · first-biosphere experiment",
@@ -677,6 +689,8 @@ const english: LabCopy = {
     error: "Image generation is unavailable. The deterministic field model is unchanged.",
     download: "Download 3:2 illustration",
     alt: "Procedural alien organism adapted to the current Vespera experiment",
+    openPreview: "Open image full screen",
+    closePreview: "Close full-screen image",
   },
   consultant: {
     title: "Life Sciences Consultant",
@@ -751,6 +765,11 @@ const polish: LabCopy = {
     subtitle: "Cichy świat czeka. Odbuduj jego klimat, zaprojektuj strategię życia i sprawdź, czy biosfera przetrwa dwa stulecia zmian.",
     sceneLabel: "Twoja ekspedycja zaczyna się, zanim powstanie pierwsza komórka",
     enter: "Rozpocznij eksperyment Vespera",
+  },
+  desktopOnly: {
+    eyebrow: "Stanowisko desktopowe",
+    title: "Xenogenesis Lab działa obecnie tylko na komputerze",
+    description: "Otwórz eksperyment w przeglądarce na komputerze o szerokości co najmniej 1081 pikseli. Widok mobilny i tabletowy są tymczasowo niedostępne.",
   },
   header: {
     system: "Vespera · eksperyment pierwszej biosfery",
@@ -1128,6 +1147,8 @@ const polish: LabCopy = {
     error: "Generowanie obrazu jest niedostępne. Deterministyczny model terenowy nie uległ zmianie.",
     download: "Pobierz ilustrację 3:2",
     alt: "Proceduralny obcy organizm dostosowany do bieżącego eksperymentu Vespera",
+    openPreview: "Otwórz obraz na pełnym ekranie",
+    closePreview: "Zamknij obraz pełnoekranowy",
   },
   consultant: {
     title: "Konsultant nauk biologicznych",

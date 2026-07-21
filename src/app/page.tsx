@@ -304,6 +304,17 @@ function formatNumber(value: number, language: Language, digits = 1): string {
   }).format(value);
 }
 
+/** Blocks unsupported narrow viewports while the laboratory remains desktop-only. */
+function DesktopOnlyNotice({ copy }: { copy: LabCopy }) {
+  return (
+    <aside className="desktop-only-notice" role="alert">
+      <span>{copy.desktopOnly.eyebrow}</span>
+      <h1>{copy.desktopOnly.title}</h1>
+      <p>{copy.desktopOnly.description}</p>
+    </aside>
+  );
+}
+
 /** Renders deterministic failure causes with the current world facts. */
 function formatFailureExplanation(
   reasons: SurvivalFailureReason[],
@@ -879,6 +890,7 @@ export default function Home() {
   const [consultantStatus, setConsultantStatus] = useState<"idle" | "loading" | "error">("idle");
   const [organismImage, setOrganismImage] = useState<OrganismImageResponse | null>(null);
   const [imageStatus, setImageStatus] = useState<"idle" | "loading" | "error" | "fallback">("idle");
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStepIndex, setOnboardingStepIndex] = useState(0);
   const [lastParameterId, setLastParameterId] = useState<ParameterId | null>(null);
@@ -930,17 +942,13 @@ export default function Home() {
   }, [copy.document.description, copy.document.title, language]);
 
   useEffect(() => {
-    if (screen !== "lab" || !showOnboarding) return;
-    const targets: Record<TutorialTarget, React.RefObject<HTMLElement | null>> = {
-      planetStage: planetStageRef, planetControls: planetControlsRef, planetParameter: planetParameterRef,
-      evidencePanel: evidencePanelRef, worldStory: worldStoryRef, worldEvidence: worldEvidenceRef,
-      chooseLife: chooseLifeRef, lifeDropdown: lifeDropdownRef, hypothesisStory: hypothesisStoryRef,
-      lifeFacts: lifeFactsRef, readiness: readinessRef, lifeEvidence: lifeEvidenceRef,
-      runSimulation: runSimulationRef, resultOutcome: resultOutcomeRef, resultMetrics: resultMetricsRef, resultRegions: resultRegionsRef,
-      resultPopulation: resultPopulationRef, organismPortrait: organismPortraitRef, consultant: consultantRef,
+    if (!isImagePreviewOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsImagePreviewOpen(false);
     };
-    targets[activeTutorialStep.target].current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [activeTutorialStep.target, screen, showOnboarding]);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isImagePreviewOpen]);
 
   const invalidateCalculatedState = () => {
     stateEpoch.current += 1;
@@ -951,6 +959,7 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setIsImagePreviewOpen(false);
     setSummaryCopyStatus("idle");
   };
 
@@ -1020,6 +1029,7 @@ export default function Home() {
     const previousIndex = onboardingStepIndex - 1;
     setOnboardingStepIndex(previousIndex);
     setPhase(TUTORIAL_STEPS[previousIndex].phase);
+    resetScrollableSurfaces();
   };
 
   const advanceOnboarding = () => {
@@ -1032,6 +1042,7 @@ export default function Home() {
     const nextIndex = onboardingStepIndex + 1;
     setOnboardingStepIndex(nextIndex);
     setPhase(TUTORIAL_STEPS[nextIndex].phase);
+    resetScrollableSurfaces();
   };
 
   const enterLab = () => {
@@ -1060,6 +1071,7 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setIsImagePreviewOpen(false);
     setLastParameterId(null);
     setSummaryCopyStatus("idle");
   };
@@ -1235,6 +1247,7 @@ export default function Home() {
             <button aria-label={copy.language.polish} aria-pressed={language === "pl"} onClick={() => changeLanguage("pl")} type="button"><img alt="" height="18" src="https://flagcdn.io/flags/4x3/pl.svg" width="24" /><span>PL</span></button>
           </div>
         </div>
+        <DesktopOnlyNotice copy={copy} />
       </main>
     );
   }
@@ -1257,6 +1270,7 @@ export default function Home() {
 
   return (
     <main className="lab-shell">
+      <DesktopOnlyNotice copy={copy} />
       <header className="lab-header">
         <div className="lab-brand">
           <Image alt="Xenogenesis Lab" className="lab-banner" height={64} priority src="/XenogenesisLabBanner.png" width={240} />
@@ -1583,7 +1597,11 @@ export default function Home() {
 
                   <section className={`result-section organism-section ${tutorialFocus("organismPortrait")}`} ref={organismPortraitRef}>
                     <div className="result-section-heading"><h3>{copy.organism.title}</h3><span className="status-chip">{organismImage?.imageDataUrl ? copy.organism.generated : copy.organism.procedural}</span></div>
-                    <OrganismPreview imageDataUrl={organismImage?.imageDataUrl ?? null} label={copy.organism.alt} planet={planet} traitIds={traitIds} />
+                    {organismImage?.imageDataUrl ? (
+                      <button aria-label={copy.organism.openPreview} className="organism-image-open" onClick={() => setIsImagePreviewOpen(true)} type="button">
+                        <OrganismPreview imageDataUrl={organismImage.imageDataUrl} label={copy.organism.alt} planet={planet} traitIds={traitIds} />
+                      </button>
+                    ) : <OrganismPreview imageDataUrl={null} label={copy.organism.alt} planet={planet} traitIds={traitIds} />}
                     {imageStatus === "fallback" && <p className="api-notice">{copy.organism.fallback}</p>}
                     {imageStatus === "error" && <p className="api-notice error">{copy.organism.error}</p>}
                     <button className="button-quiet wide" disabled={resultStale || imageStatus === "loading"} onClick={requestOrganismImage} type="button">{imageStatus === "loading" ? copy.organism.generating : copy.organism.requestImage}</button>
@@ -1621,6 +1639,14 @@ export default function Home() {
           )}
         </aside>
       </div>
+      {isImagePreviewOpen && organismImage?.imageDataUrl && (
+        <div aria-label={copy.organism.openPreview} aria-modal="true" className="image-fullscreen" onMouseDown={() => setIsImagePreviewOpen(false)} role="dialog">
+          <div className="image-fullscreen-content" onMouseDown={(event) => event.stopPropagation()}>
+            <button aria-label={copy.organism.closePreview} className="image-fullscreen-close" onClick={() => setIsImagePreviewOpen(false)} type="button">×</button>
+            <Image alt={copy.organism.alt} height={1024} priority src={organismImage.imageDataUrl} unoptimized width={1536} />
+          </div>
+        </div>
+      )}
       {showOnboarding && screen === "lab" && (() => {
         const stepCopy = copy.onboarding.steps[activeTutorialStep.id];
         return <>

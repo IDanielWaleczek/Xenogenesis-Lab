@@ -36,9 +36,9 @@ At widths above `1080px`, use a full-screen `100svh` shell without global page s
 
 In Planet Engineering only, the central globe supports drag rotation, wheel zoom, camera reset, paused/resumed automatic rotation, and scientific views. Design Life and Analyze are static inspection stages and do not show these controls or input hints.
 
-## Responsive behavior
+## Narrow-screen behavior
 
-At narrower widths, phase navigation becomes a sticky three-tab control and the visual stage remains sticky below it. The planet therefore remains visible while the learner scrolls controls or results; during Design life, the organism is the persistent central visual and a smaller planet remains visible beside it. A separate mobile hint names one-finger rotation and two-finger pinch zoom. Environment controls may use two columns on tablet and one on phone. Do not horizontally compress the desktop visual stage and controls.
+The laboratory is temporarily desktop-only. At widths of `1080px` or less, a translated full-screen notice blocks the boot and laboratory interfaces and asks the learner to open the experiment in a browser at least `1081px` wide. Do not expose a partial mobile or tablet workflow until it has been implemented and verified.
 
 ## Visual system
 
@@ -141,8 +141,8 @@ Do not imitate named artists or protected franchises. Do not present generated p
 
 ## Guided walkthrough
 
-The first-run walkthrough is a compact, dimmed overlay with a single highlighted target and one fixed bottom guide card. Each active target is scrolled into view on both desktop and mobile. It follows the actual working sequence: Planet Designer (scene, right controls, a slider, left evidence and World story), Design Life (preview, controls, dropdowns, left Hypothesis story, trait evidence/readiness), then Analyze (survivability, forces, regional refuge, population/event chart, illustration, consultant). After the parameter explanation it loads the temperate starting experiment; before analysis it loads a compatible example lifeform and runs the real deterministic simulation. Ending or dismissing the guide fully resets the lab and returns the learner to Planet Designer.
+The first-run walkthrough is a compact, dimmed desktop overlay with a single highlighted target and one fixed bottom guide card. Every guide transition resets the laboratory scroll positions to the top. It follows the actual working sequence: Planet Designer (scene, right controls, a slider, left evidence and World story), Design Life (preview, controls, dropdowns, left Hypothesis story, trait evidence/readiness), then Analyze (survivability, forces, regional refuge, population/event chart, illustration, consultant). After the parameter explanation it loads the temperate starting experiment; before analysis it loads a compatible example lifeform and runs the real deterministic simulation. Ending or dismissing the guide fully resets the lab and returns the learner to Planet Designer.
 
 ## Current verification note
 
-The cinematic boot, desktop laboratory, WebGL globe, life designer, deterministic result, consultant fallback, organism-image fallback, and English/Polish switching were inspected in the local browser on 2026-07-19. A narrow in-app-browser viewport was not available in that pass; responsive CSS and production rendering still require final device verification before submission.
+The cinematic boot, desktop laboratory, WebGL globe, life designer, deterministic result, consultant fallback, organism-image fallback, and English/Polish switching were inspected in the local browser on 2026-07-19. Narrow/mobile layouts are intentionally blocked until a separate responsive implementation and device verification are completed.

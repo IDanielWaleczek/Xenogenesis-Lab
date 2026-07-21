@@ -30,7 +30,7 @@ There is no single hidden correct configuration. The tested model supports disti
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
 - Optional server-only `gpt-image-2` field illustration in an uncropped downloadable 3:2 frame. The server constructs the final prompt from every normalized planet parameter, selected trait configuration, calculated survivability, and the strongest regional context; low-survivability designs are depicted as intact dead specimens rather than thriving organisms.
 - Complete reviewed English and Polish interface copy, including accessible labels and failure states.
-- Responsive desktop-first layout; planet engineering, life design, and analysis each center their important visual, while mobile keeps a phase visual visible during scrolling.
+- Desktop-only layout; widths of `1080px` or less are blocked with a clear English/Polish notice while mobile and tablet support is unavailable.
 
 ## How it works for the learner
 

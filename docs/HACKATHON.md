@@ -55,7 +55,7 @@ The local deterministic workflow and both fallback routes work without external 
 ### 2026-07-19 — Procedural life simulator transformation
 
 - **Area:** product, rendering, deterministic biology, AI boundaries, and documentation.
-- **Work:** replaced the hypothesis/quiz architecture with the continuous life-engineering loop; added Three.js/R3F/Drei and custom planet shaders; added environment controls, trait designer, centralized simulator coefficients, regional and population analysis, procedural organism, consultant and image routes, cinematic boot, responsive laboratory, and aligned documentation.
+- **Work:** replaced the hypothesis/quiz architecture with the continuous life-engineering loop; added Three.js/R3F/Drei and custom planet shaders; added environment controls, trait designer, centralized simulator coefficients, regional and population analysis, procedural organism, consultant and image routes, cinematic boot, desktop-only laboratory, and aligned documentation.
 - **Human decisions:** learner freedom, broad simulation outcomes, real-time smooth planet changes, meaningful traits with tradeoffs, an animation-led boot, on-demand AI, and one polished laboratory workspace.
 - **Codex evidence:** current Codex task; **TODO:** capture the final `/feedback` session ID.
 - **Relevant commit or pull request:** **TODO:** current transformation is uncommitted.
@@ -118,7 +118,7 @@ Never show mocked, manually prepared, local-fallback, or pre-generated output as
 - [x] README includes exact repository commands and architecture.
 - [x] English and Polish interface structures match.
 - [x] Run and record final tests, type check, repository lint, and production build.
-- [ ] Verify desktop and real narrow/mobile device behavior in the production build.
+- [ ] Implement and verify a separate mobile/tablet workflow before removing the desktop-only notice.
 - [ ] Configure and verify live GPT-5.6 and `gpt-image-2` routes.
 - [ ] Add rate limiting or document the controlled judging environment.
 - [ ] Verify production deploy equals repository HEAD.
