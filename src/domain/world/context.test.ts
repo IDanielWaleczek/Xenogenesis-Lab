@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { GENESIS_MISSION } from "../simulator/mission";
+import { BASELINE_PLANET } from "../simulator/baseline";
 
 import { deriveWorldContext } from "./context";
 
 describe("world context", () => {
   it("keeps design and analysis evidence tied to the shared effective world state", () => {
     const context = deriveWorldContext({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       gravityG: 1,
       atmosphericPressureAtm: 1,
       atmosphereComposition: {

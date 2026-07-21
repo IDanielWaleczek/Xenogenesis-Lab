@@ -27,11 +27,12 @@ Deterministic baseline seed + WorldParameters
                         ├── POST /api/consultant
                         │       ├── validate request
                         │       ├── re-run deterministic model on server
+                        │       ├── build shared validated experiment context
                         │       ├── GPT-5.6 structured interpretation
                         │       └── Zod response or labelled local fallback
                         └── POST /api/organism-image
                                 ├── validate and re-run model
-                                ├── reuse consultant result
+                                ├── use the same validated experiment context for consultant direction and image prompt
                                 ├── construct controlled image prompt
                                 └── gpt-image-2 data URL or procedural fallback
 ```
@@ -49,9 +50,9 @@ It does not infer radiation shielding, electron acceptors, molar mass, or altern
 ### Simulator — `src/domain/simulator/`
 
 - `schema.ts` defines the trait, request, result, consultant, and illustration contracts.
-- `mission.ts` contains the immutable baseline seed and barren starting state.
+- `baseline.ts` contains the immutable seeded planet and barren starting state.
 - `traits.ts` centralizes 44 trait definitions, conflicts, tradeoff metadata, and modifiers. Trait costs remain descriptive tuning metadata but no longer impose a selection budget.
-- `simulate.ts` calculates continuous metrics, representative regions, population, outcome, success, and stable hash.
+- `simulate.ts` calculates continuous metrics, representative regions, population, outcome, advanced-life qualification, and stable hash.
 - `consultant.ts` builds the local fallback and final controlled image prompt.
 
 The simulator has no React, Three.js, OpenAI, route, or persistence dependency.
@@ -72,9 +73,9 @@ The client keeps one laboratory workspace state: language, phase, planet, traits
 
 ### Server-only OpenAI services — `src/server/`
 
-`life-consultant.ts` calls the Responses API with the `gpt-5.6` alias, `reasoning.effort: "none"`, and a Zod structured-output format. It receives only validated state and server-recalculated output.
+`life-consultant.ts` calls the Responses API with `gpt-5.6-luna`, `reasoning.effort: "low"`, and a Zod structured-output format. It receives only validated state and server-recalculated output.
 
-`organism-image.ts` calls the Image API with `gpt-image-2`. GPT output cannot provide a free-form final prompt: it selects a strict `imageDirection` object, and the server combines those enums with deterministic world facts and selected trait IDs.
+`organism-image.ts` calls the Image API with `gpt-image-2`. GPT output cannot provide a free-form final prompt: it selects a strict `imageDirection` object, and the server combines those enums with one shared, server-derived experiment context: every normalized planet parameter, every selected trait configuration, computed survivability, the highest-scoring region, and the deterministic result. At survivability `≤25%`, the controlled prompt requires an intact dead specimen rather than a misleading thriving organism.
 
 Both services use process-local `Map` caches keyed by a stable hash. This avoids duplicate calls in one process but is not durable or globally shared on Vercel.
 
@@ -96,17 +97,16 @@ type PlanetState = {
 };
 
 type SurvivalSimulationRequest = {
-  missionId: "genesis-01";
   planet: PlanetState;
   traitIds: LifeTraitId[];
   initialPopulation: number;
 };
 
 type SurvivalSimulationResult = {
-  simulatorVersion: "1.7.0";
+  simulatorVersion: "2.1.0";
   stateHash: string;
   outcome: SimulationOutcome;
-  missionSuccess: boolean;
+  supportsAdvancedLife: boolean;
   objectiveScore: number;
   metrics: Record<SimulationMetricId, number>;
   regionScores: Record<RegionId, number>;
@@ -132,7 +132,7 @@ type ImageDirection = {
 | Learner state | world choices and trait selection | calculated facts |
 | Deterministic simulator | scores, population, outcome, success | narrative or art |
 | WebGL renderer | interpolated visual interpretation | scientific conclusions |
-| GPT-5.6 consultant | explanation, naming, experiment suggestion, constrained art direction | scores or outcome |
+| GPT-5.6 consultant | explanation, naming, experiment suggestion, constrained art direction from shared validated context | scores or outcome |
 | Image model | final pixels | anatomy requirements or simulation facts |
 | Local fallback | deterministic templated explanation | claim to be GPT output |
 
@@ -162,7 +162,7 @@ External and model output is untrusted until Zod validation. The server recomput
 
 - verify Vercel production serves repository HEAD;
 - configure `OPENAI_API_KEY` only in server environment variables;
-- verify live GPT-5.6 and `gpt-image-2` requests;
+- verify deployed GPT-5.6 and `gpt-image-2` requests; local production-route verification passed on 2026-07-21;
 - add rate limiting, abuse protection, timeout policy, and observability;
 - decide whether generated data URLs should move to object storage;
 - pin a supported Node.js version;

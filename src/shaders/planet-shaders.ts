@@ -1,3 +1,13 @@
+import {
+  LAVA_CHANNEL_END_C,
+  LAVA_CHANNEL_START_C,
+} from "@/domain/world/visualization";
+
+export {
+  LAVA_CHANNEL_END_C,
+  LAVA_CHANNEL_START_C,
+} from "@/domain/world/visualization";
+
 /** Shared deterministic value-noise helpers used by the planet shaders. */
 const GLSL_NOISE = `
 float hash31(vec3 p) {
@@ -123,6 +133,7 @@ uniform float uLiquidWater;
 uniform float uIceWater;
 uniform float uMeanTemperatureC;
 uniform float uTemperatureVariationC;
+uniform float uTime;
 uniform float uEffectiveHumidity;
 uniform float uPressurePresence;
 uniform float uSandClimate;
@@ -175,6 +186,10 @@ void main() {
   float heatStress = smoothstep(65.0, 115.0, localTemperatureC);
   float moltenRock = smoothstep(780.0, 1050.0, localTemperatureC);
   float lavaChannels = smoothstep(0.48, 0.78, 1.0 - abs(fbm(vObjectPosition * 14.0 + vec3(uSeed * 0.071)) * 2.0 - 1.0));
+  float lavaActivity = smoothstep(${LAVA_CHANNEL_START_C.toFixed(1)}, ${LAVA_CHANNEL_END_C.toFixed(1)}, localTemperatureC);
+  float lavaChannelActivity = lavaChannels * lavaActivity;
+  float shimmerNoise = fbm(vObjectPosition * 19.0 + vec3(uSeed * 0.13, uTime * 0.12, -uTime * 0.08));
+  float heatHaze = smoothstep(330.0, 650.0, localTemperatureC) * (0.22 + lavaActivity * 0.78);
 
   vec3 rock = mix(vec3(0.19, 0.16, 0.15), vec3(0.38, 0.31, 0.25), localNoise);
   vec3 desertColor = vec3(0.64, 0.43, 0.22);
@@ -190,6 +205,8 @@ void main() {
   color = mix(color, mix(vec3(0.13, 0.08, 0.06), vec3(0.32, 0.16, 0.08), localNoise), heatStress * 0.86);
   vec3 lavaColor = mix(vec3(0.24, 0.018, 0.004), vec3(1.0, 0.24, 0.008), lavaChannels);
   color = mix(color, lavaColor, moltenRock * (0.46 + lavaChannels * 0.54));
+  color = mix(color, mix(vec3(0.34, 0.075, 0.018), vec3(1.0, 0.32, 0.02), shimmerNoise), lavaChannelActivity * 0.48);
+  color += vec3(0.38, 0.055, 0.008) * heatHaze * shimmerNoise * 0.08;
   color = mix(color, biosphereColor, bioMask * 0.98);
   color = mix(color, vec3(0.82, 0.91, 0.98), ice);
   vec3 riverColor = mix(vec3(0.025, 0.19, 0.25), vec3(0.74, 0.88, 0.93), riverFreeze);
@@ -210,7 +227,7 @@ void main() {
   float nightLight = 0.075 + uLightLevel * 0.035;
   float diffuse = nightLight + directLight * (0.24 + uLightLevel * 0.94);
   float viewRim = pow(1.0 - max(dot(normalize(vViewNormal), normalize(vViewDirection)), 0.0), 2.0);
-  vec3 lavaEmission = moltenRock * lavaChannels * vec3(0.88, 0.11, 0.004);
+  vec3 lavaEmission = (moltenRock * lavaChannels + lavaChannelActivity * 0.65) * vec3(0.88, 0.11, 0.004);
   vec3 litColor = color * diffuse + viewRim * uPressurePresence * vec3(0.014, 0.032, 0.045) + lavaEmission;
   gl_FragColor = vec4(litColor, 1.0);
 }

@@ -32,16 +32,16 @@ export type TraitDefinition = {
   modifiers: TraitModifiers;
 };
 
-/** Versioned trait tradeoffs and modifiers used by simulator 1.7.0. */
+/** Versioned trait tradeoffs and modifiers used by simulator 1.9.0. */
 export const LIFE_TRAITS: Record<LifeTraitId, TraitDefinition> = {
   compactBody: { id: "compactBody", category: "body", cost: 7, conflicts: ["largeBody"], modifiers: { gravityTolerance: 0.2, hydration: 0.04 } },
   largeBody: { id: "largeBody", category: "body", cost: 16, conflicts: ["compactBody"], modifiers: { thermalCold: 0.16, complexity: 0.09, oxygenEfficiency: -0.12 } },
   internalSkeleton: { id: "internalSkeleton", category: "body", cost: 11, conflicts: ["exoskeleton"], modifiers: { gravityTolerance: 0.13, movement: 0.08 } },
   exoskeleton: { id: "exoskeleton", category: "body", cost: 10, conflicts: ["internalSkeleton"], modifiers: { radiationTolerance: 0.08, hydration: 0.08, gravityTolerance: -0.06 } },
-  aquaticMovement: { id: "aquaticMovement", category: "body", cost: 8, conflicts: ["terrestrialMovement", "aerialMovement"], modifiers: { movement: 0.18, pressureTolerance: 0.08 } },
+  aquaticMovement: { id: "aquaticMovement", category: "body", cost: 8, conflicts: ["terrestrialMovement", "aerialMovement", "bipedalPosture"], modifiers: { movement: 0.18, pressureTolerance: 0.08 } },
   terrestrialMovement: { id: "terrestrialMovement", category: "body", cost: 8, conflicts: ["aquaticMovement", "aerialMovement"], modifiers: { movement: 0.14, gravityTolerance: 0.06 } },
   aerialMovement: { id: "aerialMovement", category: "body", cost: 18, conflicts: ["aquaticMovement", "terrestrialMovement"], modifiers: { movement: 0.24, gravityTolerance: -0.18, oxygenEfficiency: -0.08 } },
-  unicellular: { id: "unicellular", category: "body", cost: 2, conflicts: ["multicellular", "graspingLimbs", "bipedalPosture"], modifiers: { complexity: -0.2, reproduction: 0.18, adaptability: 0.04 } },
+  unicellular: { id: "unicellular", category: "body", cost: 2, conflicts: ["multicellular", "graspingLimbs", "opposableDigits", "centralizedBrain", "bipedalPosture", "culturalMemory"], modifiers: { complexity: -0.2, reproduction: 0.18, adaptability: 0.04 } },
   multicellular: { id: "multicellular", category: "body", cost: 10, conflicts: ["unicellular"], modifiers: { complexity: 0.16, reproduction: -0.04 } },
   bilateralSymmetry: { id: "bilateralSymmetry", category: "body", cost: 5, conflicts: ["radialSymmetry"], modifiers: { movement: 0.09, complexity: 0.04 } },
   radialSymmetry: { id: "radialSymmetry", category: "body", cost: 5, conflicts: ["bilateralSymmetry", "bipedalPosture"], modifiers: { adaptability: 0.06, movement: 0.03 } },
@@ -57,20 +57,27 @@ export const LIFE_TRAITS: Record<LifeTraitId, TraitDefinition> = {
   radiationResistance: { id: "radiationResistance", category: "physiology", cost: 15, conflicts: [], modifiers: { radiationTolerance: 0.34, reproduction: -0.05 } },
   thermalInsulation: { id: "thermalInsulation", category: "physiology", cost: 11, conflicts: ["heatResistance"], modifiers: { thermalCold: 0.3, thermalHeat: -0.08 } },
   heatResistance: { id: "heatResistance", category: "physiology", cost: 11, conflicts: ["thermalInsulation"], modifiers: { thermalHeat: 0.3, hydration: -0.06 } },
+  cryoprotectiveChemistry: { id: "cryoprotectiveChemistry", category: "physiology", cost: 12, conflicts: [], modifiers: { thermalCold: 0.36, hydration: 0.08, reproduction: -0.03 } },
+  heatShockProteins: { id: "heatShockProteins", category: "physiology", cost: 12, conflicts: [], modifiers: { thermalHeat: 0.42, radiationTolerance: 0.04, reproduction: -0.04 } },
+  mineralShielding: { id: "mineralShielding", category: "physiology", cost: 13, conflicts: [], modifiers: { radiationTolerance: 0.24, thermalHeat: 0.08, movement: -0.04 } },
+  biofilmColony: { id: "biofilmColony", category: "physiology", cost: 10, conflicts: [], modifiers: { hydration: 0.2, chemicalEnergy: 0.08, radiationTolerance: 0.06, reproduction: 0.12 } },
+  saltTolerance: { id: "saltTolerance", category: "physiology", cost: 8, conflicts: [], modifiers: { hydration: 0.14, pressureTolerance: 0.06, adaptability: 0.04 } },
   waterConservation: { id: "waterConservation", category: "physiology", cost: 11, conflicts: [], modifiers: { hydration: 0.3, reproduction: -0.03 } },
   pressureResistance: { id: "pressureResistance", category: "physiology", cost: 10, conflicts: [], modifiers: { pressureTolerance: 0.28, movement: -0.04 } },
   regenerativeTissue: { id: "regenerativeTissue", category: "physiology", cost: 15, conflicts: [], modifiers: { radiationTolerance: 0.12, adaptability: 0.12, reproduction: -0.05 } },
   hibernation: { id: "hibernation", category: "physiology", cost: 8, conflicts: [], modifiers: { thermalCold: 0.14, hydration: 0.1, adaptability: 0.08 } },
+  dormantCysts: { id: "dormantCysts", category: "reproduction", cost: 9, conflicts: ["liveBirth"], modifiers: { thermalCold: 0.12, thermalHeat: 0.12, radiationTolerance: 0.12, hydration: 0.1, reproduction: 0.14 } },
+  symbioticMetabolism: { id: "symbioticMetabolism", category: "physiology", cost: 14, conflicts: [], modifiers: { alternativeMetabolism: 0.14, chemicalEnergy: 0.1, oxygenEfficiency: 0.05, complexity: 0.04 } },
   visibleVision: { id: "visibleVision", category: "senses", cost: 4, conflicts: [], modifiers: { adaptability: 0.03 } },
   infraredVision: { id: "infraredVision", category: "senses", cost: 7, conflicts: [], modifiers: { adaptability: 0.08 } },
   echolocation: { id: "echolocation", category: "senses", cost: 9, conflicts: [], modifiers: { adaptability: 0.1, oxygenEfficiency: -0.03 } },
   chemicalSensing: { id: "chemicalSensing", category: "senses", cost: 6, conflicts: [], modifiers: { adaptability: 0.08, chemicalEnergy: 0.04 } },
   rapidReproduction: { id: "rapidReproduction", category: "reproduction", cost: 10, conflicts: ["parentalInvestment"], modifiers: { reproduction: 0.28, complexity: -0.12 } },
   protectedEggs: { id: "protectedEggs", category: "reproduction", cost: 7, conflicts: ["liveBirth", "spores"], modifiers: { reproduction: 0.09, hydration: 0.08 } },
-  liveBirth: { id: "liveBirth", category: "reproduction", cost: 10, conflicts: ["protectedEggs", "spores"], modifiers: { reproduction: 0.06, complexity: 0.06 } },
+  liveBirth: { id: "liveBirth", category: "reproduction", cost: 10, conflicts: ["dormantCysts", "protectedEggs", "spores"], modifiers: { reproduction: 0.06, complexity: 0.06 } },
   spores: { id: "spores", category: "reproduction", cost: 8, conflicts: ["protectedEggs", "liveBirth"], modifiers: { reproduction: 0.2, radiationTolerance: 0.06, complexity: -0.08 } },
   parentalInvestment: { id: "parentalInvestment", category: "reproduction", cost: 12, conflicts: ["rapidReproduction"], modifiers: { reproduction: -0.05, adaptability: 0.08, complexity: 0.12 } },
-  simpleNeuralSystem: { id: "simpleNeuralSystem", category: "intelligence", cost: 5, conflicts: ["toolUsePotential"], modifiers: { adaptability: 0.05, complexity: 0.04 } },
+  simpleNeuralSystem: { id: "simpleNeuralSystem", category: "intelligence", cost: 5, conflicts: ["centralizedBrain", "toolUsePotential", "culturalMemory"], modifiers: { adaptability: 0.05, complexity: 0.04 } },
   centralizedBrain: { id: "centralizedBrain", category: "intelligence", cost: 14, conflicts: ["simpleNeuralSystem", "unicellular"], modifiers: { adaptability: 0.17, complexity: 0.2, oxygenEfficiency: -0.05 } },
   bipedalPosture: { id: "bipedalPosture", category: "intelligence", cost: 10, conflicts: ["unicellular", "radialSymmetry", "aquaticMovement"], modifiers: { movement: 0.05, adaptability: 0.08, complexity: 0.08 } },
   socialCoordination: { id: "socialCoordination", category: "intelligence", cost: 11, conflicts: [], modifiers: { adaptability: 0.13, complexity: 0.1 } },
@@ -79,6 +86,40 @@ export const LIFE_TRAITS: Record<LifeTraitId, TraitDefinition> = {
   adaptiveLearning: { id: "adaptiveLearning", category: "intelligence", cost: 17, conflicts: [], modifiers: { adaptability: 0.24, complexity: 0.18, oxygenEfficiency: -0.06 } },
   culturalMemory: { id: "culturalMemory", category: "intelligence", cost: 18, conflicts: ["unicellular", "simpleNeuralSystem"], modifiers: { adaptability: 0.28, complexity: 0.24, reproduction: -0.04 } },
 };
+
+export type TraitConflictGroupId =
+  | "organismForm"
+  | "bodySize"
+  | "bodySupport"
+  | "movement"
+  | "symmetry"
+  | "respiration"
+  | "metabolism"
+  | "energyCapture"
+  | "thermalStrategy"
+  | "reproductiveMode"
+  | "reproductiveInvestment";
+
+export type TraitConflictGroup = {
+  id: TraitConflictGroupId;
+  category: TraitCategory;
+  traitIds: readonly LifeTraitId[];
+};
+
+/** Mutually exclusive alternative sets presented as single-choice controls in the life designer. */
+export const TRAIT_CONFLICT_GROUPS: readonly TraitConflictGroup[] = [
+  { id: "organismForm", category: "body", traitIds: ["unicellular", "multicellular"] },
+  { id: "bodySize", category: "body", traitIds: ["compactBody", "largeBody"] },
+  { id: "bodySupport", category: "body", traitIds: ["internalSkeleton", "exoskeleton"] },
+  { id: "movement", category: "body", traitIds: ["aquaticMovement", "terrestrialMovement", "aerialMovement"] },
+  { id: "symmetry", category: "body", traitIds: ["bilateralSymmetry", "radialSymmetry"] },
+  { id: "respiration", category: "body", traitIds: ["gills", "lungs"] },
+  { id: "metabolism", category: "physiology", traitIds: ["oxygenRespiration", "lowOxygenMetabolism", "anaerobicMetabolism"] },
+  { id: "energyCapture", category: "physiology", traitIds: ["photosynthesis", "chemosynthesis"] },
+  { id: "thermalStrategy", category: "physiology", traitIds: ["thermalInsulation", "heatResistance"] },
+  { id: "reproductiveMode", category: "reproduction", traitIds: ["protectedEggs", "liveBirth", "spores"] },
+  { id: "reproductiveInvestment", category: "reproduction", traitIds: ["rapidReproduction", "parentalInvestment"] },
+];
 
 /** Calculates the biological construction cost of selected traits. */
 export function calculateTraitCost(traitIds: LifeTraitId[]): number {

@@ -2,7 +2,7 @@
 
 ## Model scope
 
-Simulator 1.7.0 is a deterministic, scientifically inspired educational model for exploring interactions among a planet, a designed organism, representative habitats, and population stability. It is not a complete climate, atmospheric-chemistry, geology, radiation-transport, ecosystem, genetics, or evolutionary model.
+Simulator 2.1.0 is a deterministic, scientifically inspired educational model for exploring interactions among a planet, a designed organism, representative habitats, and population stability. It is not a complete climate, atmospheric-chemistry, geology, radiation-transport, ecosystem, genetics, or evolutionary model.
 
 All coefficients are versioned model conventions. They express consistent tradeoffs for this experience and must not be presented as universal biological limits.
 
@@ -75,7 +75,7 @@ The boiling boundary uses a constant-enthalpy Clausius-Clapeyron estimate anchor
 
 ### Independent-input boundary
 
-The first mission lacks radius, mass, gas molecular-velocity distributions, rotation period, thermal inertia, albedo, stellar spectrum, XUV history, and geologic replenishment. Simulator 1.7.0 therefore uses an explicit educational pressure ceiling rather than claiming a complete escape-rate prediction: `P_eff = min(P_stored, 5 × g²) atm`, capped at `5 atm`. This is an immediate constraint, not annual atmospheric-loss simulation. The quadratic curve intentionally makes a `0.2 g` world support at most `0.2 atm`, while an Earth-gravity world can express the full `5 atm` slider range. NASA describes the physical direction correctly — stronger gravity raises escape velocity and generally improves atmospheric retention — while also noting that composition, stellar energy, magnetic field, temperature, and history matter. Gravity still affects biological body support and movement; effective pressure affects gas partial pressure, density, water stability, humidity, clouds, respiration, and aerial movement.
+The simulator input lacks radius, mass, gas molecular-velocity distributions, rotation period, thermal inertia, albedo, stellar spectrum, XUV history, and geologic replenishment. Simulator 2.1.0 therefore uses an explicit educational pressure ceiling rather than claiming a complete escape-rate prediction: `P_eff = min(P_stored, 5 × g²) atm`, capped at `5 atm`. This is an immediate constraint, not annual atmospheric-loss simulation. The quadratic curve intentionally makes a `0.2 g` world support at most `0.2 atm`, while an Earth-gravity world can express the full `5 atm` slider range. NASA describes the physical direction correctly — stronger gravity raises escape velocity and generally improves atmospheric retention — while also noting that composition, stellar energy, magnetic field, temperature, and history matter. Gravity still affects biological body support and movement; effective pressure affects gas partial pressure, density, water stability, humidity, clouds, respiration, and aerial movement.
 
 ## Deterministic physical derivations
 
@@ -191,14 +191,16 @@ Gravity and pressure use broad bell curves plus selected tolerance modifiers. Pr
 
 ## Trait system
 
-The life designer currently defines 44 traits in five categories. Every trait has:
+The life designer currently defines 51 traits in five categories. Every trait has:
 
 - descriptive tuning metadata;
 - one or more continuous modifiers;
 - documented advantages and tradeoffs;
 - explicit conflicts where combinations are incompatible.
 
-There is no construction budget or maximum trait count in simulator 1.7.0. Explicitly incompatible combinations remain blocked. This gives learners freedom to compare bacteria-like, aquatic, primate-like, and humanlike strategies while retaining biological tradeoffs. Trait modifiers are model conventions, not measured universal energy values.
+There is no construction budget or maximum trait count in simulator 2.1.0. Explicitly incompatible combinations remain blocked. Conflict declarations are symmetric and audit-tested: independent alternative sets use one single-choice control, while cross-constraints such as a unicellular form with complex anatomy automatically replace the incompatible prior trait. This gives learners freedom to compare bacteria-like, aquatic, primate-like, and humanlike strategies while retaining biological tradeoffs. Trait modifiers are model conventions, not measured universal energy values.
+
+Simulator 2.1.0 adds cryoprotective chemistry, heat-shock proteins, mineral shielding, biofilm colonies, salt tolerance, dormant cysts, and symbiotic metabolism. These improve fitness only inside the existing physical boundary: they do not create liquid water, usable energy, atmosphere, or a non-molten surface. The Lifeform Designer derives four deterministic, distinct starting strategies only when the supplied world has a supported metabolic pathway, then runs each through the same simulator before presenting it. A world that fails the hard viability gate still receives no proposed survivor.
 
 Complex traits increase adaptability or complexity but may reduce oxygen efficiency, reproduction, or both. Rapid reproduction trades against complexity; large bodies trade against oxygen demand; flight trades against gravity and density; insulation trades against heat tolerance.
 
@@ -215,7 +217,7 @@ The first model evaluates six representative habitat aggregates rather than trea
 | Underground | global radiation safety, geochemistry, pressure, hydration, chemosynthesis |
 | High altitude | atmosphere, global radiation safety, gravity, movement, flight, oxygen efficiency |
 
-A regional score of `0.50` or above is labelled habitable under the model. This is not a procedural latitude/elevation climate grid. Planet markers map these aggregate scores to representative locations for communication only.
+A regional score of `0.50` or above is labelled habitable under the model. If the final population is `0`, every displayed regional survival score is `0`: a favorable local aggregate cannot describe survival after extinction. This is not a procedural latitude/elevation climate grid. Planet markers map these aggregate scores to representative locations for communication only.
 
 ## Combined biological scores
 
@@ -225,24 +227,25 @@ Ecosystem potential combines population stability, energy, water, atmosphere, an
 
 ## Population model
 
-The model runs indexed steps `0–200` from an initial population of `120` in the current mission. The UI labels these steps as **model years** to make the trend more readable; this is a presentation convention, not a claim about organism generation time or evolutionary chronology. Before population growth, a conservative viability gate requires accessible liquid water, minimum usable biological energy, minimum thermal and radiation support, and at least one selected metabolic pathway that the configured world can actually sustain. When that gate fails, reproduction, ecosystem potential, advanced-life potential, carrying capacity, and final population are exactly zero. Component compatibility remains continuous so learners can still diagnose which physical fit improved.
+The model runs indexed steps `0–200` from an initial population of `120` for each simulation. The UI labels these steps as **model years** to make the trend more readable; this is a presentation convention, not a claim about organism generation time or evolutionary chronology. Before population growth, a conservative viability gate requires accessible liquid water, minimum usable biological energy, minimum thermal and radiation support, and at least one selected metabolic pathway that the configured world can actually sustain. When that gate fails, reproduction, ecosystem potential, advanced-life potential, carrying capacity, and final population are exactly zero. The deterministic warning records only direct causes—water, energy, thermal fit, radiation, metabolic support, or organism-environment mismatch—and never presents downstream aggregate scores as causes. Component compatibility remains continuous so learners can still diagnose which physical fit improved.
 
 ```text
-K = 80,000 × ecosystemPotential
+K = 1,000,000 × ecosystemPotential
     × max(0.02, bestRegion)^1.35
     × (0.45 + 0.55 × biologicalEnergy)
 
-r = 0.04 + 0.38 × reproductionPotential + 0.08 × adaptability
+r = 0.04 + 0.24 × organismCompatibility
+    + 0.38 × reproductionPotential + 0.08 × adaptability
 m = 0.22 × (1 − organismCompatibility)
 
 N(t+1) = max(0, N(t) + rN(t)(1 − N(t)/K) − mN(t))
 ```
 
-Very low organism compatibility adds a documented collapse multiplier. Six possible deterministic events are derived from the calculated thermal, radiation, hydration, resource, reproduction, and adaptability state. They occur at fixed generations for reproducibility and scale population by the displayed impact fraction. The chart represents a population trend and modelled pressures, not simulated individuals, random weather, genetics, or mutation.
+Organism compatibility is the UI's survivability score, so it directly increases the growth rate while also lowering mortality; higher survivability therefore produces faster population growth under the same reproduction, adaptability, events, and resource conditions. Very low organism compatibility adds a documented collapse multiplier. Sixteen possible events are derived from local pressure, oxygen availability, thermal variation, radiation exposure, hydration, atmospheric moisture, stellar energy, explicit geochemical energy, ice/liquid-water overlap, reproduction, adaptability, aquatic nutrient delivery, and photosynthetic or reproductive conditions. Pressure events may explain an extinction even when the life-support gate fails; opportunity events require a viable population. A candidate must represent a chart-visible change before it can be drawn: at least a 28% loss for a pressure or an 18% gain for an opportunity. Eligibility is deterministic, but a seeded pseudo-random draw gives each eligible event a probability rather than treating it as guaranteed. The seed is derived from the validated experiment state, so identical inputs still reproduce identical events. At most three events are selected; the first is no earlier than model year 10, later events are at least 33 years apart, and the final event is no later than year 190. The chart represents a population trend and modelled pressures, not simulated individuals, random weather, genetics, or mutation.
 
-## Mission evaluation and outcomes
+## Advanced-life qualification and outcomes
 
-Genesis mission success requires all three visible model conventions:
+The simulator marks a configuration as supporting advanced life when all three visible model conventions hold:
 
 ```text
 advancedLifePotential >= 0.67
@@ -282,11 +285,11 @@ Most exposed sliders have a visual consequence. Independent inputs are converted
 - humidity changes moisture and clouds through a continuous water-supply factor; a dry zero-water world produces exactly zero clouds, while a fully liquid ocean has a small evaporation-driven humidity floor under an atmosphere;
 - pressure controls atmosphere density; zero pressure removes the visual atmosphere shell.
 
-Dry terrain becomes sandy from mild temperatures because sand is controlled primarily by aridity, not a `60°C` heat switch. Green macroscopic-biosphere coloring fades above `45°C` and is absent by `60°C`; this is a visualization boundary for plant-like coverage, not a universal limit on microbial life. The editable mean-temperature range is `−273…1800°C`. Assuming exposed basaltic surface rock for presentation, a smooth molten-rock fraction begins at `780°C` and reaches one at `1050°C`; procedural glowing channels indicate a magma-ocean surface, not an inferred volcanic eruption or geological heat source.
+Dry terrain becomes sandy from mild temperatures because sand is controlled primarily by aridity, not a `60°C` heat switch. Green macroscopic-biosphere coloring fades above `45°C` and is absent by `60°C`; this is a visualization boundary for plant-like coverage, not a universal limit on microbial life. The editable mean-temperature range is `−273…1800°C`. Assuming exposed basaltic surface rock for presentation, a smooth molten-rock fraction begins at `780°C` and reaches one at `1050°C`; separate procedural lava-channel highlights begin sparsely at `450°C` and intensify continuously through `1800°C`, with animated heat shimmer as a visual convention. These effects indicate a hot-surface presentation, not an inferred volcanic eruption or geological heat source.
 
 Local shader temperature stays inside `mean ± variation`. A curved latitude response reaches the hot equatorial and cold polar extremes, while bounded seeded terrain variation perturbs intermediate regions. Terrain, rivers, and water bodies share this local temperature: water below the `−2…2°C` transition renders as ice when the shared phase inventory contains ice, while warm water and rivers remain liquid. Thus a `41°C` equator is never frozen merely because the planet also has sub-zero poles. The deterministic equatorial and polar region scores consume the same configured maximum and minimum temperatures.
 
-Ocean height is illustrative rather than a fluid-volume calculation because the mission does not provide planetary radius, basin hypsometry, or ocean depth. The renderer reserves low inventory for river drainage, starts inland water bodies above `10%`, then uses a deliberately slower continental shoreline curve after `25%`; it only reaches an all-water shell at `100%`. It does not enlarge the entire water mesh beyond the terrain except at the full-inventory shell required to cover the highest procedural summit.
+Ocean height is illustrative rather than a fluid-volume calculation because the simulator does not model planetary radius, basin hypsometry, or ocean depth. The renderer reserves low inventory for river drainage, starts inland water bodies above `10%`, then uses a deliberately slower continental shoreline curve after `25%`; it only reaches an all-water shell at `100%`. It does not enlarge the entire water mesh beyond the terrain except at the full-inventory shell required to cover the highest procedural summit.
 
 Temperature and radiation views include labelled low/mid/high legends so their colors are never the only interpretation aid.
 
@@ -322,7 +325,7 @@ These mappings are aesthetic explanations, not additional scientific calculation
 
 ## Versioning
 
-Current version: `1.7.0`.
+Current version: `2.1.0`.
 
 - Patch: coefficient correction that preserves contract shape.
 - Minor: compatible new metrics, regions, or traits.

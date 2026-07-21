@@ -1,5 +1,5 @@
 /**
- * Versioned educational conventions for simulator 1.7.0.
+ * Versioned educational conventions for simulator 2.1.0.
  * Values are internally consistent tuning coefficients, not universal biological constants.
  */
 export const SIMULATOR_CONVENTIONS = {
@@ -124,17 +124,24 @@ export const SIMULATOR_CONVENTIONS = {
   advancedLife: { ecosystem: 0.33, metabolism: 0.17, adaptability: 0.22, complexity: 0.28 },
   population: {
     generations: 200,
-    capacityBase: 80_000,
+    capacityBase: 1_000_000,
     minimumRegionFactor: 0.02,
     regionExponent: 1.35,
     energyBase: 0.45,
     energyWeight: 0.55,
     growthBase: 0.04,
+    survivabilityGrowth: 0.24,
     reproductionGrowth: 0.38,
     adaptabilityGrowth: 0.08,
     incompatibilityMortality: 0.22,
     collapseCompatibility: 0.18,
     collapseRetention: 0.78,
+    firstEventMinimumYear: 10,
+    eventSpacingYears: 33,
+    finalEventMaximumYear: 190,
+    maximumEvents: 3,
+      minimumPressureEventImpact: 0.28,
+      minimumOpportunityEventImpact: 0.18,
   },
   viabilityGate: {
     minimumLiquidWater: 0.005,
@@ -142,7 +149,7 @@ export const SIMULATOR_CONVENTIONS = {
     minimumThermalStability: 0.05,
     minimumRadiationSafety: 0.04,
   },
-  missionSuccess: { advancedLife: 0.67, ecosystem: 0.55, finalPopulation: 1_000 },
+  advancedLifeQualification: { advancedLife: 0.67, ecosystem: 0.55, finalPopulation: 1_000 },
   outcomes: {
     extinctionCompatibility: 0.15,
     temporaryPopulationFraction: 0.5,

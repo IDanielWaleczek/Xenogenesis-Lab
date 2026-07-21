@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GENESIS_MISSION } from "../simulator/mission";
+import { BASELINE_PLANET } from "../simulator/baseline";
 import {
   derivePlanetVisualizationState,
   deriveLatitudinalTemperatureC,
@@ -15,7 +15,7 @@ describe("planet visualization state", () => {
   it("shows no cloud or water layer for a dry world at any pressure", () => {
     const visual = derivePlanetVisualizationState(
       {
-        ...GENESIS_MISSION.planet.world,
+        ...BASELINE_PLANET.world,
         atmosphericPressureAtm: 5,
         averageTemperatureC: 24,
         temperatureVariationC: 4,
@@ -32,7 +32,7 @@ describe("planet visualization state", () => {
   it("keeps a narrow warm range free of ice", () => {
     const visual = derivePlanetVisualizationState(
       {
-        ...GENESIS_MISSION.planet.world,
+        ...BASELINE_PLANET.world,
         atmosphericPressureAtm: 1,
         averageTemperatureC: 36,
         temperatureVariationC: 4,
@@ -48,7 +48,7 @@ describe("planet visualization state", () => {
   it("uses ice for the complete cold hydrosphere", () => {
     const visual = derivePlanetVisualizationState(
       {
-        ...GENESIS_MISSION.planet.world,
+        ...BASELINE_PLANET.world,
         atmosphericPressureAtm: 1,
         averageTemperatureC: -40,
         temperatureVariationC: 4,
@@ -66,7 +66,7 @@ describe("planet visualization state", () => {
 
     const visual = derivePlanetVisualizationState(
       {
-        ...GENESIS_MISSION.planet.world,
+        ...BASELINE_PLANET.world,
         atmosphericPressureAtm: 5,
         averageTemperatureC: 91,
         temperatureVariationC: 4,
@@ -118,7 +118,7 @@ describe("planet visualization state", () => {
     const createVisual = (humidity: number) =>
       derivePlanetVisualizationState(
         {
-          ...GENESIS_MISSION.planet.world,
+          ...BASELINE_PLANET.world,
           atmosphericPressureAtm: 1,
           averageTemperatureC: 24,
           temperatureVariationC: 4,
@@ -138,7 +138,7 @@ describe("planet visualization state", () => {
   it("preserves substantial liquid water and cloud support for an Earth-like visual state", () => {
     const visual = derivePlanetVisualizationState(
       {
-        ...GENESIS_MISSION.planet.world,
+        ...BASELINE_PLANET.world,
         gravityG: 1,
         atmosphericPressureAtm: 1,
         averageTemperatureC: 15,
@@ -161,7 +161,7 @@ describe("planet visualization state", () => {
     const createVisual = (magneticFieldStrengthEarth: number) =>
       derivePlanetVisualizationState(
         {
-          ...GENESIS_MISSION.planet.world,
+          ...BASELINE_PLANET.world,
           radiationDoseRate: { value: 3, unit: "mSv/h" },
           magneticFieldStrengthEarth,
         },
@@ -177,7 +177,7 @@ describe("planet visualization state", () => {
     const createVisual = (magneticFieldStrengthEarth: number) =>
       derivePlanetVisualizationState(
         {
-          ...GENESIS_MISSION.planet.world,
+          ...BASELINE_PLANET.world,
           atmosphericPressureAtm: 1,
           radiationDoseRate: { value: 0.4, unit: "mSv/h" },
           magneticFieldStrengthEarth,

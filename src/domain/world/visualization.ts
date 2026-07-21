@@ -39,6 +39,12 @@ export const BASALT_MELT_TRANSITION_START_C = 780;
 /** Basaltic surface is predominantly molten under the renderer convention. */
 export const BASALT_MELT_TRANSITION_END_C = 1_050;
 
+/** Lava-channel highlights begin as sparse visual heat at this temperature. */
+export const LAVA_CHANNEL_START_C = 450;
+
+/** Lava-channel highlights reach their strongest visual coverage at this temperature. */
+export const LAVA_CHANNEL_END_C = 1_800;
+
 /** Samples a scalar climate response across a symmetric configured temperature range. */
 function sampleTemperatureResponse(
   averageTemperatureC: number,

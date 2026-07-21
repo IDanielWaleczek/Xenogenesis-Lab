@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { buildLocalLifeConsultant } from "./consultant";
-import { GENESIS_MISSION } from "./mission";
+import { buildControlledOrganismImagePrompt, buildLocalLifeConsultant, buildValidatedExperimentContext } from "./consultant";
+import { BASELINE_PLANET } from "./baseline";
 import type { LifeTraitId, SurvivalSimulationRequest } from "./schema";
 import { runSurvivalSimulation } from "./simulate";
 
@@ -17,8 +17,7 @@ const TRAITS: LifeTraitId[] = [
 ];
 
 const REQUEST: SurvivalSimulationRequest = {
-  missionId: GENESIS_MISSION.id,
-  planet: GENESIS_MISSION.planet,
+  planet: BASELINE_PLANET,
   traitIds: TRAITS,
   initialPopulation: 120,
 };
@@ -36,7 +35,9 @@ describe("local life consultant", () => {
     ].join(" ");
 
     expect(content.organismName).toMatch(/^Ksenotyp /);
-    expect(content.scientificDescription).toContain("Model przewiduje wynik");
+    expect(content.scientificDescription).toContain(
+      "To lokalny odczyt danych eksperymentu",
+    );
     expect(renderedCopy).not.toContain(result.outcome);
 
     for (const internalId of [
@@ -46,5 +47,26 @@ describe("local life consultant", () => {
     ]) {
       expect(renderedCopy).not.toMatch(new RegExp(`\\b${internalId}\\b`));
     }
+  });
+
+  it("builds the image prompt from every validated planet input, trait, survivability, and top region", () => {
+    const result = runSurvivalSimulation(REQUEST);
+    const context = buildValidatedExperimentContext(REQUEST, result);
+    const prompt = buildControlledOrganismImagePrompt(REQUEST, result, {
+      pose: "moving",
+      viewpoint: "environment-wide",
+      lighting: "diffuse",
+      emphasis: "habitat",
+    });
+
+    for (const parameterName of Object.keys(context.planet.parameters)) {
+      expect(prompt).toContain(parameterName);
+    }
+    for (const traitId of TRAITS) {
+      expect(prompt).toContain(traitId);
+    }
+    expect(prompt).toContain("Validated survivability: 0%");
+    expect(prompt).toContain(`Top regional survivability: ${context.topRegionalSurvivability.region}`);
+    expect(prompt).toContain("dead, intact specimen");
   });
 });

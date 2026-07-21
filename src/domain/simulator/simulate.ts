@@ -15,6 +15,7 @@ import type {
   SimulationMetricId,
   SurvivalSimulationRequest,
   SurvivalSimulationResult,
+  SurvivalFailureReason,
 } from "./schema";
 import { sumTraitModifiers } from "./traits";
 
@@ -37,6 +38,16 @@ export function hashSimulationState(value: unknown): string {
     hash = Math.imul(hash, 0x01000193);
   }
   return `xl-${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+/** Creates a reproducible pseudo-random source from the full experiment state. */
+function createSeededRandom(seedText: string): () => number {
+  let state = Number.parseInt(hashSimulationState(seedText).slice(3), 16) || 1;
+  return () => {
+    state = Math.imul(state ^ (state >>> 15), 1 | state);
+    state ^= state + Math.imul(state ^ (state >>> 7), 61 | state);
+    return ((state ^ (state >>> 14)) >>> 0) / 4_294_967_296;
+  };
 }
 
 /** Runs the continuous deterministic habitability, compatibility, and population model. */
@@ -244,7 +255,7 @@ export function runSurvivalSimulation(
         : 0),
   );
 
-  const regionScores: Record<RegionId, number> = {
+  const rawRegionScores: Record<RegionId, number> = {
     coastal: clamp01(
       liquidWater * convention.regions.coastal.liquidWater +
         thermalStability * convention.regions.coastal.thermal +
@@ -303,7 +314,6 @@ export function runSurvivalSimulation(
     ),
   };
 
-  const bestRegion = Math.max(...Object.values(regionScores));
   const hasSupportedMetabolism = Math.max(
     oxygenMetabolism,
     lowOxygenMetabolism,
@@ -315,6 +325,7 @@ export function runSurvivalSimulation(
     thermalStability >= convention.viabilityGate.minimumThermalStability &&
     radiationSafety >= convention.viabilityGate.minimumRadiationSafety &&
     hasSupportedMetabolism;
+  const bestRegion = Math.max(...Object.values(rawRegionScores));
   const rawOrganismCompatibility = clamp01(
     gravityFitness * convention.organismCompatibility.gravity +
       pressureFitness * convention.organismCompatibility.pressure +
@@ -397,27 +408,73 @@ export function runSurvivalSimulation(
   ) : 0;
   const growthRate =
     convention.population.growthBase +
+    organismCompatibility * convention.population.survivabilityGrowth +
     reproductionPotential * convention.population.reproductionGrowth +
     adaptability * convention.population.adaptabilityGrowth;
   const mortalityPressure =
     (1 - organismCompatibility) *
       convention.population.incompatibilityMortality;
+  const hasThermalRefuge = has("hibernation") || has("dormantCysts");
+  const hasGeochemicalPathway =
+    geochemicalEnergy >= 0.28 && (has("chemosynthesis") || has("anaerobicMetabolism"));
+  const eventYear = (baseYear: number, signal: number) =>
+    baseYear + Math.round(clamp01(signal) * 4);
   const candidatePopulationEvents: Array<{
     id: PopulationEventId;
     generation: number;
     kind: "pressure" | "opportunity";
     impactFraction: number;
+    active: boolean;
   }> = [
-    { id: "thermalShock", generation: 28, kind: "pressure", impactFraction: -clamp01(1 - thermalStability) * 0.34 },
-    { id: "radiationStorm", generation: 61, kind: "pressure", impactFraction: -clamp01(1 - radiationSafety) * 0.38 },
-    { id: "hydrosphereStress", generation: 94, kind: "pressure", impactFraction: -clamp01(1 - hydration) * 0.3 },
-    { id: "resourceBloom", generation: 121, kind: "opportunity", impactFraction: coreViable ? biologicalEnergy * 0.2 : 0 },
-    { id: "reproductiveBottleneck", generation: 156, kind: "pressure", impactFraction: -clamp01(1 - reproductionPotential) * 0.28 },
-    { id: "adaptiveBreakthrough", generation: 178, kind: "opportunity", impactFraction: coreViable ? adaptability * 0.16 : 0 },
+    { id: "vacuumExposure", generation: eventYear(8, 1 - pressurePresence), kind: "pressure", impactFraction: -(1 - pressurePresence) * 0.78, active: pressurePresence < 0.22 },
+    { id: "oxygenShortfall", generation: eventYear(23, 1 - oxygenAvailability), kind: "pressure", impactFraction: -(1 - oxygenAvailability) * 0.58, active: effectiveOxygenPartialPressureAtm < 0.035 && !hasGeochemicalPathway },
+    { id: "thermalShock", generation: eventYear(38, 1 - thermalStability), kind: "pressure", impactFraction: -clamp01(1 - thermalStability) * 0.62, active: world.temperatureVariationC >= 16 && thermalStability < 0.82 },
+    { id: "radiationStorm", generation: eventYear(53, effectiveRadiation), kind: "pressure", impactFraction: -clamp01(1 - radiationSafety) * 0.72, active: effectiveRadiation >= 0.01 && radiationSafety < 0.9 },
+    { id: "hydrosphereStress", generation: eventYear(68, 1 - hydration), kind: "pressure", impactFraction: -clamp01(1 - hydration) * 0.58, active: liquidWater < 0.48 && hydration < 0.82 },
+    { id: "desiccationFront", generation: eventYear(83, 1 - retainedHumidity), kind: "pressure", impactFraction: -clamp01(1 - retainedHumidity) * 0.54, active: pressurePresence > 0.03 && retainedHumidity < 0.38 },
+    { id: "lowLightFamine", generation: eventYear(98, 1 - world.lightLevel), kind: "pressure", impactFraction: -(1 - world.lightLevel) * 0.5, active: world.lightLevel < 0.28 && !hasGeochemicalPathway },
+    { id: "resourceBloom", generation: eventYear(113, biologicalEnergy), kind: "opportunity", impactFraction: biologicalEnergy * 0.38, active: coreViable && world.lightLevel >= 0.25 && biologicalEnergy >= 0.3 },
+    { id: "geothermalPulse", generation: eventYear(128, geochemicalEnergy), kind: "opportunity", impactFraction: geochemicalEnergy * 0.36, active: coreViable && hasGeochemicalPathway },
+    { id: "thawWindow", generation: eventYear(143, interactions.iceWaterFraction), kind: "opportunity", impactFraction: Math.min(interactions.iceWaterFraction, liquidWater) * 0.4, active: coreViable && interactions.iceWaterFraction >= 0.035 && liquidWater >= 0.01 },
+    { id: "reproductiveBottleneck", generation: eventYear(158, 1 - reproductionPotential), kind: "pressure", impactFraction: -clamp01(1 - reproductionPotential) * 0.52, active: coreViable && reproductionPotential < 0.76 },
+    { id: "seasonalRefuge", generation: eventYear(173, world.temperatureVariationC / 100), kind: "opportunity", impactFraction: (hasThermalRefuge ? 0.32 : 0) * clamp01(world.temperatureVariationC / 45), active: coreViable && hasThermalRefuge && world.temperatureVariationC >= 14 },
+    { id: "adaptiveBreakthrough", generation: eventYear(188, adaptability), kind: "opportunity", impactFraction: adaptability * 0.38, active: coreViable && adaptability >= 0.34 },
+    { id: "nutrientUpwelling", generation: eventYear(68, liquidWater), kind: "opportunity", impactFraction: liquidWater * 0.42, active: coreViable && liquidWater >= 0.35 && (has("aquaticMovement") || has("biofilmColony") || has("gills")) },
+    { id: "photosyntheticSurge", generation: eventYear(108, world.lightLevel), kind: "opportunity", impactFraction: world.lightLevel * 0.4, active: coreViable && world.lightLevel >= 0.55 && liquidWater >= 0.12 && has("photosynthesis") },
+    { id: "nurserySeason", generation: eventYear(168, reproductionPotential), kind: "opportunity", impactFraction: reproductionPotential * 0.34, active: coreViable && reproductionPotential >= 0.45 && (has("protectedEggs") || has("liveBirth") || has("spores")) },
   ];
-  const populationEvents = candidatePopulationEvents.filter(
-    ({ impactFraction }) => Math.abs(impactFraction) >= 0.025,
-  );
+  const random = createSeededRandom(JSON.stringify({ planet: request.planet, traitIds: request.traitIds, simulatorVersion: SIMULATOR_VERSION }));
+  const eventProbability = (event: (typeof candidatePopulationEvents)[number]) => {
+    const impact = Math.abs(event.impactFraction);
+    const baseline = event.kind === "pressure" ? 0.08 : 0.12;
+    const severeEventBonus = Math.min(0.42, impact * 0.65);
+    const diagnosticBonus = event.id === "vacuumExposure" || event.id === "oxygenShortfall" ? 0.18 : 0;
+    return clamp01(baseline + severeEventBonus + diagnosticBonus);
+  };
+  const selectedCandidates = candidatePopulationEvents
+    .filter(({ active, impactFraction, kind }) => active && Math.abs(impactFraction) >= (
+      kind === "pressure"
+        ? convention.population.minimumPressureEventImpact
+        : convention.population.minimumOpportunityEventImpact
+    ))
+    .map((event) => ({ event, order: random(), occurs: random() < eventProbability(event) }))
+    .filter(({ occurs }) => occurs)
+    .sort((first, second) => first.order - second.order)
+    .slice(0, convention.population.maximumEvents)
+    .map(({ event }) => event);
+  const populationEvents: Array<{ id: PopulationEventId; generation: number; kind: "pressure" | "opportunity"; impactFraction: number }> = [];
+  for (const [index, event] of selectedCandidates.entries()) {
+    const previousYear = populationEvents.at(-1)?.generation;
+    const earliestYear = previousYear === undefined
+      ? convention.population.firstEventMinimumYear
+      : previousYear + convention.population.eventSpacingYears;
+    const remainingEvents = selectedCandidates.length - index - 1;
+    const latestYear = convention.population.finalEventMaximumYear -
+      remainingEvents * convention.population.eventSpacingYears;
+    if (earliestYear > latestYear) break;
+    const generation = earliestYear + Math.floor(random() * (latestYear - earliestYear + 1));
+    populationEvents.push({ id: event.id, generation, kind: event.kind, impactFraction: event.impactFraction });
+  }
   const eventsByGeneration = new Map(populationEvents.map((event) => [event.generation, event]));
   const populationTimeline = [{ generation: 0, population: request.initialPopulation }];
   let population = request.initialPopulation;
@@ -448,10 +505,42 @@ export function runSurvivalSimulation(
   const populations = populationTimeline.map(({ population: value }) => value);
   const peakPopulation = Math.max(...populations);
   const finalPopulation = populations.at(-1) ?? 0;
-  const missionSuccess =
-    advancedLifePotential >= convention.missionSuccess.advancedLife &&
-    ecosystemPotential >= convention.missionSuccess.ecosystem &&
-    finalPopulation >= convention.missionSuccess.finalPopulation;
+  // Regional survival is zero when no population survives the modelled period.
+  const regionScores = finalPopulation === 0
+    ? Object.fromEntries(
+        Object.keys(rawRegionScores).map((region) => [region, 0]),
+      ) as Record<RegionId, number>
+    : rawRegionScores;
+  const supportsAdvancedLife =
+    advancedLifePotential >= convention.advancedLifeQualification.advancedLife &&
+    ecosystemPotential >= convention.advancedLifeQualification.ecosystem &&
+    finalPopulation >= convention.advancedLifeQualification.finalPopulation;
+  const failureReasons: SurvivalFailureReason[] = [
+    ...(liquidWater < convention.viabilityGate.minimumLiquidWater
+      ? ["noLiquidWater" as const]
+      : []),
+    ...(biologicalEnergy < convention.viabilityGate.minimumBiologicalEnergy
+      ? ["insufficientEnergy" as const]
+      : []),
+    ...(thermalStability < convention.viabilityGate.minimumThermalStability
+      ? ["thermalMismatch" as const]
+      : []),
+    ...(radiationSafety < convention.viabilityGate.minimumRadiationSafety
+      ? ["unsafeRadiation" as const]
+      : []),
+    ...(!hasSupportedMetabolism
+      ? ["unsupportedMetabolism" as const]
+      : []),
+  ];
+  if (finalPopulation === 0 && failureReasons.length === 0) {
+    failureReasons.push("organismMismatch");
+  } else if (
+    finalPopulation > 0 &&
+    finalPopulation < request.initialPopulation &&
+    failureReasons.length === 0
+  ) {
+    failureReasons.push("populationDecline");
+  }
   let outcome: SurvivalSimulationResult["outcome"];
   if (
     finalPopulation === 0 ||
@@ -470,7 +559,7 @@ export function runSurvivalSimulation(
     outcome = "regionalRefuge";
   } else if (
     advancedLifePotential >= convention.outcomes.advancedLife &&
-    missionSuccess
+    supportsAdvancedLife
   ) {
     outcome = "advancedAdaptiveLife";
   } else if (
@@ -498,11 +587,10 @@ export function runSurvivalSimulation(
   );
 
   return SurvivalSimulationResultSchema.parse({
-    missionId: request.missionId,
     simulatorVersion: SIMULATOR_VERSION,
     stateHash: hashSimulationState({ simulatorVersion: SIMULATOR_VERSION, request }),
     outcome,
-    missionSuccess,
+    supportsAdvancedLife,
     objectiveScore: advancedLifePotential,
     metrics,
     regionScores,
@@ -514,6 +602,7 @@ export function runSurvivalSimulation(
     finalPopulation,
     populationTimeline,
     populationEvents,
+    failureReasons,
     strengths: sortedMetrics.slice(0, 3).map(([id]) => id),
     limitingFactors: sortedMetrics.slice(-3).reverse().map(([id]) => id),
   });

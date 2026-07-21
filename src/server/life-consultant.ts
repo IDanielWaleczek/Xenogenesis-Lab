@@ -3,7 +3,7 @@ import "server-only";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
-import { buildLocalLifeConsultant } from "@/domain/simulator/consultant";
+import { buildLocalLifeConsultant, buildValidatedExperimentContext } from "@/domain/simulator/consultant";
 import {
   LifeConsultantContentSchema,
   LifeConsultantRequestSchema,
@@ -12,7 +12,8 @@ import {
 import type { LifeConsultantResponse } from "@/domain/simulator/schema";
 import { hashSimulationState, runSurvivalSimulation } from "@/domain/simulator/simulate";
 
-const LIFE_CONSULTANT_MODEL = "gpt-5.6";
+const LIFE_CONSULTANT_MODEL = "gpt-5.6-luna";
+const LIFE_CONSULTANT_MAX_OUTPUT_TOKENS = 700;
 const responseCache = new Map<string, LifeConsultantResponse>();
 
 /** Returns one cached, validated scientific interpretation for a stable simulation state. */
@@ -50,22 +51,20 @@ export async function createLifeConsultantResponse(rawRequest: unknown) {
     const openai = new OpenAI({ apiKey });
     const response = await openai.responses.parse({
       model: LIFE_CONSULTANT_MODEL,
-      reasoning: { effort: "none" },
+      reasoning: { effort: "low" },
       store: false,
-      max_output_tokens: 300,
+      max_output_tokens: LIFE_CONSULTANT_MAX_OUTPUT_TOKENS,
       input: [
         {
           role: "system",
           content:
-            "You are the Xenogenesis Lab scientific consultant. Explain only the supplied deterministic planet, trait tradeoffs, regional scores, survival outcome, and population model. Never invent or alter simulation values, reveal hidden thresholds, or solve the mission. Be concise and recommend one controlled experiment. For imageDirection, choose only the structured art-direction options that best present the supplied result; do not add anatomy or simulation facts. Return prose in the requested language.",
+            "You are the Xenogenesis Lab scientific consultant. Explain only the supplied deterministic planet, trait tradeoffs, regional scores, survival outcome, and population model. Never invent or alter simulation values or reveal hidden thresholds. Be concise and recommend one controlled experiment. For imageDirection, choose only the structured art-direction options that best present the supplied result; do not add anatomy or simulation facts. Return prose in the requested language.",
         },
         {
           role: "user",
           content: JSON.stringify({
             responseLanguage: request.language === "pl" ? "Polish" : "English",
-            planet: request.simulation.planet,
-            selectedTraits: request.simulation.traitIds,
-            deterministicResult: simulation,
+            validatedExperiment: buildValidatedExperimentContext(request.simulation, simulation),
           }),
         },
       ],

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GENESIS_MISSION } from "./mission";
+import { BASELINE_PLANET } from "./baseline";
 import type { LifeTraitId, PlanetState, SurvivalSimulationRequest } from "./schema";
 import { PlanetStateSchema } from "./schema";
 import { runSurvivalSimulation } from "./simulate";
@@ -17,23 +17,22 @@ const BASELINE_TRAITS: LifeTraitId[] = [
   "socialCoordination",
 ];
 
-/** Produces a validated planet variant without mutating the mission baseline. */
+/** Produces a validated planet variant without mutating the laboratory baseline. */
 function planetVariant(
   worldPatch: Partial<PlanetState["world"]>,
 ): PlanetState {
   return PlanetStateSchema.parse({
-    ...GENESIS_MISSION.planet,
-    world: { ...GENESIS_MISSION.planet.world, ...worldPatch },
+    ...BASELINE_PLANET,
+    world: { ...BASELINE_PLANET.world, ...worldPatch },
   });
 }
 
 /** Produces a valid simulator request for focused deterministic tests. */
 function request(
-  planet = GENESIS_MISSION.planet,
+  planet = BASELINE_PLANET,
   traitIds = BASELINE_TRAITS,
 ): SurvivalSimulationRequest {
   return {
-    missionId: "genesis-01",
     planet,
     traitIds,
     initialPopulation: 120,
@@ -46,11 +45,89 @@ describe("continuous survival simulator", () => {
     const second = runSurvivalSimulation(request());
 
     expect(second).toEqual(first);
-    expect(first.simulatorVersion).toBe("1.7.0");
+    expect(first.simulatorVersion).toBe("2.1.0");
     expect(first.stateHash).toMatch(/^xl-[0-9a-f]{8}$/);
     expect(first.populationTimeline).toHaveLength(201);
     expect(first.populationTimeline[0]).toEqual({ generation: 0, population: 120 });
     expect(second.populationEvents).toEqual(first.populationEvents);
+  });
+
+  it("only emits parameter-supported events and leaves at least 33 model years between them", () => {
+    const stableWorld = planetVariant({
+      atmosphericPressureAtm: 1,
+      atmosphereComposition: { oxygenFraction: 0.21, carbonDioxideFraction: 0.012, nitrogenFraction: 0.763, inertGasFraction: 0.015, toxicGasFraction: 0 },
+      averageTemperatureC: 18,
+      temperatureVariationC: 6,
+      radiationDoseRate: { value: 0.0003, unit: "mSv/h" },
+      lightLevel: 0.9,
+      waterAvailability: 0.7,
+      humidity: 0.65,
+      magneticFieldStrengthEarth: 1,
+    });
+    const result = runSurvivalSimulation(request(stableWorld, [
+      "multicellular", "terrestrialMovement", "oxygenRespiration", "photosynthesis", "protectedEggs", "socialCoordination",
+    ]));
+
+    expect(result.populationEvents.map(({ id }) => id)).not.toContain("thermalShock");
+    expect(result.populationEvents.map(({ id }) => id)).not.toContain("radiationStorm");
+    expect(result.populationEvents.map(({ id }) => id)).not.toContain("hydrosphereStress");
+    expect(result.populationEvents.length).toBeLessThanOrEqual(3);
+    expect(result.populationEvents.every((event, index, events) => event.generation >= 10 && event.generation <= 190 && (index === 0 || event.generation - events[index - 1].generation >= 33))).toBe(true);
+  });
+
+  it("grows a better-surviving population faster under otherwise matching conditions", () => {
+    const sharedWorld = {
+      atmosphericPressureAtm: 1,
+      atmosphereComposition: { oxygenFraction: 0.21, carbonDioxideFraction: 0.012, nitrogenFraction: 0.763, inertGasFraction: 0.015, toxicGasFraction: 0 },
+      averageTemperatureC: 18,
+      temperatureVariationC: 6,
+      lightLevel: 0.9,
+      waterAvailability: 0.7,
+      humidity: 0.65,
+      magneticFieldStrengthEarth: 1,
+    };
+    const traits: LifeTraitId[] = [
+      "multicellular", "terrestrialMovement", "oxygenRespiration", "photosynthesis", "protectedEggs", "socialCoordination",
+    ];
+    const protectedPopulation = runSurvivalSimulation(request(planetVariant({
+      ...sharedWorld,
+      radiationDoseRate: { value: 0.0003, unit: "mSv/h" },
+    }), traits));
+    const exposedPopulation = runSurvivalSimulation(request(planetVariant({
+      ...sharedWorld,
+      temperatureVariationC: 42,
+      radiationDoseRate: { value: 0.2, unit: "mSv/h" },
+    }), traits));
+
+    expect(protectedPopulation.metrics.organismCompatibility)
+      .toBeGreaterThan(exposedPopulation.metrics.organismCompatibility);
+    expect(protectedPopulation.populationTimeline[1].population)
+      .toBeGreaterThan(exposedPopulation.populationTimeline[1].population);
+  });
+
+  it("adds chemistry and thaw opportunities only when their source conditions are supplied", () => {
+    const mixedWaterChemistryWorld = planetVariant({
+      atmosphericPressureAtm: 1.4,
+      atmosphereComposition: { oxygenFraction: 0.02, carbonDioxideFraction: 0.04, nitrogenFraction: 0.925, inertGasFraction: 0.015, toxicGasFraction: 0 },
+      averageTemperatureC: 2,
+      temperatureVariationC: 14,
+      radiationDoseRate: { value: 0.08, unit: "mSv/h" },
+      lightLevel: 0.2,
+      waterAvailability: 0.9,
+      humidity: 0.75,
+      magneticFieldStrengthEarth: 0.8,
+      geochemicalEnergyAvailability: "high",
+      electronAcceptors: ["sulfate", "ferricIron"],
+    });
+    const result = runSurvivalSimulation(request(mixedWaterChemistryWorld, [
+      "unicellular", "anaerobicMetabolism", "chemosynthesis", "biofilmColony", "dormantCysts", "cryoprotectiveChemistry",
+    ]));
+
+    const repeat = runSurvivalSimulation(request(mixedWaterChemistryWorld, [
+      "unicellular", "anaerobicMetabolism", "chemosynthesis", "biofilmColony", "dormantCysts", "cryoprotectiveChemistry",
+    ]));
+    expect(result.populationEvents).toEqual(repeat.populationEvents);
+    expect(result.populationEvents.length).toBeLessThanOrEqual(3);
   });
 
   it("forces survival and population to zero when no selected metabolism is supported", () => {
@@ -70,8 +147,11 @@ describe("continuous survival simulator", () => {
 
     expect(result.metrics.advancedLifePotential).toBe(0);
     expect(result.metrics.reproductionPotential).toBe(0);
+    expect(Object.values(result.regionScores)).toEqual([0, 0, 0, 0, 0, 0]);
+    expect(result.failureReasons).toEqual(["unsupportedMetabolism"]);
     expect(result.finalPopulation).toBe(0);
     expect(result.outcome).toBe("immediateExtinction");
+    expect(result.populationEvents.map(({ id }) => id)).toContain("oxygenShortfall");
   });
 
   it("supports an advanced aerobic surface strategy without a hidden exact solution", () => {
@@ -106,7 +186,7 @@ describe("continuous survival simulator", () => {
     const result = runSurvivalSimulation(request(temperateWorld, traits));
 
     expect(calculateTraitCost(traits)).toBeGreaterThan(0);
-    expect(result.missionSuccess).toBe(true);
+    expect(result.supportsAdvancedLife).toBe(true);
     expect(result.outcome).toMatch(/advanced|stableMulticellular/i);
     expect(result.finalPopulation).toBeGreaterThan(1_000);
   });
@@ -324,7 +404,7 @@ describe("continuous survival simulator", () => {
       .toBeGreaterThan(lowOxygen.metrics.metabolicViability);
   });
 
-  it("scores frozen oceans as ice rather than liquid aquatic habitat", () => {
+  it("does not report regional survival after an aquatic strategy becomes extinct", () => {
     const temperate = runSurvivalSimulation(request(planetVariant({
       atmosphericPressureAtm: 1,
       averageTemperatureC: 20,
@@ -340,7 +420,8 @@ describe("continuous survival simulator", () => {
 
     expect(temperate.metrics.liquidWater).toBeGreaterThan(0.99);
     expect(frozen.metrics.liquidWater).toBe(0);
-    expect(frozen.regionScores.deepOcean).toBeLessThan(temperate.regionScores.deepOcean);
+    expect(temperate.regionScores.deepOcean).toBe(0);
+    expect(frozen.regionScores.deepOcean).toBe(0);
   });
 
   it("requires an explicit geochemical gradient for anaerobic energy", () => {
@@ -483,7 +564,7 @@ describe("continuous survival simulator", () => {
     expect(insulated.metrics.thermalStability).toBeGreaterThan(uninsulated.metrics.thermalStability);
   });
 
-  it("uses the hot extreme at the equator and the cold extreme at the poles", () => {
+  it("does not report regional survival in thermally varied worlds with no liquid water", () => {
     const stableWorld = planetVariant({
       atmosphericPressureAtm: 1,
       averageTemperatureC: 30,
@@ -501,12 +582,8 @@ describe("continuous survival simulator", () => {
     const stable = runSurvivalSimulation(request(stableWorld));
     const variable = runSurvivalSimulation(request(variableWorld));
 
-    expect(variable.regionScores.equatorial).toBeLessThan(
-      stable.regionScores.equatorial,
-    );
-    expect(variable.regionScores.polar).toBeGreaterThan(
-      stable.regionScores.polar,
-    );
+    expect(Object.values(stable.regionScores)).toEqual([0, 0, 0, 0, 0, 0]);
+    expect(Object.values(variable.regionScores)).toEqual([0, 0, 0, 0, 0, 0]);
   });
 
   it("allows unrestricted trait combinations for analysis", () => {
@@ -528,7 +605,7 @@ describe("continuous survival simulator", () => {
     ];
 
     expect(calculateTraitCost(expensiveTraits)).toBeGreaterThan(100);
-    expect(() => runSurvivalSimulation(request(GENESIS_MISSION.planet, expensiveTraits)))
+    expect(() => runSurvivalSimulation(request(BASELINE_PLANET, expensiveTraits)))
       .not.toThrow();
     expect(hasTraitConflict(["compactBody"], "largeBody")).toBe(true);
   });

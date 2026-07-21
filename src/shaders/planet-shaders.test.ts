@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  LAVA_CHANNEL_END_C,
+  LAVA_CHANNEL_START_C,
   PLANET_CLOUD_FRAGMENT_SHADER,
   PLANET_ICE_SURFACE_EXPANSION,
   PLANET_TERRAIN_FRAGMENT_SHADER,
@@ -21,6 +23,16 @@ describe("planet shader scientific boundaries", () => {
     );
     expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("lavaEmission");
     expect(PLANET_TERRAIN_FRAGMENT_SHADER).not.toMatch(/volcanic/i);
+  });
+
+  it("adds lava channels gradually from 450°C through the configured heat ceiling", () => {
+    expect(LAVA_CHANNEL_START_C).toBe(450);
+    expect(LAVA_CHANNEL_END_C).toBe(1800);
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain(
+      `smoothstep(${LAVA_CHANNEL_START_C.toFixed(1)}, ${LAVA_CHANNEL_END_C.toFixed(1)}, localTemperatureC)`,
+    );
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("float heatHaze = smoothstep(330.0, 650.0, localTemperatureC)");
+    expect(PLANET_TERRAIN_FRAGMENT_SHADER).toContain("uTime * 0.12");
   });
 
   it("uses absolute Celsius boundaries for ice and plant-like coverage", () => {

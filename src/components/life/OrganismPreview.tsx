@@ -94,10 +94,15 @@ export default function OrganismPreview({ planet, traitIds, imageDataUrl, label 
         {has("exoskeleton") && Array.from({ length: 5 }).map((_, i) => <path d={`M${151 + i * 14} 119 Q${145 + i * 17} 158 ${151 + i * 14} 197`} fill="none" key={i} stroke="#effffa" strokeOpacity=".34" />)}
         {has("internalSkeleton") && <g fill="none" stroke="#effcff" strokeOpacity=".36"><path d="M180 116 V201" strokeWidth="3" /><path d="M150 139 Q180 151 210 139 M148 160 Q180 174 212 160 M154 183 Q180 193 206 183" /></g>}
         {has("thermalInsulation") && <ellipse cx="180" cy="158" fill="none" rx={bodyRadius + 5} ry={bodyRadius * bodyScaleY + 5} stroke="#e6f7ff" strokeDasharray="2 5" strokeWidth="9" opacity=".72" />}
+        {has("cryoprotectiveChemistry") && <g fill="#b9efff" opacity=".7"><path d="M145 132 l8 -8 l8 8 l-8 8Z" /><path d="M199 132 l8 -8 l8 8 l-8 8Z" /><path d="M171 187 l9 -9 l9 9 l-9 9Z" /></g>}
         {has("pressureResistance") && <g fill="none" stroke="#9ed9e1" strokeWidth="4" opacity=".48"><path d="M143 133 Q180 145 217 133" /><path d="M139 168 Q180 181 221 168" /><path d="M149 191 Q180 201 211 191" /></g>}
         {has("waterConservation") && <path d="M143 129 L158 120 L171 130 L185 119 L199 131 L215 123" fill="none" stroke="#f2d7a1" strokeWidth="5" opacity=".7" />}
         {has("radiationResistance") && <ellipse cx="180" cy="158" fill="none" filter={`url(#${glow})`} rx={bodyRadius + 14} ry={bodyRadius * bodyScaleY + 14} stroke="#7cf4ea" strokeWidth="4" opacity=".5" />}
+        {has("mineralShielding") && <g fill="#8b8a9e" stroke="#d8d6e6" strokeOpacity=".4"><path d="M138 146 l10 -13 l12 10 l-6 15Z" /><path d="M206 146 l10 -13 l12 10 l-6 15Z" /><path d="M174 113 l10 -10 l10 12 l-8 12Z" /></g>}
         {has("heatResistance") && <g stroke="#ff824d" strokeWidth="3" opacity=".8"><path d="M149 174 l-10 13" /><path d="M165 185 l-5 16" /><path d="M211 176 l11 13" /></g>}
+        {has("heatShockProteins") && <g fill="none" stroke="#ffb25b" strokeWidth="3" opacity=".75"><path d="M145 151 q10 -13 20 0 q10 13 20 0 q10 -13 20 0" /><path d="M150 178 q10 -12 20 0 q10 12 20 0 q10 -12 20 0" /></g>}
+        {has("biofilmColony") && <g fill="#96e7b8" opacity=".55"><circle cx="130" cy="190" r="7" /><circle cx="119" cy="202" r="5" /><circle cx="230" cy="193" r="8" /><circle cx="243" cy="204" r="5" /></g>}
+        {has("saltTolerance") && <g fill="#f5e4a5" opacity=".75"><circle cx="146" cy="163" r="2.5" /><circle cx="158" cy="182" r="2.5" /><circle cx="204" cy="162" r="2.5" /><circle cx="214" cy="183" r="2.5" /></g>}
         {has("regenerativeTissue") && <g fill="#73f0b4"><circle cx="137" cy="153" r="5" /><circle cx="222" cy="174" r="4" /><path d="M137 153 l-12-12 m97 33 l13-10" stroke="#73f0b4" strokeWidth="3" /></g>}
         {has("oxygenRespiration") && <g fill="#77d9f2" opacity=".62"><ellipse cx="164" cy="169" rx="11" ry="18" /><ellipse cx="196" cy="169" rx="11" ry="18" /></g>}
         {has("lowOxygenMetabolism") && <path d="M153 178 Q180 151 207 178 Q180 199 153 178" fill="#7558a6" opacity=".65" />}
@@ -109,6 +114,7 @@ export default function OrganismPreview({ planet, traitIds, imageDataUrl, label 
         {has("visibleVision") && <g><circle cx="161" cy="141" fill="#05101a" r="8" stroke="#efffff" strokeWidth="3" /><circle cx="199" cy="141" fill="#05101a" r="8" stroke="#efffff" strokeWidth="3" /></g>}
         {has("infraredVision") && <g fill="#ff623f" filter={`url(#${glow})`}><circle cx="155" cy="141" r="7" /><circle cx="205" cy="141" r="7" /></g>}
         {has("hibernation") && <g stroke="#dff7ff" strokeWidth="3"><path d="M151 143 q10 8 20 0" /><path d="M189 143 q10 8 20 0" /></g>}
+        {has("symbioticMetabolism") && <g fill="#c7a9ff" opacity=".8"><circle cx="166" cy="158" r="4" /><circle cx="180" cy="171" r="4" /><circle cx="196" cy="157" r="4" /></g>}
         {has("chemicalSensing") && <g fill="none" stroke="#a7f3d0" strokeWidth="3"><path d="M163 121 Q151 90 133 80" /><path d="M197 121 Q209 90 227 80" /><circle cx="132" cy="79" fill="#a7f3d0" r="4" /><circle cx="228" cy="79" fill="#a7f3d0" r="4" /></g>}
         {has("echolocation") && <g fill="none" stroke="#67e8f9" opacity=".7"><path d="M223 135 Q254 158 223 181" /><path d="M232 123 Q280 158 232 193" /></g>}
         {has("simpleNeuralSystem") && <path d="M148 171 Q180 145 212 171" fill="none" stroke="#d2a8ff" strokeDasharray="2 4" strokeWidth="3" />}
@@ -121,6 +127,7 @@ export default function OrganismPreview({ planet, traitIds, imageDataUrl, label 
         {has("protectedEggs") && <g fill="#e8d7b0" stroke="#9a7952"><ellipse cx="128" cy="246" rx="9" ry="12" /><ellipse cx="147" cy="248" rx="8" ry="11" /><ellipse cx="231" cy="247" rx="9" ry="12" /></g>}
         {has("liveBirth") && <path d="M169 177 Q180 164 191 177 Q190 192 180 197 Q170 192 169 177" fill="#f0a7b1" opacity=".72" />}
         {has("spores") && <g fill="#e6df93">{Array.from({ length: 10 }).map((_, i) => <circle cx={115 + (i * 29) % 155} cy={82 + (i * 41) % 105} key={i} r={2 + i % 2} opacity=".7" />)}</g>}
+        {has("dormantCysts") && <g fill="#c9a66a" stroke="#f6d99c"><circle cx="117" cy="229" r="7" /><circle cx="244" cy="228" r="7" /><circle cx="130" cy="216" r="5" /></g>}
         {has("rapidReproduction") && <g fill="#b7e7d4"><circle cx="115" cy="238" r="6" /><circle cx="130" cy="231" r="5" /><circle cx="245" cy="238" r="6" /></g>}
         {has("parentalInvestment") && <path d="M180 205 Q160 223 142 238 M180 205 Q200 223 218 238" fill="none" stroke="#d7f0dd" strokeWidth="3" />}
 

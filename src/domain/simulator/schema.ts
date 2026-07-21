@@ -4,7 +4,7 @@ import { WorldParametersSchema } from "../world/schema";
 import { SIMULATOR_CONVENTIONS } from "./coefficients";
 
 /** Version of the continuous suitability and population model. */
-export const SIMULATOR_VERSION = "1.7.0";
+export const SIMULATOR_VERSION = "2.1.0";
 
 /** Meaningful traits available in the first lifeform designer. */
 export const LifeTraitIdSchema = z.enum([
@@ -31,10 +31,17 @@ export const LifeTraitIdSchema = z.enum([
   "radiationResistance",
   "thermalInsulation",
   "heatResistance",
+  "cryoprotectiveChemistry",
+  "heatShockProteins",
+  "mineralShielding",
+  "biofilmColony",
+  "saltTolerance",
   "waterConservation",
   "pressureResistance",
   "regenerativeTissue",
   "hibernation",
+  "dormantCysts",
+  "symbioticMetabolism",
   "visibleVision",
   "infraredVision",
   "echolocation",
@@ -62,6 +69,16 @@ export const PopulationEventIdSchema = z.enum([
   "resourceBloom",
   "adaptiveBreakthrough",
   "reproductiveBottleneck",
+  "desiccationFront",
+  "geothermalPulse",
+  "thawWindow",
+  "seasonalRefuge",
+  "vacuumExposure",
+  "oxygenShortfall",
+  "lowLightFamine",
+  "nutrientUpwelling",
+  "photosyntheticSurge",
+  "nurserySeason",
 ]);
 
 /** Planet regions evaluated independently by the local model. */
@@ -89,6 +106,17 @@ export const SimulationMetricIdSchema = z.enum([
   "advancedLifePotential",
 ]);
 
+/** Direct deterministic causes used to explain extinction or population decline. */
+export const SurvivalFailureReasonSchema = z.enum([
+  "noLiquidWater",
+  "insufficientEnergy",
+  "thermalMismatch",
+  "unsafeRadiation",
+  "unsupportedMetabolism",
+  "organismMismatch",
+  "populationDecline",
+]);
+
 /** Deterministic seeded planet state. */
 export const PlanetStateSchema = z
   .object({
@@ -109,7 +137,6 @@ export const LifeTraitSelectionSchema = z
 /** Request for one deterministic simulation run. */
 export const SurvivalSimulationRequestSchema = z
   .object({
-    missionId: z.literal("genesis-01"),
     planet: PlanetStateSchema,
     traitIds: LifeTraitSelectionSchema,
     initialPopulation: z.number().int().min(10).max(10_000).default(120),
@@ -121,8 +148,7 @@ const ScoreSchema = z.number().finite().min(0).max(1);
 /** Deterministic survival and population result. */
 export const SurvivalSimulationResultSchema = z
   .object({
-    missionId: z.literal("genesis-01"),
-    simulatorVersion: z.literal("1.7.0"),
+    simulatorVersion: z.literal("2.1.0"),
     stateHash: z.string().min(8),
     outcome: z.enum([
       "immediateExtinction",
@@ -134,7 +160,7 @@ export const SurvivalSimulationResultSchema = z
       "stableMulticellularEcosystem",
       "advancedAdaptiveLife",
     ]),
-    missionSuccess: z.boolean(),
+    supportsAdvancedLife: z.boolean(),
     objectiveScore: ScoreSchema,
     metrics: z.record(SimulationMetricIdSchema, ScoreSchema),
     regionScores: z.record(RegionIdSchema, ScoreSchema),
@@ -160,6 +186,7 @@ export const SurvivalSimulationResultSchema = z
         impactFraction: z.number().finite().min(-0.95).max(0.95),
       }).strict(),
     ),
+    failureReasons: z.array(SurvivalFailureReasonSchema).max(4),
     strengths: z.array(SimulationMetricIdSchema).max(4),
     limitingFactors: z.array(SimulationMetricIdSchema).max(4),
   })
@@ -227,6 +254,7 @@ export type LifeTraitId = z.infer<typeof LifeTraitIdSchema>;
 export type PopulationEventId = z.infer<typeof PopulationEventIdSchema>;
 export type RegionId = z.infer<typeof RegionIdSchema>;
 export type SimulationMetricId = z.infer<typeof SimulationMetricIdSchema>;
+export type SurvivalFailureReason = z.infer<typeof SurvivalFailureReasonSchema>;
 export type PlanetState = z.infer<typeof PlanetStateSchema>;
 export type SurvivalSimulationRequest = z.infer<typeof SurvivalSimulationRequestSchema>;
 export type SurvivalSimulationResult = z.infer<typeof SurvivalSimulationResultSchema>;

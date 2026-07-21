@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Xenogenesis Lab | Procedural Life Simulator",
+  title: "Xenogenesis Lab | The Vespera Experiment",
   description:
-    "Engineer a procedural planet, design alien life, and test it with a deterministic astrobiology simulation.",
+    "Give a silent world its first living foothold, then follow the fate of the life you designed.",
 };
 
 export default function RootLayout({

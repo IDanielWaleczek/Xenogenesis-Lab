@@ -71,11 +71,13 @@ Water coverage maps `0%` to no visible surface water. Rivers strengthen through 
 
 Gravity does not reshape continents or recolor snow. It immediately caps effective surface pressure with the documented educational ceiling `min(stored pressure, 5 × gravity²) atm`, capped at `5 atm`; the stored pressure preference remains available when gravity increases. This limit propagates to gas partial pressure, density, water stability, humidity, clouds, and aurora support. A complete escape model would still require radius, mass distribution, composition, temperature history, stellar wind, and high-energy stellar output. Magnetic field is communicated through radiation exposure and an atmospheric aurora rather than field lines. Auroras strengthen smoothly only when atmosphere, magnetic field, and incident radiation are all present; they are not a magnetosphere or particle-transport calculation.
 
-The terrain presentation uses one seeded field for mountain ranges, canyon cuts, and the waterline. Its high-resolution terrain and water meshes use a separate ridged mountain field and smaller alpine breakup to avoid a faceted, single-noise appearance. A low nonzero liquid-water inventory can show lakes or drainage lines through a documented visual shoreline curve; this improves legibility but does not model real erosion, river networks, or exact surface-area coverage.
+The terrain presentation uses one seeded field for mountain ranges, canyon cuts, and the waterline. Its high-resolution terrain and water meshes use a separate ridged mountain field and smaller alpine breakup to avoid a faceted, single-noise appearance. A low nonzero liquid-water inventory can show lakes or drainage lines through a documented visual shoreline curve; this improves legibility but does not model real erosion, river networks, or exact surface-area coverage. At high temperatures, sparse procedural lava channels appear from `450°C` and intensify continuously to `1800°C`; a restrained animated heat-shimmer treatment supports the hot-surface reading without changing deterministic simulation facts.
 
 ## Environment controls
 
 Each slider shows a localized label, current value/unit, a compact Earth-reference value, and one of six ordered captions selected by parameter-specific thresholds. Earth references orient learners but never modify their chosen world; values that cannot be represented by one universal terrestrial measurement are visibly identified as a model convention or proxy. Controls follow the causal order from gravity and stellar energy through atmosphere, composition, temperature, water, humidity, magnetic protection, and radiation. Sliders preserve independent user choices even while a prerequisite makes their physical effect zero; a concise English/Polish notice explains only the immediate physical effect. Derived effects transition continuously instead of rewriting another slider. Planet Engineering and Life Design show a static left panel sourced from the same deterministic world context: climate range, gravity/effective pressure, gas partial pressures, hydrosphere phases, configured/effective humidity, energy/carbon, and radiation protection. Analyze intentionally omits this panel so the outcome evidence remains dominant. Controls must never exist only to change a displayed number.
+
+The first laboratory entry may add one dismissible three-step walkthrough. It dims the laboratory and sequentially highlights the central planet scene, the right engineering controls, and the left deterministic-evidence panel. Each step uses one brief contextual card; it must remain local to the browser, never force phase navigation, and remain available again from the header guide control. The right panel may show the compact three-step experiment path, a short last-change consequence, and an optional temperate starting experiment alongside the barren baseline reset. Every slider also has a compact exact-number input; typed values are clamped to the same physical bounds as the slider. The Design Life preflight is advisory and displays only already-derived facts: liquid-water availability, the presence of a supported metabolic pathway, and a radiation-exposure band. It cannot block the learner, calculate a new score, or present itself as the final survival result.
 
 Changing a parameter after a simulation marks the old calculation stale. Results may remain visible for comparison, but markers, biosphere, AI requests, and generated image are withheld until a re-run.
 
@@ -88,7 +90,7 @@ Traits are grouped into Body, Physiology, Senses, Reproduction, and Complexity. 
 - tradeoff;
 - selection state.
 
-Design Life starts with an empty trait set. Conflicting traits remain inspectable but cannot be combined; there is no budget meter or trait-count ceiling. Mutually exclusive organism form is a single dropdown: the learner chooses either unicellular or multicellular tissues, never both. The procedural field model always uses the engineered planet's terrain, surface water or ice, atmosphere, temperature, and light. Every selectable trait produces a visible anatomical or life-cycle response, including eggs for protected reproduction, gills and fins for aquatic plans, grasping hands and neural structures for advanced plans, and cell-scale morphology for unicellular plans. The central heading reads Lifeform Designer. Planet scientific-mode buttons, camera reset, rotation pause, and input hints remain hidden in this static inspection phase.
+Design Life starts with an empty trait set. There is no budget meter or trait-count ceiling. Every complete mutually exclusive alternative set uses a single description-first dropdown, including organism form, body size and support, movement, symmetry, respiratory organ, metabolism, energy capture, thermal strategy, reproductive mode, and reproductive investment. Cross-constraints that are not alternative sets — such as a unicellular form with complex anatomy — reconcile automatically by replacing the incompatible prior selection. The procedural field model always uses the engineered planet's terrain, surface water or ice, atmosphere, temperature, and light. Every selectable trait produces a visible anatomical or life-cycle response, including eggs for protected reproduction, gills and fins for aquatic plans, grasping hands and neural structures for advanced plans, and cell-scale morphology for unicellular plans. The central heading reads Lifeform Designer. Planet scientific-mode buttons, camera reset, rotation pause, and input hints remain hidden in this static inspection phase.
 
 ## Results
 
@@ -96,16 +98,15 @@ The Analyze panel presents evidence in this order:
 
 1. provenance and summarized outcome;
 2. advanced-life objective score;
-4. 11 metric bars with descriptions;
-5. strongest and limiting systems;
-6. six regional scores linked to planet markers;
-7. 200-step population trend labelled as model years, deterministic pressure/opportunity events with icons and population values, and summary values;
-8. comparison against the previous run;
-9. organism field model and optional generated illustration;
-10. optional consultant interpretation;
-11. Adapt planet / Adapt lifeform actions and educational limitation.
+3. 11 metric bars with descriptions;
+4. six regional scores linked to planet markers;
+5. 200-step population trend labelled as model years, with a cursor-following year/population readout and deterministic pressure/opportunity event details shown only while their chart markers are hovered or focused, plus summary values;
+6. comparison against the previous run;
+7. organism field model and optional generated illustration;
+8. optional consultant interpretation;
+9. Adapt planet / Adapt lifeform actions and educational limitation.
 
-If essential water, energy, metabolic, thermal, or radiation support is absent, survivability and population are zero. Analyze centres this evidence, explains the limiting deterministic conditions in the failure state, and hides planet scientific-mode and camera controls. Its regional cards use parameter-driven illustrative mini-scenes; they are not a spatial climate model. Optional AI field images use an uncropped 3:2 frame and expose a download control.
+If essential water, energy, metabolic, thermal, or radiation support is absent, survivability and population are zero. Analyze centres this evidence, explains the limiting deterministic conditions in the failure state, and hides planet scientific-mode and camera controls. On desktop, its contextual visual column stacks a square `1:1` planet preview above the organism preview rather than overlaying either one, preserving space for the Life Sciences Consultant in the evidence panel. Its larger regional cards use distinct parameter-driven mini-scenes: shoreline, equatorial surface, polar ice, deep water, cave strata, and cloud-level peaks respond to water phase, temperature extrema, atmospheric pressure, light, and radiation. They are explanatory visual interpretations of the current planet, not a spatial climate model. Optional AI field images use an uncropped 3:2 frame and expose a download control.
 
 Do not reduce the model to success/failure or hide scores behind prose.
 
@@ -124,7 +125,7 @@ A network or provider failure must preserve the planet, selected traits, calcula
 
 ## Illustration rules
 
-Generated images should resemble neutral astrobiology field documentation or restrained scientific concept art. The server prompt may depict only selected traits and supplied world conditions. GPT chooses validated pose, viewpoint, lighting, and emphasis enums; it cannot add free-form anatomy.
+Generated images should resemble neutral astrobiology field documentation or restrained scientific concept art. The server prompt receives every normalized planet parameter, every selected trait configuration, calculated survivability, and the highest-scoring regional context. It must render the organism in that regional environment and may depict only selected traits and supplied world conditions. If calculated survivability is `≤25%` (including zero), it must instead show an intact dead specimen matching those traits—never a thriving organism, gore, or unsupported anatomy. This is an illustration convention tied to deterministic output, not additional biological evidence. GPT chooses validated pose, viewpoint, lighting, and emphasis enums; it cannot add free-form anatomy.
 
 Do not imitate named artists or protected franchises. Do not present generated pixels as evidence. The deterministic organism SVG remains the honest no-network fallback.
 
@@ -137,6 +138,10 @@ Do not imitate named artists or protected franchises. Do not present generated p
 - Maintain visible keyboard focus and meaningful image alternatives.
 - Do not rely on color alone.
 - Honor `prefers-reduced-motion`.
+
+## Guided walkthrough
+
+The first-run walkthrough is a compact, dimmed overlay with a single highlighted target and one fixed bottom guide card. Each active target is scrolled into view on both desktop and mobile. It follows the actual working sequence: Planet Designer (scene, right controls, a slider, left evidence and World story), Design Life (preview, controls, dropdowns, left Hypothesis story, trait evidence/readiness), then Analyze (survivability, forces, regional refuge, population/event chart, illustration, consultant). After the parameter explanation it loads the temperate starting experiment; before analysis it loads a compatible example lifeform and runs the real deterministic simulation. Ending or dismissing the guide fully resets the lab and returns the learner to Planet Designer.
 
 ## Current verification note
 

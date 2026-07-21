@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GENESIS_MISSION } from "../simulator/mission";
+import { BASELINE_PLANET } from "../simulator/baseline";
 import { deriveWorldInteractionState } from "./interactions";
 import {
   applyWorldEngineeringControlChange,
@@ -11,7 +11,7 @@ import {
 describe("world engineering preferences", () => {
   it("restores selected water after a temporarily incompatible temperature", () => {
     const withPressure = applyWorldParameterChange(
-      GENESIS_MISSION.planet.world,
+      BASELINE_PLANET.world,
       "pressure",
       1,
     );
@@ -41,7 +41,7 @@ describe("world engineering preferences", () => {
 
   it("preserves humidity and gas preferences while pressure is zero", () => {
     let world = applyWorldParameterChange(
-      GENESIS_MISSION.planet.world,
+      BASELINE_PLANET.world,
       "humidity",
       65,
     );
@@ -73,7 +73,7 @@ describe("world engineering preferences", () => {
 
   it("shows gas partial pressure while retaining the selected composition", () => {
     let world = applyWorldParameterChange(
-      GENESIS_MISSION.planet.world,
+      BASELINE_PLANET.world,
       "pressure",
       1,
     );
@@ -104,7 +104,7 @@ describe("world engineering preferences", () => {
 
   it("edits partially expressed water and humidity without losing preferences", () => {
     let world = applyWorldParameterChange(
-      GENESIS_MISSION.planet.world,
+      BASELINE_PLANET.world,
       "pressure",
       0.015,
     );
@@ -139,7 +139,7 @@ describe("world engineering preferences", () => {
 
   it("limits effective pressure immediately while preserving the stored pressure preference", () => {
     let world = applyWorldParameterChange(
-      GENESIS_MISSION.planet.world,
+      BASELINE_PLANET.world,
       "pressure",
       5,
     );

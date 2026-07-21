@@ -3,15 +3,43 @@ import type {
   PopulationEventId,
   RegionId,
   SimulationMetricId,
+  SurvivalFailureReason,
   SurvivalSimulationResult,
 } from "@/domain/simulator/schema";
 import type { TraitCategory } from "@/domain/simulator/traits";
+import type { AdaptationArchetypeId } from "@/domain/simulator/archetypes";
 
 /** Languages supported by the reviewed interface copy. */
 export type Language = "en" | "pl";
 
 /** User-facing phases in the repeatable simulation loop. */
 export type LabPhase = "planet" | "life" | "results";
+
+/** Ordered walkthrough cards used by the laboratory onboarding. */
+export type TutorialStepId =
+  | "planetScene"
+  | "planetControls"
+  | "parameter"
+  | "evidencePanel"
+  | "worldStory"
+  | "evidenceDetails"
+  | "chooseLife"
+  | "lifeTransition"
+  | "lifeScene"
+  | "lifeControls"
+  | "lifeDropdown"
+  | "hypothesisStory"
+  | "lifeFacts"
+  | "readiness"
+  | "lifeEvidence"
+  | "runSimulation"
+  | "resultOutcome"
+  | "metrics"
+  | "regions"
+  | "population"
+  | "events"
+  | "portrait"
+  | "consultant";
 
 /** Editable inputs exposed by the procedural laboratory. */
 export type ParameterId =
@@ -56,6 +84,8 @@ export type LabCopy = {
     resetCamera: string;
     rotationOn: string;
     rotationOff: string;
+    clearData: string;
+    clearDataConfirm: string;
   };
   phases: Record<LabPhase, { label: string; description: string }>;
   planet: {
@@ -71,6 +101,9 @@ export type LabCopy = {
     controlsDesktop: string;
     controlsMobile: string;
     openDesigner: string;
+    loadTemperateExperiment: string;
+    changedEffect: string;
+    exactValue: string;
     legends: {
       temperature: { title: string; cold: string; temperate: string; hot: string };
       radiation: { title: string; protected: string; elevated: string; severe: string };
@@ -134,6 +167,36 @@ export type LabCopy = {
     run: string;
     running: string;
     previewHint: string;
+    strategyLibrary: string;
+    strategyHint: string;
+    applyStrategy: string;
+    noStrategies: string;
+    readiness: {
+      title: string;
+      description: string;
+      water: string;
+      energy: string;
+      radiation: string;
+      available: string;
+      unavailable: string;
+      manageable: string;
+      elevated: string;
+    };
+    strategies: Record<AdaptationArchetypeId, string>;
+    chooseOne: string;
+    singleChoiceGroups: {
+      organismForm: string;
+      bodySize: string;
+      bodySupport: string;
+      movement: string;
+      symmetry: string;
+      respiration: string;
+      metabolism: string;
+      energyCapture: string;
+      thermalStrategy: string;
+      reproductiveMode: string;
+      reproductiveInvestment: string;
+    };
   };
   categories: Record<TraitCategory, string>;
   traits: Record<LifeTraitId, TraitCopy>;
@@ -154,10 +217,8 @@ export type LabCopy = {
     strengths: string;
     limits: string;
     regionsTitle: string;
-    habitable: string;
     populationTitle: string;
-    populationEventsTitle: string;
-    eventImpact: string;
+    eventImpactContext: string;
     generation: string;
     population: string;
     initial: string;
@@ -169,7 +230,11 @@ export type LabCopy = {
     adaptPlanet: string;
     adaptLife: string;
     rerun: string;
+    copySummary: string;
+    summaryCopied: string;
+    summaryCopyFailed: string;
     educationalNotice: string;
+    failureReasons: Record<SurvivalFailureReason, string>;
   };
   metrics: Record<SimulationMetricId, { label: string; description: string }>;
   regions: Record<RegionId, { label: string; description: string }>;
@@ -209,12 +274,23 @@ export type LabCopy = {
     calculated: string;
   };
   footer: string;
+  onboarding: {
+    title: string;
+    description: string;
+    focus: string;
+    dismiss: string;
+    reopen: string;
+    progress: string;
+    next: string;
+    finish: string;
+    steps: Record<TutorialStepId, { title: string; description: string }>;
+  };
 };
 
 const english: LabCopy = {
   document: {
-    title: "Xenogenesis Lab | Procedural Life Simulator",
-    description: "Engineer a procedural planet, design alien life, and test it with a deterministic astrobiology simulation.",
+    title: "Xenogenesis Lab | The Vespera Experiment",
+    description: "Give a silent world its first living foothold, then follow the fate of the life you designed.",
   },
   language: { label: "Language", english: "English", polish: "Polski" },
   boot: {
@@ -225,30 +301,35 @@ const english: LabCopy = {
     enter: "Begin the Vespera experiment",
   },
   header: {
-    system: "Dynamic life engineering system",
+    system: "Vespera · first-biosphere experiment",
     reset: "Reset laboratory",
     resetCamera: "Reset camera",
     rotationOn: "Pause rotation",
     rotationOff: "Resume rotation",
+    clearData: "Clear data",
+    clearDataConfirm: "Delete all Xenogenesis Lab data stored in this browser? This resets the current experiment and shows the guide again.",
   },
   phases: {
-    planet: { label: "Engineer planet", description: "Build a coherent chain of planetary conditions." },
-    life: { label: "Design life", description: "Build a biological strategy with real tradeoffs." },
-    results: { label: "Analyze", description: "Read the outcome and decide what to change." },
+    planet: { label: "Give Vespera a beginning", description: "Shape the conditions in which life will first appear." },
+    life: { label: "Seed its first life", description: "Choose what your organism can risk, endure, and become." },
+    results: { label: "Read its story", description: "Follow the population's fate and decide its next chapter." },
   },
   planet: {
-    title: "Planet engineering",
-    instruction: "Every control affects the deterministic model; the visual planet responds only where the supplied physical inputs justify it.",
-    parameterGroup: "Environmental systems",
-    baseline: "Barren starting world",
-    resetBaseline: "Reset barren world",
-    liveView: "Live procedural planet",
+    title: "Give Vespera a beginning",
+    instruction: "Set the stage for its first habitat. Each choice changes what the world can offer the life you will place here.",
+    parameterGroup: "The world before life",
+    baseline: "A world before life",
+    resetBaseline: "Return to the silent world",
+    liveView: "Vespera, before its first organism",
     viewMode: "Scientific view",
     modes: { realistic: "Realistic", temperature: "Temperature", radiation: "Radiation" },
-    visualTransition: "Terraforming visualization is interpolating toward the current parameters.",
+    visualTransition: "Vespera is settling into the conditions you chose.",
     controlsDesktop: "PC: drag with the left mouse button to rotate · use the wheel to zoom",
     controlsMobile: "Mobile: drag with one finger to rotate · pinch with two fingers to zoom",
-    openDesigner: "Continue to life designer",
+    openDesigner: "Choose the first organism",
+    loadTemperateExperiment: "Load a temperate starting experiment",
+    changedEffect: "What changed",
+    exactValue: "Exact value",
     legends: {
       temperature: { title: "Temperature", cold: "Frozen", temperate: "Temperate", hot: "Molten" },
       radiation: { title: "Radiation exposure", protected: "Protected", elevated: "Elevated", severe: "Severe" },
@@ -354,9 +435,9 @@ const english: LabCopy = {
     humidityLimitedByWater: "Atmosphere and exposed water currently limit effective humidity.",
   },
   environment: {
-    title: "Active world evidence",
-    planetDescription: "These are the active deterministic consequences of the current planetary parameters.",
-    designDescription: "These deterministic conditions shape the tradeoffs of every trait. Traits remain selectable so you can test a risky hypothesis.",
+    title: "What this world will ask of life",
+    planetDescription: "This is the environment waiting for its first organism: where water holds, energy arrives, and exposure becomes dangerous.",
+    designDescription: "These conditions define the risks your organism will meet. You may still test a daring design and see whether it earns a foothold.",
     climate: "Climate",
     atmosphere: "Atmosphere and gravity",
     hydrosphere: "Hydrosphere",
@@ -390,17 +471,47 @@ const english: LabCopy = {
     shieldingColumn: "Shielding column",
   },
   life: {
-    title: "Lifeform designer",
-    instruction: "Start with a blank organism and combine compatible adaptations. Every choice changes both its visible anatomy and deterministic survival strategy.",
+    title: "Seed Vespera's first life",
+    instruction: "Decide what arrives first. Every adaptation leaves a visible mark on the organism and changes how its lineage meets this world.",
     selected: "traits selected",
     advantage: "Advantage",
     tradeoff: "Tradeoff",
     conflict: "That trait conflicts with one of your current selections.",
-    minimumTraits: "Select at least three traits before running the simulation.",
-    clear: "Clear traits",
-    run: "Run survival simulation",
-    running: "Simulating 200 model years and environmental events…",
-    previewHint: "The procedural morphology updates from the seed, world, and selected traits.",
+    minimumTraits: "Give the first organism at least three adaptations before following its fate.",
+    clear: "Start the organism again",
+    run: "Begin its 200-year story",
+    running: "Following this lineage through 200 years of change…",
+    previewHint: "Its form is taking shape from this world and the adaptations you selected.",
+    strategyLibrary: "Possible first footholds",
+    strategyHint: "Each is a viable starting lineage built from what this particular world provides. If none appears, the world has not yet opened a metabolic path.",
+    applyStrategy: "Seed this lineage",
+    noStrategies: "Vespera cannot yet feed a first lineage. Restore oxygen or a declared geochemical energy source, then try again.",
+    readiness: {
+      title: "Readiness for first life",
+      description: "A quick preflight from the current world. It guides the next choice but never replaces the survival simulation.",
+      water: "Liquid water",
+      energy: "Metabolic path",
+      radiation: "Radiation exposure",
+      available: "Available",
+      unavailable: "Not yet available",
+      manageable: "Manageable",
+      elevated: "Elevated",
+    },
+    strategies: { littoralGeneralist: "Shielded littoral generalist", pressureSwimmer: "Pressure-adapted swimmer", endolithicColony: "Endolithic repair colony", aerialDisperser: "Resilient colony disperser" },
+    chooseOne: "Choose one",
+    singleChoiceGroups: {
+      organismForm: "Organism form",
+      bodySize: "Body size",
+      bodySupport: "Body support",
+      movement: "Primary movement",
+      symmetry: "Body symmetry",
+      respiration: "Respiratory organ",
+      metabolism: "Primary metabolism",
+      energyCapture: "Energy capture",
+      thermalStrategy: "Thermal strategy",
+      reproductiveMode: "Reproductive mode",
+      reproductiveInvestment: "Reproductive investment",
+    },
   },
   categories: {
     body: "Body",
@@ -425,10 +536,17 @@ const english: LabCopy = {
     radiationResistance: { title: "Radiation resistance", advantage: "Reduces damage under strong exposure.", tradeoff: "Consumes repair energy and slows reproduction." },
     thermalInsulation: { title: "Thermal insulation", advantage: "Improves cold survival.", tradeoff: "Creates heat stress in warm regions." },
     heatResistance: { title: "Heat resistance", advantage: "Protects proteins and membranes at high temperature.", tradeoff: "Raises water demand and conflicts with thick insulation." },
+    cryoprotectiveChemistry: { title: "Cryoprotective chemistry", advantage: "Limits ice-crystal damage in cold liquid-water niches.", tradeoff: "Costs energy and does not create liquid water." },
+    heatShockProteins: { title: "Heat-shock proteins", advantage: "Stabilizes cellular machinery during intense but water-supported heat.", tradeoff: "Costs repair energy and cannot survive a molten surface." },
+    mineralShielding: { title: "Mineral shielding", advantage: "Adds a protective mineral layer against radiation and heat pulses.", tradeoff: "Reduces movement and does not replace physical shelter." },
+    biofilmColony: { title: "Biofilm colony", advantage: "Shares moisture, chemistry, and repair across a surface colony.", tradeoff: "Keeps the organism locally anchored." },
+    saltTolerance: { title: "Salt tolerance", advantage: "Maintains water balance in concentrated brines.", tradeoff: "Does not make dry or water-free worlds habitable." },
     waterConservation: { title: "Water conservation", advantage: "Extends survival in dry regions.", tradeoff: "Slows exchange and reproduction." },
     pressureResistance: { title: "Pressure resistance", advantage: "Supports deep-ocean and unusual-pressure habitats.", tradeoff: "Reduces movement efficiency." },
     regenerativeTissue: { title: "Regenerative tissue", advantage: "Repairs radiation and environmental damage.", tradeoff: "High metabolic and reproductive cost." },
     hibernation: { title: "Hibernation", advantage: "Survives cold, dry, or seasonal stress.", tradeoff: "Sacrifices active growth time." },
+    dormantCysts: { title: "Dormant cysts", advantage: "Protects a resting stage through short radiation, dry, and thermal stress.", tradeoff: "Cannot replace active metabolism or liquid water." },
+    symbioticMetabolism: { title: "Symbiotic metabolism", advantage: "Shares oxygen and chemical pathways across cooperating cells.", tradeoff: "Requires compatible environmental energy for the partnership." },
     visibleVision: { title: "Visible-light vision", advantage: "Low-cost navigation under useful starlight.", tradeoff: "Weak in darkness, dust, or deep water." },
     infraredVision: { title: "Infrared vision", advantage: "Finds heat contrasts in darkness or haze.", tradeoff: "Costs more neural and sensory energy." },
     echolocation: { title: "Echolocation", advantage: "Maps dark or obscured environments.", tradeoff: "Requires active energy and suitable atmospheric density." },
@@ -456,38 +574,48 @@ const english: LabCopy = {
     culturalMemory: { title: "Cultural memory", advantage: "Preserves successful behavior across generations.", tradeoff: "Requires social learning and prolonged development." },
   },
   simulation: {
-    title: "Survival analysis",
-    emptyTitle: "No simulation yet",
-    emptyDescription: "Engineer the planet, select at least three compatible traits, and simulate 200 model years.",
-    staleTitle: "Configuration changed",
-    staleDescription: "These results belong to the previous configuration. Run again to evaluate the current world and organism.",
-    deterministic: "Locally calculated",
-    success: "Stable outcome reached",
-    continue: "Survival failed — revise the experiment",
-    objective: "Advanced-life potential",
-    outcome: "Model outcome",
-    stateHash: "Reproducible state",
-    modelVersion: "Simulator",
-    metricsTitle: "Interacting suitability scores",
-    strengths: "Strongest systems",
-    limits: "Limiting systems",
-    regionsTitle: "Regional survival",
-    habitable: "habitable under this model",
-    populationTitle: "Population across 200 model years",
-    populationEventsTitle: "Environmental events",
-    eventImpact: "population impact",
+    title: "The first 200 years",
+    emptyTitle: "The story has not begun",
+    emptyDescription: "Shape Vespera, give its first organism at least three adaptations, then begin the first 200 years.",
+    staleTitle: "A new chapter is waiting",
+    staleDescription: "You changed the world or its organism. Begin the story again to see how this version unfolds.",
+    deterministic: "Calculated from this experiment",
+    success: "The lineage finds a lasting foothold",
+    continue: "This lineage falters — change its next chapter",
+    objective: "Potential for a lasting civilization",
+    outcome: "This chapter ends with",
+    stateHash: "Experiment record",
+    modelVersion: "Ruleset version",
+    metricsTitle: "Forces shaping this lineage",
+    strengths: "What carries it forward",
+    limits: "What holds it back",
+    regionsTitle: "Where it can hold on",
+    populationTitle: "The population's first 200 years",
+    eventImpactContext: "Applied after this year's usual change: − means fewer organisms; + means more.",
     generation: "Year",
     population: "Population",
     initial: "Initial",
     peak: "Peak",
     final: "Final",
     capacity: "Carrying capacity",
-    previousScore: "Change from previous run",
-    noPreviousRun: "Run another configuration to compare advanced-life potential.",
-    adaptPlanet: "Adapt planet",
-    adaptLife: "Adapt lifeform",
-    rerun: "Run current configuration",
-    educationalNotice: "Scientifically inspired educational model, not a complete climate or evolutionary prediction.",
+    previousScore: "Change since the previous chapter",
+    noPreviousRun: "Change one thing and begin another chapter to compare their futures.",
+    adaptPlanet: "Rewrite the world",
+    adaptLife: "Rewrite the organism",
+    rerun: "Begin this chapter",
+    copySummary: "Copy experiment summary",
+    summaryCopied: "Experiment summary copied.",
+    summaryCopyFailed: "Could not copy the summary. Your browser may block clipboard access.",
+    educationalNotice: "A science-informed story model: useful for exploring tradeoffs, not a complete forecast of climate or evolution.",
+    failureReasons: {
+      noLiquidWater: "No liquid water remains across the configured {minimum} to {maximum} °C range, so this lifeform has no hydrated habitat.",
+      insufficientEnergy: "Available biological energy is too low for the selected metabolism at {light}% stellar light.",
+      thermalMismatch: "The configured {minimum} to {maximum} °C range exceeds the selected lifeform's thermal adaptations.",
+      unsafeRadiation: "Radiation remains {radiation} mSv/h after magnetic protection, beyond the selected lifeform's radiation tolerance.",
+      unsupportedMetabolism: "The selected metabolic pathways cannot use this world's available oxygen, light, or geochemical resources.",
+      organismMismatch: "The selected body and adaptations cannot offset the combined gravity, pressure, hydration, and environmental stress.",
+      populationDecline: "The selected organism persists, but its adaptations cannot replace losses under these conditions.",
+    },
   },
   metrics: {
     liquidWater: { label: "Liquid water", description: "Surface water supported by supply, pressure, and temperature." },
@@ -503,12 +631,12 @@ const english: LabCopy = {
     advancedLifePotential: { label: "Advanced life", description: "Combined ecosystem, metabolism, adaptability, and complexity potential." },
   },
   regions: {
-    coastal: { label: "Coastal zones", description: "Mixed land-water habitats with access to moisture and energy." },
-    equatorial: { label: "Equatorial zones", description: "High-light regions sensitive to heat and radiation." },
-    polar: { label: "Polar zones", description: "Cold regions that reward insulation and dormancy." },
-    deepOcean: { label: "Deep ocean", description: "Dark, high-pressure habitat dependent on water and geochemistry." },
-    underground: { label: "Underground", description: "Sheltered habitat; radiation is not reduced without explicit shielding input." },
-    highAltitude: { label: "High atmosphere", description: "Thin-air region governed by local density, gravity, and flight costs." },
+    coastal: { label: "Coastal zones", description: "A land-water edge scored from liquid water, thermal stability, biological energy, and the organism's hydration fit." },
+    equatorial: { label: "Equatorial zones", description: "Bright surface habitats scored from peak temperature, available light, atmospheric support, and radiation protection." },
+    polar: { label: "Polar zones", description: "Cold seasonal habitats scored from minimum temperature, liquid water, radiation protection, and cold-tolerance adaptations." },
+    deepOcean: { label: "Deep ocean", description: "Dark, high-pressure water habitats scored from water availability, pressure fit, geochemical energy, aquatic movement, and protection." },
+    underground: { label: "Underground", description: "Subsurface habitats scored from geochemical energy, pressure and hydration fit, radiation safety, and chemosynthesis. They do not reduce radiation without explicit shielding." },
+    highAltitude: { label: "High atmosphere", description: "Thin-air habitats scored from atmospheric support, radiation safety, gravity and movement fit, plus aerial and oxygen-efficiency adaptations." },
   },
   outcomes: {
     immediateExtinction: { title: "Immediate extinction", description: "Basic environmental stress overwhelms the selected organism." },
@@ -521,19 +649,29 @@ const english: LabCopy = {
     advancedAdaptiveLife: { title: "Advanced adaptable life", description: "The configured world supports high complexity, adaptation, and long-term stability." },
   },
   populationEvents: {
-    thermalShock: { title: "Thermal shock", description: "A temperature extreme tests insulation, heat tolerance, and dormancy." },
-    radiationStorm: { title: "Radiation storm", description: "A high-exposure interval tests magnetic and biological protection." },
-    hydrosphereStress: { title: "Hydrosphere stress", description: "A dry or phase-unstable interval reduces accessible water." },
-    resourceBloom: { title: "Resource bloom", description: "Available light, chemistry, and water briefly increase usable energy." },
-    adaptiveBreakthrough: { title: "Adaptive breakthrough", description: "Learning and flexible traits improve resource use." },
-    reproductiveBottleneck: { title: "Reproductive bottleneck", description: "Low replacement capacity amplifies a generational loss." },
+    vacuumExposure: { title: "Vacuum exposure", description: "The air is so thin that it provides almost no protection or support. Surface life loses its stable atmospheric buffer." },
+    oxygenShortfall: { title: "Oxygen shortfall", description: "There is not enough usable oxygen for this organism's normal energy needs. A compatible chemical energy pathway could reduce this pressure." },
+    thermalShock: { title: "Thermal shock", description: "An unusually hot or cold period pushes the organism beyond its comfortable range. Insulation, heat tolerance, or dormancy can help it endure the shock." },
+    radiationStorm: { title: "Radiation storm", description: "Radiation exposure rises for a short period and can damage an unprotected population. Magnetic protection and radiation-resistant traits help reduce the loss." },
+    hydrosphereStress: { title: "Hydrosphere stress", description: "Accessible water becomes scarce or changes phase, so living processes have less usable water. Organisms that rely on wet habitats are affected most." },
+    desiccationFront: { title: "Desiccation front", description: "The air becomes drier, making it easier for organisms to lose water. This is especially difficult for forms without strong water-retention adaptations." },
+    lowLightFamine: { title: "Low-light famine", description: "Weak starlight leaves too little energy for light-based life. Organisms need a supplied chemical energy source to avoid this shortage." },
+    resourceBloom: { title: "Resource bloom", description: "Light, water, and useful chemistry line up for a short time. The population gains a temporary opportunity to grow." },
+    geothermalPulse: { title: "Geothermal pulse", description: "A supplied geochemical energy source becomes temporarily more available. Organisms with a compatible chemical metabolism can use the extra energy." },
+    thawWindow: { title: "Thaw window", description: "Ice and liquid water are both present for a short time, opening more active wet habitats. This gives water-dependent organisms a brief advantage." },
+    adaptiveBreakthrough: { title: "Adaptive breakthrough", description: "Flexible behavior and learning help the organism use resources more effectively. The benefit represents a better response to the current conditions, not a new trait being added." },
+    reproductiveBottleneck: { title: "Reproductive bottleneck", description: "Too few offspring survive to replace normal losses. Even a population that survives today can shrink quickly if this continues." },
+    seasonalRefuge: { title: "Seasonal refuge", description: "A period of changing temperatures favors organisms that can rest through the harsh part. Dormancy or hibernation helps the population keep more survivors." },
+    nutrientUpwelling: { title: "Nutrient upwelling", description: "Moving water brings useful dissolved material into a wet habitat. Aquatic or colony-forming organisms can briefly expand into the enriched zone." },
+    photosyntheticSurge: { title: "Photosynthetic surge", description: "Strong light and accessible water briefly increase energy capture for an organism that already has photosynthesis." },
+    nurserySeason: { title: "Nursery season", description: "A favorable interval improves survival of protected young, spores, or live-born offspring. It amplifies an existing reproductive strategy rather than creating one." },
   },
   organism: {
-    title: "Organism field model",
-    procedural: "Deterministic procedural morphology",
-    generated: "GPT-guided generated field illustration",
-    requestImage: "Generate field illustration",
-    generating: "Generating controlled illustration…",
+    title: "A portrait of the first organism",
+    procedural: "Calculated organism portrait",
+    generated: "GPT-guided field portrait",
+    requestImage: "Create a field portrait",
+    generating: "Preparing its field portrait…",
     fallback: "The procedural field model remains available; no generated image was returned.",
     error: "Image generation is unavailable. The deterministic field model is unchanged.",
     download: "Download 3:2 illustration",
@@ -541,9 +679,9 @@ const english: LabCopy = {
   },
   consultant: {
     title: "Life Sciences Consultant",
-    description: "Ask GPT-5.6 to interpret the completed deterministic result. It cannot alter the scores.",
-    request: "Request consultant analysis",
-    loading: "Consultant is reviewing the evidence…",
+    description: "Invite GPT-5.6 to read this lineage's evidence: what helped it endure, what threatens it, and what single change is worth trying next.",
+    request: "Ask for a scientific reading",
+    loading: "The consultant is reading this lineage's evidence…",
     liveSource: "GPT-5.6 analysis",
     localSource: "Local scientific fallback",
     fallbackNotice: "GPT-5.6 was unavailable, so this clearly labelled local interpretation was used.",
@@ -553,7 +691,7 @@ const english: LabCopy = {
     experiment: "Suggested experiment",
     error: "Consultant analysis could not be loaded.",
     retry: "Try consultant again",
-    temporaryUnavailable: "The Mission Instructor cannot currently reach the OpenAI API. You can keep experimenting; deterministic results remain available.",
+    temporaryUnavailable: "The Life Sciences Consultant cannot currently reach the OpenAI API. You can keep experimenting; deterministic results remain available.",
   },
   status: {
     local: "Local deterministic model",
@@ -561,13 +699,48 @@ const english: LabCopy = {
     visual: "Visual interpretation",
     calculated: "Calculated evidence",
   },
-  footer: "Xenogenesis Lab · OpenAI Build Week · educational astrobiology simulator",
+  footer: "Xenogenesis Lab · OpenAI Build Week · the Vespera life experiment",
+  onboarding: {
+    title: "Start with the habitat",
+    description: "Adjust atmosphere, surface water, and mean temperature first. The planet and evidence panels update immediately.",
+    focus: "Suggested first controls",
+    dismiss: "Explore on my own",
+    reopen: "🧭 Guide",
+    progress: "Experiment path",
+    next: "Next",
+    finish: "Start exploring",
+    steps: {
+      planetScene: { title: "Observe the world", description: "The central planet responds as you engineer Vespera. Use the scientific views and camera controls to inspect the change." },
+      planetControls: { title: "Shape the habitat", description: "This right panel contains every planetary control. Your choices remain explicit and affect the deterministic model." },
+      parameter: { title: "Change one condition", description: "Start with atmosphere, surface water, or mean temperature. Each control explains its current physical consequence." },
+      evidencePanel: { title: "Read the world evidence", description: "The left panel summarizes the deterministic state that the organism will have to face." },
+      worldStory: { title: "Follow the world story", description: "This short description updates dynamically as the planet changes; it is not AI narration." },
+      evidenceDetails: { title: "Inspect the calculations", description: "Climate, atmosphere, water, humidity, energy, and radiation are derived here from the current world." },
+      chooseLife: { title: "Continue when ready", description: "When the world is ready to test, choose the first organism. You can always return and adapt the planet later." },
+      lifeTransition: { title: "Step 2: design life", description: "Now the organism becomes the central object. The engineered planet remains visible as its context." },
+      lifeScene: { title: "Inspect the first organism", description: "Its procedural form responds to the current planet and every adaptation you select." },
+      lifeControls: { title: "Build a strategy", description: "The right panel contains compatible body, physiology, senses, reproduction, and complexity choices." },
+      lifeDropdown: { title: "Use choice groups", description: "A dropdown groups alternatives that cannot coexist, so you can compare their advantage and tradeoff before selecting one." },
+      hypothesisStory: { title: "Keep a dynamic hypothesis", description: "This hypothesis story changes with the engineered world and the traits currently selected." },
+      lifeFacts: { title: "Track the design", description: "Traits, body systems, and senses are live counters for the organism you are building." },
+      readiness: { title: "Check readiness", description: "Liquid water, a metabolic path, and radiation exposure are an advisory preflight—not a survival result." },
+      lifeEvidence: { title: "Match life to its world", description: "These world facts stay visible while you design so the organism remains grounded in the engineered conditions." },
+      runSimulation: { title: "Begin the 200-year story", description: "When ready, run the deterministic model to follow this lineage through changing conditions." },
+      resultOutcome: { title: "Read this lineage", description: "The central outcome explains what happens to the lineage and shows its calculated survivability." },
+      metrics: { title: "Inspect the forces", description: "These metrics show the forces shaping this lineage. They are calculated evidence, not AI opinion." },
+      regions: { title: "Find possible refuges", description: "Regional survival shows where the organism can hold on under the configured conditions." },
+      population: { title: "Follow the population", description: "This chart tracks the population over 200 model years." },
+      events: { title: "Watch for events", description: "Deterministic environmental pressures and opportunities can appear during these years; inspect their markers on the chart." },
+      portrait: { title: "Create a field illustration", description: "You can request a planet- and organism-grounded visual portrait. Image generation can take one or two minutes." },
+      consultant: { title: "Ask the Life Sciences Consultant", description: "GPT-5.6 explains the validated result, risks, and one controlled next experiment; it never calculates the outcome." },
+    },
+  },
 };
 
 const polish: LabCopy = {
   document: {
-    title: "Xenogenesis Lab | Proceduralny symulator życia",
-    description: "Zaprojektuj proceduralną planetę i obce życie, a następnie przetestuj je w deterministycznej symulacji astrobiologicznej.",
+    title: "Xenogenesis Lab | Eksperyment Vespera",
+    description: "Daj cichej planecie pierwszą szansę na życie i zobacz, jaki los spotka zaprojektowaną przez Ciebie linię życia.",
   },
   language: { label: "Język", english: "English", polish: "Polski" },
   boot: {
@@ -578,30 +751,35 @@ const polish: LabCopy = {
     enter: "Rozpocznij eksperyment Vespera",
   },
   header: {
-    system: "Dynamiczny system projektowania życia",
+    system: "Vespera · eksperyment pierwszej biosfery",
     reset: "Resetuj laboratorium",
     resetCamera: "Resetuj kamerę",
     rotationOn: "Wstrzymaj obrót",
     rotationOff: "Wznów obrót",
+    clearData: "Usuń dane",
+    clearDataConfirm: "Usunąć wszystkie dane Xenogenesis Lab zapisane w tej przeglądarce? Bieżący eksperyment zostanie zresetowany, a przewodnik pokaże się ponownie.",
   },
   phases: {
-    planet: { label: "Modyfikuj planetę", description: "Zbuduj spójny łańcuch warunków planetarnych." },
-    life: { label: "Projektuj życie", description: "Zbuduj strategię biologiczną z realnymi kompromisami." },
-    results: { label: "Analizuj", description: "Odczytaj wynik i zdecyduj, co zmienić." },
+    planet: { label: "Daj Vesperze początek", description: "Ukształtuj warunki, w których życie pojawi się po raz pierwszy." },
+    life: { label: "Zasiej pierwsze życie", description: "Wybierz, co Twój organizm zaryzykuje, zniesie i czym może się stać." },
+    results: { label: "Odczytaj jego historię", description: "Prześledź los populacji i zdecyduj o kolejnym rozdziale." },
   },
   planet: {
-    title: "Inżynieria planetarna",
-    instruction: "Każdy parametr wpływa na model deterministyczny; widok planety reaguje wyłącznie tam, gdzie uzasadniają to podane dane fizyczne.",
-    parameterGroup: "Systemy środowiskowe",
-    baseline: "Jałowy świat początkowy",
-    resetBaseline: "Przywróć jałowy świat",
-    liveView: "Proceduralna planeta na żywo",
+    title: "Daj Vesperze początek",
+    instruction: "Przygotuj scenę dla pierwszego siedliska. Każda decyzja zmienia to, co świat może zaoferować życiu, które tu umieścisz.",
+    parameterGroup: "Świat przed życiem",
+    baseline: "Świat przed życiem",
+    resetBaseline: "Wróć do cichego świata",
+    liveView: "Vespera przed pierwszym organizmem",
     viewMode: "Widok naukowy",
     modes: { realistic: "Realistyczny", temperature: "Temperatura", radiation: "Promieniowanie" },
-    visualTransition: "Wizualizacja terraformowania płynnie zmierza do bieżących parametrów.",
+    visualTransition: "Vespera układa się zgodnie z wybranymi przez Ciebie warunkami.",
     controlsDesktop: "PC: przeciągnij lewym przyciskiem myszy, aby obracać · użyj kółka, aby przybliżać",
     controlsMobile: "Mobile: przeciągnij jednym palcem, aby obracać · zsuń lub rozsuń dwa palce, aby przybliżać",
-    openDesigner: "Przejdź do projektanta życia",
+    openDesigner: "Wybierz pierwszy organizm",
+    loadTemperateExperiment: "Wczytaj umiarkowany eksperyment startowy",
+    changedEffect: "Co się zmieniło",
+    exactValue: "Dokładna wartość",
     legends: {
       temperature: { title: "Temperatura", cold: "Zamarznięte", temperate: "Umiarkowane", hot: "Stopione" },
       radiation: { title: "Ekspozycja na promieniowanie", protected: "Chronione", elevated: "Podwyższone", severe: "Silne" },
@@ -707,9 +885,9 @@ const polish: LabCopy = {
     humidityLimitedByWater: "Atmosfera i odsłonięta woda obecnie ograniczają efektywną wilgotność.",
   },
   environment: {
-    title: "Aktywne dane środowiskowe",
-    planetDescription: "To aktywne deterministyczne konsekwencje bieżących parametrów planety.",
-    designDescription: "Te deterministyczne warunki kształtują kompromisy każdej cechy. Cechy pozostają dostępne, aby można było przetestować ryzykowną hipotezę.",
+    title: "Czego ten świat zażąda od życia",
+    planetDescription: "To środowisko czekające na pierwszy organizm: gdzie utrzyma się woda, skąd nadejdzie energia i gdzie ekspozycja stanie się zagrożeniem.",
+    designDescription: "Te warunki wyznaczają ryzyko, z którym spotka się Twój organizm. Możesz jednak sprawdzić śmiały projekt i zobaczyć, czy zdoła zdobyć przyczółek.",
     climate: "Klimat",
     atmosphere: "Atmosfera i grawitacja",
     hydrosphere: "Hydrosfera",
@@ -743,17 +921,47 @@ const polish: LabCopy = {
     shieldingColumn: "Kolumna osłonowa",
   },
   life: {
-    title: "Projektant formy życia",
-    instruction: "Zacznij od pustego organizmu i połącz zgodne adaptacje. Każdy wybór zmienia jego widoczną anatomię oraz deterministyczną strategię przetrwania.",
+    title: "Zasiej pierwsze życie Vespery",
+    instruction: "Zdecyduj, co przybywa jako pierwsze. Każda adaptacja zostawia ślad w anatomii i zmienia sposób, w jaki ta linia życia spotka się ze światem.",
     selected: "wybranych cech",
     advantage: "Zaleta",
     tradeoff: "Kompromis",
     conflict: "Ta cecha jest sprzeczna z jedną z obecnie wybranych.",
-    minimumTraits: "Przed uruchomieniem symulacji wybierz co najmniej trzy cechy.",
-    clear: "Wyczyść cechy",
-    run: "Uruchom symulację przetrwania",
-    running: "Symulowanie 200 pokoleń i zdarzeń środowiskowych…",
-    previewHint: "Proceduralna morfologia zmienia się zgodnie z ziarnem, światem i wybranymi cechami.",
+    minimumTraits: "Daj pierwszemu organizmowi przynajmniej trzy adaptacje, zanim poznasz jego los.",
+    clear: "Zacznij organizm od nowa",
+    run: "Rozpocznij jego 200-letnią historię",
+    running: "Śledzimy tę linię życia przez 200 lat zmian…",
+    previewHint: "Jego forma powstaje z tego świata i wybranych przez Ciebie adaptacji.",
+    strategyLibrary: "Możliwe pierwsze przyczółki",
+    strategyHint: "Każda karta to możliwa linia startowa zbudowana z tego, co oferuje konkretnie ten świat. Jeśli żadnej nie ma, świat nie otworzył jeszcze drogi metabolicznej.",
+    applyStrategy: "Zasiej tę linię",
+    noStrategies: "Vespera nie potrafi jeszcze wyżywić pierwszej linii życia. Przywróć tlen lub jawne źródło energii geochemicznej i spróbuj ponownie.",
+    readiness: {
+      title: "Gotowość na pierwsze życie",
+      description: "Krótka kontrola warunków na podstawie bieżącego świata. Pomaga wybrać następny krok, ale nie zastępuje symulacji przeżywalności.",
+      water: "Ciekła woda",
+      energy: "Ścieżka metaboliczna",
+      radiation: "Ekspozycja na promieniowanie",
+      available: "Dostępna",
+      unavailable: "Jeszcze niedostępna",
+      manageable: "Możliwa do opanowania",
+      elevated: "Podwyższona",
+    },
+    strategies: { littoralGeneralist: "Osłonięty generalista przybrzeżny", pressureSwimmer: "Pływak przystosowany do ciśnienia", endolithicColony: "Endolityczna kolonia naprawcza", aerialDisperser: "Odporna kolonia rozprzestrzeniająca się" },
+    chooseOne: "Wybierz jedną",
+    singleChoiceGroups: {
+      organismForm: "Forma organizmu",
+      bodySize: "Wielkość ciała",
+      bodySupport: "Podpora ciała",
+      movement: "Podstawowy ruch",
+      symmetry: "Symetria ciała",
+      respiration: "Narząd oddechowy",
+      metabolism: "Podstawowy metabolizm",
+      energyCapture: "Pozyskiwanie energii",
+      thermalStrategy: "Strategia termiczna",
+      reproductiveMode: "Tryb rozmnażania",
+      reproductiveInvestment: "Inwestycja reprodukcyjna",
+    },
   },
   categories: {
     body: "Budowa ciała",
@@ -778,10 +986,17 @@ const polish: LabCopy = {
     radiationResistance: { title: "Odporność na promieniowanie", advantage: "Zmniejsza uszkodzenia przy silnej ekspozycji.", tradeoff: "Zużywa energię naprawczą i spowalnia rozmnażanie." },
     thermalInsulation: { title: "Izolacja termiczna", advantage: "Poprawia przetrwanie w zimnie.", tradeoff: "Powoduje stres cieplny w ciepłych regionach." },
     heatResistance: { title: "Odporność na gorąco", advantage: "Chroni białka i błony w wysokiej temperaturze.", tradeoff: "Zwiększa zapotrzebowanie na wodę i wyklucza grubą izolację." },
+    cryoprotectiveChemistry: { title: "Chemia krioprotekcyjna", advantage: "Ogranicza uszkodzenia kryształami lodu w zimnych niszach z ciekłą wodą.", tradeoff: "Zużywa energię i nie tworzy ciekłej wody." },
+    heatShockProteins: { title: "Białka szoku cieplnego", advantage: "Stabilizują aparat komórkowy podczas silnego, lecz wspieranego przez wodę gorąca.", tradeoff: "Zużywają energię naprawczą i nie pozwalają przetrwać stopionej powierzchni." },
+    mineralShielding: { title: "Osłona mineralna", advantage: "Dodaje warstwę minerałów chroniącą przed promieniowaniem i impulsami ciepła.", tradeoff: "Ogranicza ruch i nie zastępuje fizycznego schronienia." },
+    biofilmColony: { title: "Kolonia biofilmu", advantage: "Dzieli wilgoć, chemię i naprawę w kolonii powierzchniowej.", tradeoff: "Utrzymuje organizm w lokalnym miejscu." },
+    saltTolerance: { title: "Tolerancja soli", advantage: "Utrzymuje równowagę wodną w stężonych solankach.", tradeoff: "Nie czyni suchych ani bezwodnych światów zdatnymi do życia." },
     waterConservation: { title: "Oszczędzanie wody", advantage: "Wydłuża przetrwanie w suchych regionach.", tradeoff: "Spowalnia wymianę substancji i rozmnażanie." },
     pressureResistance: { title: "Odporność na ciśnienie", advantage: "Wspiera życie w głębokim oceanie i nietypowym ciśnieniu.", tradeoff: "Zmniejsza sprawność ruchu." },
     regenerativeTissue: { title: "Tkanka regeneracyjna", advantage: "Naprawia szkody radiacyjne i środowiskowe.", tradeoff: "Ma wysoki koszt metaboliczny i reprodukcyjny." },
     hibernation: { title: "Hibernacja", advantage: "Pozwala przetrwać zimno, suszę lub okresowy stres.", tradeoff: "Ogranicza czas aktywnego wzrostu." },
+    dormantCysts: { title: "Uśpione cysty", advantage: "Chronią etap spoczynkowy podczas krótkiego promieniowania, suszy i stresu termicznego.", tradeoff: "Nie zastępują aktywnego metabolizmu ani ciekłej wody." },
+    symbioticMetabolism: { title: "Metabolizm symbiotyczny", advantage: "Dzieli ścieżki tlenowe i chemiczne między współpracującymi komórkami.", tradeoff: "Wymaga zgodnej energii środowiskowej dla partnerstwa." },
     visibleVision: { title: "Wzrok w świetle widzialnym", advantage: "Zapewnia tanią orientację przy użytecznym świetle gwiazdy.", tradeoff: "Działa słabo w ciemności, pyle lub głębokiej wodzie." },
     infraredVision: { title: "Widzenie w podczerwieni", advantage: "Wykrywa kontrasty cieplne w ciemności lub mgle.", tradeoff: "Zużywa więcej energii nerwowej i sensorycznej." },
     echolocation: { title: "Echolokacja", advantage: "Odwzorowuje ciemne lub nieprzejrzyste środowiska.", tradeoff: "Wymaga aktywnej energii i odpowiedniej gęstości atmosfery." },
@@ -809,38 +1024,48 @@ const polish: LabCopy = {
     culturalMemory: { title: "Pamięć kulturowa", advantage: "Zachowuje skuteczne zachowania między pokoleniami.", tradeoff: "Wymaga uczenia społecznego i długiego rozwoju." },
   },
   simulation: {
-    title: "Analiza przetrwania",
-    emptyTitle: "Brak symulacji",
-    emptyDescription: "Przekształć planetę, wybierz co najmniej trzy zgodne cechy i zasymuluj 200 pokoleń.",
-    staleTitle: "Konfiguracja została zmieniona",
-    staleDescription: "Te wyniki dotyczą poprzedniej konfiguracji. Uruchom model ponownie, aby ocenić bieżący świat i organizm.",
-    deterministic: "Obliczone lokalnie",
-    success: "Osiągnięto stabilny rezultat",
-    continue: "Przetrwanie nie powiodło się — zmień eksperyment",
-    objective: "Potencjał zaawansowanego życia",
-    outcome: "Wynik modelu",
-    stateHash: "Odtwarzalny stan",
-    modelVersion: "Symulator",
-    metricsTitle: "Współdziałające wskaźniki przydatności",
-    strengths: "Najsilniejsze systemy",
-    limits: "Systemy ograniczające",
-    regionsTitle: "Przetrwanie regionalne",
-    habitable: "nadaje się do życia w tym modelu",
-    populationTitle: "Populacja przez 200 lat modelowych",
-    populationEventsTitle: "Zdarzenia środowiskowe",
-    eventImpact: "wpływ na populację",
+    title: "Pierwsze 200 lat",
+    emptyTitle: "Historia jeszcze się nie zaczęła",
+    emptyDescription: "Ukształtuj Vesperę, daj pierwszemu organizmowi co najmniej trzy adaptacje, a potem rozpocznij pierwsze 200 lat.",
+    staleTitle: "Czeka nowy rozdział",
+    staleDescription: "Zmieniłeś świat lub organizm. Rozpocznij historię ponownie, aby zobaczyć, jak potoczy się ta wersja.",
+    deterministic: "Obliczone dla tego eksperymentu",
+    success: "Ta linia życia znajduje trwały przyczółek",
+    continue: "Ta linia życia słabnie — zmień jej kolejny rozdział",
+    objective: "Potencjał trwałej cywilizacji",
+    outcome: "Ten rozdział kończy się",
+    stateHash: "Zapis eksperymentu",
+    modelVersion: "Wersja zasad",
+    metricsTitle: "Siły kształtujące tę linię życia",
+    strengths: "Co pozwala jej trwać",
+    limits: "Co ją powstrzymuje",
+    regionsTitle: "Gdzie może się utrzymać",
+    populationTitle: "Pierwsze 200 lat populacji",
+    eventImpactContext: "Stosowane po zwykłej zmianie w tym roku: − to mniej organizmów, + to więcej.",
     generation: "Rok",
     population: "Populacja",
     initial: "Początkowa",
     peak: "Szczytowa",
     final: "Końcowa",
     capacity: "Pojemność środowiska",
-    previousScore: "Zmiana względem poprzedniej próby",
-    noPreviousRun: "Uruchom inną konfigurację, aby porównać potencjał zaawansowanego życia.",
-    adaptPlanet: "Dostosuj planetę",
-    adaptLife: "Dostosuj formę życia",
-    rerun: "Uruchom bieżącą konfigurację",
-    educationalNotice: "Inspirowany nauką model edukacyjny, a nie pełna prognoza klimatu lub ewolucji.",
+    previousScore: "Zmiana od poprzedniego rozdziału",
+    noPreviousRun: "Zmień jedną rzecz i rozpocznij kolejny rozdział, aby porównać ich przyszłość.",
+    adaptPlanet: "Napisz świat od nowa",
+    adaptLife: "Napisz organizm od nowa",
+    rerun: "Rozpocznij ten rozdział",
+    copySummary: "Kopiuj podsumowanie eksperymentu",
+    summaryCopied: "Podsumowanie eksperymentu zostało skopiowane.",
+    summaryCopyFailed: "Nie udało się skopiować podsumowania. Przeglądarka może blokować dostęp do schowka.",
+    educationalNotice: "Oparta na nauce opowieść modelowa: służy do badania kompromisów, nie jest pełną prognozą klimatu ani ewolucji.",
+    failureReasons: {
+      noLiquidWater: "W zakresie {minimum}–{maximum} °C nie pozostaje ciekła woda, więc ta forma życia nie ma nawodnionego siedliska.",
+      insufficientEnergy: "Dostępna energia biologiczna jest zbyt mała dla wybranego metabolizmu przy świetle gwiazdowym {light}%.",
+      thermalMismatch: "Zakres {minimum}–{maximum} °C przekracza adaptacje termiczne wybranej formy życia.",
+      unsafeRadiation: "Po ochronie magnetycznej promieniowanie nadal wynosi {radiation} mSv/h, więcej niż toleruje wybrana forma życia.",
+      unsupportedMetabolism: "Wybrane szlaki metaboliczne nie mogą wykorzystać dostępnego w tym świecie tlenu, światła ani zasobów geochemicznych.",
+      organismMismatch: "Wybrane ciało i adaptacje nie równoważą łącznego wpływu grawitacji, ciśnienia, nawodnienia i stresu środowiskowego.",
+      populationDecline: "Wybrany organizm utrzymuje się, lecz jego adaptacje nie pozwalają odtwarzać strat w tych warunkach.",
+    },
   },
   metrics: {
     liquidWater: { label: "Woda w stanie ciekłym", description: "Woda powierzchniowa wspierana przez zasoby, ciśnienie i temperaturę." },
@@ -856,12 +1081,12 @@ const polish: LabCopy = {
     advancedLifePotential: { label: "Zaawansowane życie", description: "Łączny potencjał ekosystemu, metabolizmu, adaptacji i złożoności." },
   },
   regions: {
-    coastal: { label: "Strefy przybrzeżne", description: "Siedliska lądowo-wodne z dostępem do wilgoci i energii." },
-    equatorial: { label: "Strefy równikowe", description: "Silnie oświetlone obszary wrażliwe na gorąco i promieniowanie." },
-    polar: { label: "Strefy polarne", description: "Zimne obszary sprzyjające izolacji i stanom uśpienia." },
-    deepOcean: { label: "Głęboki ocean", description: "Ciemne siedlisko pod wysokim ciśnieniem, zależne od wody i geochemii." },
-    underground: { label: "Podziemie", description: "Schronienie; bez jawnego parametru osłony dawka promieniowania nie spada." },
-    highAltitude: { label: "Wysoka atmosfera", description: "Region rzadkiego powietrza zależny od lokalnej gęstości, grawitacji i kosztu lotu." },
+    coastal: { label: "Strefy przybrzeżne", description: "Granica lądu i wody oceniana przez ilość ciekłej wody, stabilność termiczną, energię biologiczną i dopasowanie nawodnienia organizmu." },
+    equatorial: { label: "Strefy równikowe", description: "Jasno oświetlone siedliska powierzchniowe oceniane przez temperaturę maksymalną, dostępne światło, wsparcie atmosfery i ochronę przed promieniowaniem." },
+    polar: { label: "Strefy polarne", description: "Zimne siedliska sezonowe oceniane przez temperaturę minimalną, ciekłą wodę, ochronę radiacyjną i adaptacje do chłodu." },
+    deepOcean: { label: "Głęboki ocean", description: "Ciemne, wysokociśnieniowe siedliska wodne oceniane przez dostępność wody, tolerancję ciśnienia, energię geochemiczną, ruch wodny i ochronę." },
+    underground: { label: "Podziemie", description: "Siedliska podpowierzchniowe oceniane przez energię geochemiczną, dopasowanie ciśnienia i nawodnienia, bezpieczeństwo radiacyjne oraz chemosyntezę. Bez jawnej osłony nie obniżają promieniowania." },
+    highAltitude: { label: "Wysoka atmosfera", description: "Siedliska rzadkiego powietrza oceniane przez wsparcie atmosferyczne, bezpieczeństwo radiacyjne, dopasowanie grawitacji i ruchu oraz adaptacje lotne i tlenowe." },
   },
   outcomes: {
     immediateExtinction: { title: "Natychmiastowe wymarcie", description: "Podstawowy stres środowiskowy przewyższa możliwości wybranego organizmu." },
@@ -874,19 +1099,29 @@ const polish: LabCopy = {
     advancedAdaptiveLife: { title: "Zaawansowane życie adaptacyjne", description: "Skonfigurowany świat wspiera wysoką złożoność, adaptację i długotrwałą stabilność." },
   },
   populationEvents: {
-    thermalShock: { title: "Szok termiczny", description: "Ekstremum temperatury testuje izolację, odporność na gorąco i uśpienie." },
-    radiationStorm: { title: "Burza radiacyjna", description: "Okres silnej ekspozycji testuje ochronę magnetyczną i biologiczną." },
-    hydrosphereStress: { title: "Stres hydrosfery", description: "Suchy lub niestabilny fazowo okres ogranicza dostępną wodę." },
-    resourceBloom: { title: "Rozkwit zasobów", description: "Dostępne światło, chemia i woda chwilowo zwiększają użyteczną energię." },
-    adaptiveBreakthrough: { title: "Przełom adaptacyjny", description: "Uczenie i elastyczne cechy poprawiają wykorzystanie zasobów." },
-    reproductiveBottleneck: { title: "Wąskie gardło rozrodcze", description: "Niska zdolność odtwarzania nasila stratę pokoleniową." },
+    vacuumExposure: { title: "Ekspozycja na próżnię", description: "Powietrze jest tak rzadkie, że prawie nie daje ochrony ani oparcia. Życie na powierzchni traci stabilizującą osłonę atmosfery." },
+    oxygenShortfall: { title: "Niedobór tlenu", description: "Jest za mało dostępnego tlenu na zwykłe potrzeby energetyczne tego organizmu. Zgodna chemiczna ścieżka energii może zmniejszyć ten problem." },
+    thermalShock: { title: "Szok termiczny", description: "Nietypowo gorący lub zimny okres wykracza poza komfortowy zakres organizmu. Izolacja, odporność na gorąco lub uśpienie pomagają przetrwać taki szok." },
+    radiationStorm: { title: "Burza radiacyjna", description: "Ekspozycja na promieniowanie na krótko rośnie i może uszkodzić niechronioną populację. Ochrona magnetyczna oraz cechy odpornościowe ograniczają straty." },
+    hydrosphereStress: { title: "Stres hydrosfery", description: "Dostępnej wody jest mniej albo zmienia ona stan skupienia, więc procesy życiowe mają mniej wody do wykorzystania. Najbardziej cierpią organizmy zależne od wilgotnych siedlisk." },
+    desiccationFront: { title: "Front wysychania", description: "Powietrze staje się bardziej suche, więc organizmy łatwiej tracą wodę. To szczególnie trudne dla form bez dobrych przystosowań do jej zatrzymywania." },
+    lowLightFamine: { title: "Głód przy słabym świetle", description: "Słabe światło gwiazdy dostarcza za mało energii dla życia opartego na świetle. Organizmy potrzebują dostarczonego chemicznego źródła energii, aby uniknąć niedoboru." },
+    resourceBloom: { title: "Rozkwit zasobów", description: "Światło, woda i użyteczna chemia na krótko układają się korzystnie. Populacja dostaje tymczasową okazję do wzrostu." },
+    geothermalPulse: { title: "Impuls geotermalny", description: "Dostarczone źródło energii geochemicznej staje się chwilowo bardziej dostępne. Organizmy ze zgodnym metabolizmem chemicznym mogą wykorzystać dodatkową energię." },
+    thawWindow: { title: "Okno odwilży", description: "Lód i ciekła woda występują jednocześnie przez krótki czas, otwierając więcej aktywnych mokrych siedlisk. Organizmy zależne od wody zyskują wtedy chwilową przewagę." },
+    adaptiveBreakthrough: { title: "Przełom adaptacyjny", description: "Elastyczne zachowanie i uczenie pomagają organizmowi lepiej wykorzystywać zasoby. Korzyść oznacza lepszą reakcję na warunki, a nie dodanie nowej cechy." },
+    reproductiveBottleneck: { title: "Wąskie gardło rozrodcze", description: "Zbyt mało potomstwa przeżywa, by wyrównać zwykłe straty. Nawet populacja, która przetrwa dziś, może szybko maleć, jeśli ten stan się utrzyma." },
+    seasonalRefuge: { title: "Sezonowe schronienie", description: "Okres zmiennej temperatury sprzyja organizmom, które potrafią przeczekać trudniejszą część cyklu. Uśpienie lub hibernacja pozwalają zachować więcej osobników." },
+    nutrientUpwelling: { title: "Wyniesienie składników odżywczych", description: "Ruch wody wnosi użyteczny rozpuszczony materiał do mokrego siedliska. Organizmy wodne lub tworzące kolonie mogą chwilowo rozszerzyć zasięg w wzbogaconej strefie." },
+    photosyntheticSurge: { title: "Impuls fotosyntezy", description: "Silne światło i dostępna woda chwilowo zwiększają pozyskiwanie energii przez organizm, który już wykorzystuje fotosyntezę." },
+    nurserySeason: { title: "Sezon lęgowy", description: "Korzystny okres poprawia przeżycie chronionego młodego stadium, zarodników lub potomstwa żyworodnego. Wzmacnia istniejącą strategię rozrodu, a nie tworzy jej." },
   },
   organism: {
-    title: "Model terenowy organizmu",
-    procedural: "Deterministyczna morfologia proceduralna",
-    generated: "Ilustracja terenowa wygenerowana pod kontrolą GPT",
-    requestImage: "Wygeneruj ilustrację terenową",
-    generating: "Generowanie kontrolowanej ilustracji…",
+    title: "Portret pierwszego organizmu",
+    procedural: "Obliczony portret organizmu",
+    generated: "Portret terenowy pod kierunkiem GPT",
+    requestImage: "Stwórz portret terenowy",
+    generating: "Przygotowujemy jego portret terenowy…",
     fallback: "Proceduralny model terenowy pozostaje dostępny; nie zwrócono wygenerowanego obrazu.",
     error: "Generowanie obrazu jest niedostępne. Deterministyczny model terenowy nie uległ zmianie.",
     download: "Pobierz ilustrację 3:2",
@@ -894,9 +1129,9 @@ const polish: LabCopy = {
   },
   consultant: {
     title: "Konsultant nauk biologicznych",
-    description: "Poproś GPT-5.6 o interpretację ukończonego wyniku deterministycznego. Model nie może zmienić punktacji.",
-    request: "Poproś o analizę konsultanta",
-    loading: "Konsultant analizuje dane…",
+    description: "Zaproś GPT-5.6 do odczytania śladów tej linii życia: co pozwoliło jej przetrwać, co jej zagraża i którą jedną zmianę warto sprawdzić dalej.",
+    request: "Poproś o naukowy odczyt",
+    loading: "Konsultant odczytuje ślady tej linii życia…",
     liveSource: "Analiza GPT-5.6",
     localSource: "Lokalna analiza zapasowa",
     fallbackNotice: "GPT-5.6 był niedostępny, dlatego użyto wyraźnie oznaczonej lokalnej interpretacji.",
@@ -906,7 +1141,7 @@ const polish: LabCopy = {
     experiment: "Sugerowany eksperyment",
     error: "Nie udało się pobrać analizy konsultanta.",
     retry: "Spróbuj ponownie",
-    temporaryUnavailable: "Instruktor misji nie może obecnie połączyć się z API OpenAI. Możesz kontynuować eksperymenty; wyniki deterministyczne pozostają dostępne.",
+    temporaryUnavailable: "Konsultant nauk o życiu nie może obecnie połączyć się z API OpenAI. Możesz kontynuować eksperymenty; wyniki deterministyczne pozostają dostępne.",
   },
   status: {
     local: "Lokalny model deterministyczny",
@@ -914,7 +1149,42 @@ const polish: LabCopy = {
     visual: "Interpretacja wizualna",
     calculated: "Obliczone dane",
   },
-  footer: "Xenogenesis Lab · OpenAI Build Week · edukacyjny symulator astrobiologiczny",
+  footer: "Xenogenesis Lab · OpenAI Build Week · eksperyment życia Vespery",
+  onboarding: {
+    title: "Zacznij od siedliska",
+    description: "Najpierw zmień atmosferę, wodę powierzchniową i średnią temperaturę. Planeta oraz panele dowodów od razu się zaktualizują.",
+    focus: "Sugerowane pierwsze kontrolki",
+    dismiss: "Chcę eksplorować samodzielnie",
+    reopen: "🧭 Przewodnik",
+    progress: "Ścieżka eksperymentu",
+    next: "Dalej",
+    finish: "Zacznij eksplorację",
+    steps: {
+      planetScene: { title: "Obserwuj świat", description: "Centralna planeta reaguje na sposób, w jaki kształtujesz Vesperę. Użyj widoków naukowych i sterowania kamerą, aby zobaczyć zmianę." },
+      planetControls: { title: "Ukształtuj siedlisko", description: "Ten prawy panel zawiera wszystkie kontrolki planety. Twoje wybory są jawne i wpływają na model deterministyczny." },
+      parameter: { title: "Zmień jeden warunek", description: "Zacznij od atmosfery, wody powierzchniowej albo średniej temperatury. Każda kontrolka opisuje bieżący efekt fizyczny." },
+      evidencePanel: { title: "Odczytaj dane świata", description: "Lewy panel podsumowuje deterministyczny stan, z którym będzie musiał zmierzyć się organizm." },
+      worldStory: { title: "Śledź historię świata", description: "Ten krótki opis zmienia się dynamicznie wraz z planetą; nie jest narracją AI." },
+      evidenceDetails: { title: "Sprawdź obliczenia", description: "Klimat, atmosfera, woda, wilgotność, energia i promieniowanie są tu wyprowadzane z bieżącego świata." },
+      chooseLife: { title: "Przejdź dalej, gdy jesteś gotowy", description: "Gdy świat jest gotowy do testu, wybierz pierwszy organizm. Zawsze możesz wrócić i dostosować planetę." },
+      lifeTransition: { title: "Krok 2: zaprojektuj życie", description: "Teraz organizm staje się centralnym obiektem. Zaprojektowana planeta nadal pozostaje jego kontekstem." },
+      lifeScene: { title: "Obejrzyj pierwszy organizm", description: "Jego proceduralna forma reaguje na bieżącą planetę i każdą wybraną adaptację." },
+      lifeControls: { title: "Zbuduj strategię", description: "Prawy panel zawiera zgodne wybory budowy, fizjologii, zmysłów, rozmnażania i złożoności." },
+      lifeDropdown: { title: "Używaj grup wyboru", description: "Dropdown grupuje alternatywy, które nie mogą współistnieć. Porównaj zaletę i kompromis przed wyborem." },
+      hypothesisStory: { title: "Prowadź dynamiczną hipotezę", description: "Ta historia hipotezy zmienia się wraz z zaprojektowanym światem i aktualnie wybranymi cechami." },
+      lifeFacts: { title: "Śledź projekt", description: "Cechy, systemy ciała i zmysły to liczniki na żywo dla budowanego organizmu." },
+      readiness: { title: "Sprawdź gotowość", description: "Ciekła woda, ścieżka metaboliczna i ekspozycja na promieniowanie są kontrolą wstępną, a nie wynikiem przeżywalności." },
+      lifeEvidence: { title: "Dopasuj życie do świata", description: "Te fakty o świecie pozostają widoczne podczas projektowania, aby organizm był osadzony w wybranych warunkach." },
+      runSimulation: { title: "Rozpocznij 200-letnią historię", description: "Gdy jesteś gotowy, uruchom model deterministyczny i prześledź tę linię życia w zmiennych warunkach." },
+      resultOutcome: { title: "Odczytaj los linii życia", description: "Centralny wynik wyjaśnia, co dzieje się z linią życia, i pokazuje jej obliczoną przeżywalność." },
+      metrics: { title: "Sprawdź siły", description: "Te metryki pokazują czynniki kształtujące linię życia. To obliczone dane, a nie opinia AI." },
+      regions: { title: "Znajdź możliwe schronienia", description: "Przeżywalność regionalna pokazuje, gdzie organizm może się utrzymać w skonfigurowanych warunkach." },
+      population: { title: "Śledź populację", description: "Wykres pokazuje populację przez 200 lat modelowych." },
+      events: { title: "Wypatruj zdarzeń", description: "W tych latach mogą pojawić się deterministyczne presje i okazje środowiskowe. Sprawdzaj ich znaczniki na wykresie." },
+      portrait: { title: "Stwórz ilustrację terenową", description: "Możesz poprosić o wizualny portret oparty na planecie i organizmie. Generowanie obrazu może potrwać minutę lub dwie." },
+      consultant: { title: "Zapytaj Konsultanta nauk o życiu", description: "GPT-5.6 wyjaśnia zweryfikowany wynik, ryzyka i jeden kontrolowany eksperyment. Nie oblicza wyniku." },
+    },
+  },
 };
 
 /** Complete compile-time checked bilingual interface copy. */

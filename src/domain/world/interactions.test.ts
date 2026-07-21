@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GENESIS_MISSION } from "../simulator/mission";
+import { BASELINE_PLANET } from "../simulator/baseline";
 
 import {
   deriveEffectiveRadiationDose,
@@ -13,7 +13,7 @@ import {
 describe("world parameter interactions", () => {
   it("removes exposed water and clouds below the water triple-point pressure", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 0,
       waterAvailability: 1,
       humidity: 1,
@@ -49,7 +49,7 @@ describe("world parameter interactions", () => {
 
   it("does not create ice anywhere for a 36 plus-or-minus 4 degree world", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 1,
       averageTemperatureC: 36,
       temperatureVariationC: 4,
@@ -63,7 +63,7 @@ describe("world parameter interactions", () => {
 
   it("freezes the complete exposed hydrosphere at minus 40 plus-or-minus 4 degrees", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 1,
       averageTemperatureC: -40,
       temperatureVariationC: 4,
@@ -78,7 +78,7 @@ describe("world parameter interactions", () => {
 
   it("retains mixed phases when a large variation crosses the freezing point", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 1,
       averageTemperatureC: -40,
       temperatureVariationC: 100,
@@ -92,7 +92,7 @@ describe("world parameter interactions", () => {
 
   it("moves one-atmosphere water into vapor well above its boiling point", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 1,
       averageTemperatureC: 120,
       temperatureVariationC: 4,
@@ -107,7 +107,7 @@ describe("world parameter interactions", () => {
 
   it("never renders clouds from pressure alone", () => {
     const dry = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 5,
       averageTemperatureC: 24,
       temperatureVariationC: 4,
@@ -115,7 +115,7 @@ describe("world parameter interactions", () => {
       humidity: 0,
     });
     const humid = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 1,
       averageTemperatureC: 24,
       temperatureVariationC: 4,
@@ -129,7 +129,7 @@ describe("world parameter interactions", () => {
 
   it("retains a small evaporation-driven humidity floor over a fully liquid ocean", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       atmosphericPressureAtm: 1,
       averageTemperatureC: 20,
       temperatureVariationC: 0,
@@ -145,7 +145,7 @@ describe("world parameter interactions", () => {
   it("changes pressure support gradually instead of as an on-off gate", () => {
     const createState = (atmosphericPressureAtm: number) =>
       deriveWorldInteractionState({
-        ...GENESIS_MISSION.planet.world,
+        ...BASELINE_PLANET.world,
         atmosphericPressureAtm,
         averageTemperatureC: -10,
         temperatureVariationC: 0,
@@ -163,7 +163,7 @@ describe("world parameter interactions", () => {
 
   it("uses the gravity-limited pressure for all atmospheric and water consequences", () => {
     const state = deriveWorldInteractionState({
-      ...GENESIS_MISSION.planet.world,
+      ...BASELINE_PLANET.world,
       gravityG: 0.2,
       atmosphericPressureAtm: 5,
       averageTemperatureC: 20,
@@ -201,7 +201,7 @@ describe("world parameter interactions", () => {
           for (const waterAvailability of inventories) {
             for (const humidity of humidities) {
               const state = deriveWorldInteractionState({
-                ...GENESIS_MISSION.planet.world,
+                ...BASELINE_PLANET.world,
                 atmosphericPressureAtm,
                 averageTemperatureC,
                 temperatureVariationC,

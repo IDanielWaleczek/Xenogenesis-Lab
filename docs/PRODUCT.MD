@@ -2,7 +2,7 @@
 
 ## Product statement
 
-Xenogenesis Lab is an AI-guided procedural astrobiology simulator. A learner engineers a planet, designs a form of alien life, and tests whether the coupled world-organism system can survive, reproduce, form a stable ecosystem, and support advanced life.
+Xenogenesis Lab is an AI-guided astrobiology experience about giving Vespera its first biosphere. The learner shapes a silent world, seeds its first organism, and follows whether that lineage can survive, reproduce, form a stable ecosystem, and eventually support advanced life.
 
 It is an exploratory scientific laboratory, not a quiz, chatbot, parameter dashboard, or unconstrained creature generator.
 
@@ -12,10 +12,10 @@ Planetary habitability is usually taught as static facts. Learners rarely get to
 
 ## Product promise
 
-The user receives immediate visual feedback, reproducible calculations, multiple viable strategies, and short contextual AI guidance inside one repeatable laboratory loop:
+The user receives immediate visual feedback, reproducible evidence, multiple viable strategies, and short contextual AI guidance inside one repeatable story loop:
 
 ```text
-Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt
+Give the world a beginning → Seed life → Follow its fate → Learn from the evidence → Write the next chapter
 ```
 
 No hidden exact configuration is presented as the answer. The outcome is evaluated from continuous interacting scores.
@@ -48,7 +48,9 @@ The initial submission completes this loop for one polished laboratory workspace
 
 The boot screen is part of the story, not a loading state: two parameter-backed WebGL worlds rotate slowly in a shared star field behind the Xenogenesis banner. English and Polish remain the only supported languages and use the supplied flag images.
 
-Planet Engineering and Design Life now begin with short plain-language teaching summaries derived from active deterministic world evidence. The life summary also references only the learner's selected traits; it is not an AI result or a hidden simulation rule. Design Life presents mutually exclusive unicellular and multicellular forms as one dropdown choice. Its supporting facts describe the current design while Analyze retains survival evidence.
+Planet Engineering and Design Life now begin with short plain-language teaching summaries derived from active deterministic world evidence. The life summary also references only the learner's selected traits; it is not an AI result or a hidden simulation rule. Design Life presents every complete mutually exclusive trait set as a single choice that exposes each option's advantage and tradeoff; additive traits remain individually selectable. Cross-constraints outside such an alternative set reconcile automatically, so an organism never retains incompatible selected traits. Its supporting facts describe the current design while Analyze retains survival evidence.
+
+On a first laboratory entry, Planet Engineering opens a dismissible, phase-aware walkthrough. Its guide card stays in one fixed position while the currently highlighted element is scrolled into view. It sequentially highlights the central planet scene, engineering controls, an editable slider, deterministic evidence, and the dynamic World story; it then loads the temperate starting experiment. Before Design Life, the guide loads a compatible example lifeform, allowing the learner to run and inspect a real deterministic analysis. The life segment explains the central preview, designer controls, single-choice dropdowns, dynamic Hypothesis story, traits/body systems/senses, readiness evidence, and the conditions the world asks of life. The analysis segment explains survivability, metrics, regional refuges, the 200-year population chart and its possible events, optional field illustration, and the Life Sciences Consultant. The tutorial may switch phases only as its own guided path. Finishing or choosing “Explore on my own” fully resets the planet, lifeform, and calculated state, then returns to Planet Designer. The right panel also shows the three-step experiment path, a concise explanation of the last parameter change, a resettable temperate starting experiment, and exact numeric entry beside each slider. Before Design Life, an advisory preflight reports liquid-water availability, whether the current world exposes a supported metabolic path, and the current radiation exposure band. It does not calculate survival, block designs, or add rules beyond the deterministic simulator. Analyze can copy a concise record of the selected configuration and calculated result for reproducible follow-up experiments.
 
 Analyze reports organism survivability rather than advanced-life potential as the prominent percentage. Its 200 deterministic steps are presented as **model years** solely to make the trend easier to read; they are not an asserted evolutionary chronology. Event icons show their population value and reveal their contextual detail on interaction. Regional mini-scenes are explanatory visual interpretations of the current planet and must not be treated as spatial climate predictions.
 
@@ -72,7 +74,7 @@ GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy, re
 
 ## Current implementation status
 
-The working local build implements a story-led Vespera boot with frozen and warm worlds, banner branding, bottom-centred flag language controls, eleven environment controls, a deterministic seeded 3D planet, custom terrain/water/ice/vapor/atmosphere/radiation/molten-rock shaders, a distant flared sun/day-night treatment, radiation and aurora presentation, labelled scientific overlays, and regional analysis. The blank-start lifeform designer exposes 44 traits with conflicts and visible anatomical responses. Simulator 1.7.0 evaluates 200 generations, six parameter-driven event types, strict viability gates, comparison state, server-only GPT-5.6 and image routes, honest fallbacks, downloadable 3:2 images, and complete English/Polish copy.
+The working local build implements a story-led Vespera boot with frozen and warm worlds, banner branding, bottom-centred flag language controls, eleven environment controls, a deterministic seeded 3D planet, custom terrain/water/ice/vapor/atmosphere/radiation/molten-rock shaders, a distant flared sun/day-night treatment, radiation and aurora presentation, labelled scientific overlays, and regional analysis. The blank-start lifeform designer exposes 51 traits with conflicts and visible anatomical responses. Where hard life support exists, four checked extreme-life starting strategies are available; otherwise no organism is proposed. Simulator 2.1.0 evaluates 200 model years with sixteen condition-backed event types selected by seeded probability (up to three, from years 10–190 and at least 33 years apart), chart-visible pressure losses and recovery opportunities, strict viability gates, comparison state, server-only GPT-5.6 and image routes, honest fallbacks, downloadable 3:2 images, and complete English/Polish copy.
 
 The local deterministic loop and fallback paths were browser-verified. Live GPT-5.6 and `gpt-image-2` responses remain **TODO: verify with deployed server credentials**. Accounts, persistence, sharing, a campaign, and durable caching are not implemented.
 

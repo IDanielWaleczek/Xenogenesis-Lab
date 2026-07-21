@@ -8,6 +8,7 @@ import type {
 } from "./schema";
 import { LifeConsultantContentSchema } from "./schema";
 import { normalizeWorldParameters } from "../world/schema";
+import { LIFE_TRAITS } from "./traits";
 
 const METRIC_LABELS: Record<
   SimulatorLanguage,
@@ -86,13 +87,53 @@ const OUTCOME_LABELS: Record<
   },
 };
 
+const REGION_ORDER: readonly RegionId[] = [
+  "coastal",
+  "equatorial",
+  "polar",
+  "deepOcean",
+  "underground",
+  "highAltitude",
+];
+
+/** Supplies both optional AI services with the same server-derived experiment evidence. */
+export function buildValidatedExperimentContext(
+  request: SurvivalSimulationRequest,
+  result: SurvivalSimulationResult,
+) {
+  const topRegion = REGION_ORDER.reduce((best, region) =>
+    result.regionScores[region] > result.regionScores[best] ? region : best,
+  );
+  const survivability = result.finalPopulation === 0
+    ? 0
+    : result.metrics.organismCompatibility;
+
+  return {
+    planet: {
+      seed: request.planet.seed,
+      parameters: normalizeWorldParameters(request.planet.world),
+    },
+    selectedTraits: request.traitIds.map((id) => ({
+      id,
+      category: LIFE_TRAITS[id].category,
+      modifiers: LIFE_TRAITS[id].modifiers,
+    })),
+    survivability,
+    topRegionalSurvivability: {
+      region: topRegion,
+      score: result.regionScores[topRegion],
+    },
+    deterministicResult: result,
+  };
+}
+
 /** Builds the constrained field-illustration prompt from validated simulation data. */
 export function buildControlledOrganismImagePrompt(
   request: SurvivalSimulationRequest,
   result: SurvivalSimulationResult,
   consultantDirection: LifeConsultantContent["imageDirection"],
 ): string {
-  const normalizedWorld = normalizeWorldParameters(request.planet.world);
+  const context = buildValidatedExperimentContext(request, result);
   const pose = {
     resting: "resting in a stable pose",
     foraging: "foraging for its configured energy source",
@@ -114,14 +155,18 @@ export function buildControlledOrganismImagePrompt(
     adaptation: "emphasize the selected adaptations",
     habitat: "emphasize organism-habitat scale and fit",
   }[consultantDirection.emphasis];
+  const deadSpecimen = context.survivability <= 0.25;
+  const organismState = deadSpecimen
+    ? "Depict one dead, intact specimen matching every selected trait in the top region. It must be clearly non-living, with no gore, no living organisms, and no suggestion that this design survives."
+    : "Depict a living organism matching every selected trait, actively adapted to the top region.";
 
   return [
     "Scientific astrobiology field illustration, landscape 3:2 composition, no text, no labels, no logos.",
-    `Planet seed: ${request.planet.seed}. Habitat: ${request.planet.world.habitat}.`,
-    `Local gravity ${request.planet.world.gravityG.toFixed(2)} g, effective pressure ${normalizedWorld.effectiveAtmosphericPressureAtm.toFixed(2)} atm, temperature ${request.planet.world.averageTemperatureC.toFixed(1)} C, water ${(request.planet.world.waterAvailability * 100).toFixed(0)} percent, radiation ${request.planet.world.radiationDoseRate.value.toFixed(3)} ${request.planet.world.radiationDoseRate.unit}.`,
-    `Validated traits: ${request.traitIds.join(", ")}.`,
-    `Deterministic outcome: ${result.outcome}; habitable regions: ${result.habitableRegions.join(", ") || "none"}.`,
-    "Depict only anatomy supported by those traits. Show the organism inside a matching planetary environment. Neutral scientific concept art, realistic materials, full organism visible, restrained palette.",
+    `Validated planet seed and all normalized planet parameters: ${JSON.stringify(context.planet)}.`,
+    `All selected trait configurations: ${JSON.stringify(context.selectedTraits)}.`,
+    `Validated survivability: ${(context.survivability * 100).toFixed(0)}%. Top regional survivability: ${context.topRegionalSurvivability.region}, ${(context.topRegionalSurvivability.score * 100).toFixed(0)}%. Deterministic outcome: ${result.outcome}.`,
+    organismState,
+    "Render the full organism in a realistic environment physically consistent with the supplied planet parameters and selected top region. Depict only anatomy supported by selected traits. Neutral scientific field documentation, realistic materials, restrained palette.",
     `Validated art direction: ${pose}; ${viewpoint}; ${lighting}; ${emphasis}.`,
   ].join(" ");
 }
@@ -145,7 +190,7 @@ export function buildLocalLifeConsultant(
   if (language === "pl") {
     return LifeConsultantContentSchema.parse({
       organismName: `Ksenotyp ${result.stateHash.slice(-4).toUpperCase()}`,
-      scientificDescription: `Projekt łączy ${request.traitIds.length} wybranych cech. Model przewiduje wynik „${outcome}” oraz końcową populację ${result.finalPopulation.toLocaleString("pl-PL")} po 200 pokoleniach. To lokalna interpretacja deterministyczna, a nie odpowiedź GPT-5.6.`,
+      scientificDescription: `Pierwsza linia życia Vespery otrzymała ${request.traitIds.length} wybranych adaptacji. Po 200 latach jej historia prowadzi do „${outcome}”, z populacją ${result.finalPopulation.toLocaleString("pl-PL")}. To lokalny odczyt danych eksperymentu, a nie odpowiedź GPT-5.6.`,
       planetAssessment: `Najsilniejszym składnikiem środowiska jest ${strongest}, a głównym ograniczeniem ${limiting}. Obszary z wynikiem regionalnym co najmniej 0,50: ${regions}.`,
       traitAssessment: `Wybrane cechy zmieniają tolerancję, koszt energii, rozmnażanie i złożoność. Wynik zgodności organizmu wynosi ${(result.metrics.organismCompatibility * 100).toFixed(0)}%, a potencjał rozmnażania ${(result.metrics.reproductionPotential * 100).toFixed(0)}%.`,
       insights: [
@@ -165,7 +210,7 @@ export function buildLocalLifeConsultant(
 
   return LifeConsultantContentSchema.parse({
     organismName: `Xenotype ${result.stateHash.slice(-4).toUpperCase()}`,
-    scientificDescription: `This design combines ${request.traitIds.length} selected traits. The model predicts ${outcome} and a final population of ${result.finalPopulation.toLocaleString("en-US")} after 200 generations. This is a local deterministic interpretation, not a GPT-5.6 response.`,
+    scientificDescription: `Vespera's first lineage carries ${request.traitIds.length} selected adaptations. After 200 years, its story reaches ${outcome}, with a population of ${result.finalPopulation.toLocaleString("en-US")}. This is a local reading of the experiment's evidence, not a GPT-5.6 response.`,
     planetAssessment: `The strongest environmental component is ${strongest}, while the leading constraint is ${limiting}. Regions scoring at least 0.50 are: ${regions}.`,
     traitAssessment: `The chosen traits modify tolerance, energy cost, reproduction, and complexity. Organism compatibility is ${(result.metrics.organismCompatibility * 100).toFixed(0)}% and reproduction potential is ${(result.metrics.reproductionPotential * 100).toFixed(0)}%.`,
     insights: [

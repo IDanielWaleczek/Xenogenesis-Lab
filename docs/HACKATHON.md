@@ -34,7 +34,7 @@ The repository currently implements:
 - eleven reactive planet parameters with preserved preferences and continuous phase-aware consequences;
 - a static parameter-backed left evidence panel in Planet Engineering and Life Design, including climate, effective atmosphere, water phases, humidity, energy/carbon, and radiation protection;
 - 44 biological traits with visible anatomy, conflicts, modifiers, advantages, and tradeoffs;
-- simulator 1.7.0 with phase-aware water/humidity coupling, strict viability gates, 11 continuous metrics, six representative regions, eight outcomes, and a 200-step population/event model presented as model years;
+- simulator 2.1.0 with phase-aware water/humidity coupling, strict viability gates, 11 continuous metrics, six representative regions, eight outcomes, a 200-step population/event model with sixteen condition-backed event types selected by seeded probability (up to three, from years 10–190 and at least 33 years apart), and four checked extreme-life starting strategies where hard life support exists;
 - deterministic organism morphology;
 - a server-only GPT-5.6 consultant route with Zod structured output and honest local fallback;
 - a server-only `gpt-image-2` route with controlled server-built prompt and procedural fallback;
@@ -67,8 +67,8 @@ The local deterministic workflow and both fallback routes work without external 
 - **Area:** intro narrative, organism design, deterministic population analysis, GPT/image presentation, and bilingual documentation.
 - **Work:** replaced the abstract orbit-to-organism intro with the Vespera expedition and banner; moved flag language controls to bottom centre; expanded the blank-start designer to 44 visibly represented traits without a construction budget; made the organism terrain derive from the engineered planet; added a strict life-support gate, a 200-step timeline displayed as model years, and six deterministic environmental event types; hid irrelevant planet controls in Design and Analyze; changed the consultant to the GPT-5.6 alias with an explicit temporary-unavailable state; changed generated images to downloadable 3:2 output. The current refinement replaces CSS-only boot planets with the shared WebGL scene, adds deterministic teaching summaries, makes body form a single choice, and makes events and regional context easier to inspect.
 - **Human decisions:** learner freedom, exact-zero survival when essential support is absent, a parameter-driven event story, and visible anatomy for every trait.
-- **Live-service boundary:** **TODO:** verify GPT-5.6 and `gpt-image-2` with deployed server credentials; local fallback is not a live-model demonstration.
-- **Verification:** 77 Vitest tests, TypeScript, ESLint, and the optimized Next.js build passed. Browser QA at `1280×720` and `390×844` verified the requested phases, strict-zero run, event timeline, fallback message, and English/Polish state. Live API and deployed-HEAD verification remain TODOs.
+- **Live-service boundary:** Local production-route verification on 2026-07-21 returned validated GPT-5.6 content (`gpt-5.6-sol`) and a `gpt-image-2` illustration using server-only credentials. Deployed server credentials and deployed-HEAD verification remain **TODO**; a local fallback is not a live-model demonstration.
+- **Verification:** 88 Vitest tests, TypeScript, ESLint, and the optimized Next.js build passed. Browser QA at `1280×720` and `390×844` verified the requested phases, strict-zero run, event timeline, fallback message, and English/Polish state. Local API verification passed; deployed-HEAD verification remains TODO.
 
 ## Codex and GPT-5.6 roles
 

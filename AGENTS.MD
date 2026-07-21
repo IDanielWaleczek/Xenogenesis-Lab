@@ -2,10 +2,10 @@
 
 ## Xenogenesis Lab Product North Star
 
-Xenogenesis Lab is an AI-guided astrobiology mission training simulator.
+Xenogenesis Lab is an AI-guided astrobiology simulator.
 
-The core user fantasy is: "I am a candidate training to reason like a
-xenobiology mission specialist."
+The core user fantasy is: "I can explore how a designed world and lifeform
+affect each other."
 
 Do not reduce the product to a generic dashboard, chatbot, parameter
 playground, organism generator, or decorative gamification layer.
@@ -14,7 +14,7 @@ The product must prioritize:
 
 1. scientific coherence
 2. clear educational communication
-3. one reliable mission-training loop
+3. one reliable simulation loop
 4. an engaging, accessible visual experience
 5. a strong sub-three-minute demo
 6. maintainable implementation without unnecessary complexity
@@ -24,18 +24,15 @@ The product must prioritize:
 Every meaningful implementation should support or strengthen this loop:
 
 ```text
-mission briefing
-→ environmental analysis
-→ committed hypothesis
+planet engineering
+→ lifeform design
 → deterministic simulation
-→ organism / pressure inspection
-→ GPT-5.6 instructor debrief
+→ organism and population inspection
+→ GPT-5.6 consultant interpretation
 → evidence-based revision
-→ competency progress
-→ next mission
 ```
 
-Prioritize one complete, reliable mission loop over many disconnected
+Prioritize one complete, reliable simulation loop over many disconnected
 features.
 
 ## Sources of truth
@@ -63,9 +60,9 @@ The deterministic rules engine owns:
 
 GPT-5.6 owns:
 
-* mission framing and educational narration
-* evaluation of reasoning against structured deterministic output
-* targeted questions, debriefs, and recommended experiments
+* scientific explanation and educational narration
+* interpretation against structured deterministic output
+* targeted observations and recommended experiments
 * organism dossier composition and controlled creative elaboration inside supplied constraints
 * construction of image-generation prompts
 
@@ -100,7 +97,6 @@ distinguishable.
 Keep these concerns separate, regardless of the final folder names:
 
 * world parameter input and validation
-* mission briefing and hypothesis input
 * deterministic environmental analysis
 * biological adaptation rules
 * organism data schema
@@ -144,36 +140,28 @@ Use language such as “plausible,” “predicted,” or “under this model”
 
 ## Product language
 
-Prefer mission-training terminology:
+Prefer clear simulator terminology:
 
-* Begin Training
-* Mission Control
-* Mission Briefing
-* Training Exercise
-* Commit Hypothesis
 * Run Simulation
-* Mission Instructor
-* Mission Debrief
-* Research Archive
-* Competency Profile
-* Certification
-* Mission Ready
+* Life Sciences Consultant
+* Survival Analysis
+* Adapt Planet
+* Adapt Lifeform
 
 Use generic labels only when they are clearer for accessibility.
 
 ## Gamification rule
 
-Progression must measure meaningful learning behavior. Good measures include
-mission completion, competency growth, improved hypothesis quality,
-evidence-based revision, research-archive entries, and certification stages.
+If progression is added, it must measure meaningful learning behavior. Good
+measures include evidence-based revision and documented experimental findings.
 
 Avoid arbitrary coins, unrelated streaks, decorative badges, rewards for
 meaningless clicks, and systems that distract from scientific reasoning.
 
 ## User experience
 
-The mission loop should remain obvious: briefing, hypothesis, simulation,
-inspection, instructor debrief, revision, and progression.
+The simulation loop should remain obvious: planet engineering, lifeform design,
+simulation, inspection, consultant interpretation, and revision.
 
 Prioritize:
 

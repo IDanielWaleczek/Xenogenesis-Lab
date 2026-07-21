@@ -17,7 +17,7 @@ Show startup from a fresh reload, then select **Begin training** to enter the la
 
 > Xenogenesis Lab is a procedural astrobiology simulator. This is a cinematic introduction to a world, its orbit, and the life we might engineer there. Then the lab gives the learner one broad goal: design stable, advanced life.
 
-## 0:16–0:34 — Mission and experimental loop
+## 0:16–0:34 — Experimental loop
 
 Pause on the objective and point to the five-step loop.
 
@@ -39,7 +39,7 @@ Open Design life. Show the blank organism against the same engineered terrain, t
 
 Run the simulation. Keep the animation and then show the outcome, survivability score, scores, regional mini-scenes, and population graph.
 
-> Simulator 1.7.0 runs locally and reproducibly across 200 deterministic model steps, presented as model years for readability. It combines 11 continuous suitability scores with strict minimum life support and six parameter-driven event types. Unsupported biology reaches zero survival instead of receiving a polite score. The same world and lifeform always produce the same event impacts and outcome.
+> Simulator 2.1.0 runs locally and reproducibly across 200 deterministic model steps, presented as model years for readability. It combines 11 continuous suitability scores with strict minimum life support and sixteen condition-backed event types selected by seeded probability: up to three chart-visible pressures or recovery opportunities can occur from years 10–190, with at least 33 years between them. Where hard life support exists, the designer offers four checked extreme-life starting strategies; unsupported biology still reaches zero survival instead of receiving a polite score. The same world and lifeform always produce the same event draw, impacts, and outcome.
 
 ## 1:55–2:13 — Adapt and compare
 

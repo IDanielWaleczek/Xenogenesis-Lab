@@ -8,7 +8,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import OrganismPreview from "@/components/life/OrganismPreview";
 import type { PlanetVisualizationMode } from "@/components/planet/ProceduralPlanet";
-import { GENESIS_MISSION } from "@/domain/simulator/mission";
+import { BASELINE_PLANET } from "@/domain/simulator/baseline";
 import {
   LifeConsultantResponseSchema,
   OrganismImageResponseSchema,
@@ -21,14 +21,21 @@ import type {
   PlanetState,
   RegionId,
   SimulationMetricId,
+  SurvivalFailureReason,
   SurvivalSimulationRequest,
   SurvivalSimulationResult,
 } from "@/domain/simulator/schema";
 import { runSurvivalSimulation } from "@/domain/simulator/simulate";
 import {
   LIFE_TRAITS,
+  TRAIT_CONFLICT_GROUPS,
+  type TraitConflictGroup,
   type TraitCategory,
 } from "@/domain/simulator/traits";
+import {
+  deriveAdaptationArchetypes,
+  deriveViableAdaptationArchetypes,
+} from "@/domain/simulator/archetypes";
 import {
   applyWorldEngineeringControlChange,
   deriveWorldEngineeringControlState,
@@ -44,11 +51,19 @@ import {
   MIN_AVERAGE_TEMPERATURE_C,
 } from "@/domain/world/schema";
 
-import { COPY, type LabCopy, type LabPhase, type Language, type ParameterId } from "./copy";
+import {
+  COPY,
+  type LabCopy,
+  type LabPhase,
+  type Language,
+  type ParameterId,
+  type TutorialStepId,
+} from "./copy";
 import {
   deriveParameterSliderPosition,
   deriveParameterValueFromSliderPosition,
 } from "./parameter-curves";
+import { deriveExperimentReadiness } from "./experiment-tools";
 
 const ProceduralPlanet = dynamic(
   () => import("@/components/planet/ProceduralPlanet"),
@@ -65,8 +80,53 @@ const IntroPlanetaryScene = dynamic(
 
 type SystemScreen = "boot" | "lab";
 type TraitNotice = "conflict" | "minimumTraits" | null;
+type TutorialTarget =
+  | "planetStage"
+  | "planetControls"
+  | "planetParameter"
+  | "evidencePanel"
+  | "worldStory"
+  | "worldEvidence"
+  | "chooseLife"
+  | "lifeDropdown"
+  | "hypothesisStory"
+  | "lifeFacts"
+  | "readiness"
+  | "lifeEvidence"
+  | "runSimulation"
+  | "resultOutcome"
+  | "resultMetrics"
+  | "resultRegions"
+  | "resultPopulation"
+  | "organismPortrait"
+  | "consultant";
 
 const PHASES: LabPhase[] = ["planet", "life", "results"];
+const TUTORIAL_STEPS: Array<{ id: TutorialStepId; phase: LabPhase; target: TutorialTarget }> = [
+  { id: "planetScene", phase: "planet", target: "planetStage" },
+  { id: "planetControls", phase: "planet", target: "planetControls" },
+  { id: "parameter", phase: "planet", target: "planetParameter" },
+  { id: "evidencePanel", phase: "planet", target: "evidencePanel" },
+  { id: "worldStory", phase: "planet", target: "worldStory" },
+  { id: "evidenceDetails", phase: "planet", target: "worldEvidence" },
+  { id: "chooseLife", phase: "planet", target: "chooseLife" },
+  { id: "lifeTransition", phase: "life", target: "planetStage" },
+  { id: "lifeScene", phase: "life", target: "planetStage" },
+  { id: "lifeControls", phase: "life", target: "planetControls" },
+  { id: "lifeDropdown", phase: "life", target: "lifeDropdown" },
+  { id: "hypothesisStory", phase: "life", target: "hypothesisStory" },
+  { id: "lifeFacts", phase: "life", target: "lifeFacts" },
+  { id: "readiness", phase: "life", target: "readiness" },
+  { id: "lifeEvidence", phase: "life", target: "lifeEvidence" },
+  { id: "runSimulation", phase: "life", target: "runSimulation" },
+  { id: "resultOutcome", phase: "results", target: "resultOutcome" },
+  { id: "metrics", phase: "results", target: "resultMetrics" },
+  { id: "regions", phase: "results", target: "resultRegions" },
+  { id: "population", phase: "results", target: "resultPopulation" },
+  { id: "events", phase: "results", target: "resultPopulation" },
+  { id: "portrait", phase: "results", target: "organismPortrait" },
+  { id: "consultant", phase: "results", target: "consultant" },
+];
 const CATEGORIES: TraitCategory[] = ["body", "physiology", "senses", "reproduction", "intelligence"];
 const METRIC_ORDER: SimulationMetricId[] = [
   "advancedLifePotential",
@@ -81,6 +141,74 @@ const METRIC_ORDER: SimulationMetricId[] = [
   "radiationSafety",
   "reproductionPotential",
 ];
+
+const METRIC_EMOJIS: Record<SimulationMetricId, string> = {
+  advancedLifePotential: "🧠",
+  ecosystemPotential: "🌿",
+  populationStability: "📈",
+  organismCompatibility: "🧬",
+  metabolicViability: "⚗️",
+  biologicalEnergy: "☀️",
+  liquidWater: "💧",
+  atmosphere: "🌬️",
+  thermalStability: "🌡️",
+  radiationSafety: "🛡️",
+  reproductionPotential: "🥚",
+};
+
+const TRAIT_EMOJIS: Record<LifeTraitId, string> = {
+  compactBody: "🔹",
+  largeBody: "🐘",
+  internalSkeleton: "🦴",
+  exoskeleton: "🛡️",
+  aquaticMovement: "🐟",
+  terrestrialMovement: "🐾",
+  aerialMovement: "🕊️",
+  unicellular: "🦠",
+  multicellular: "🧬",
+  bilateralSymmetry: "↔️",
+  radialSymmetry: "✳️",
+  gills: "🐠",
+  lungs: "💨",
+  graspingLimbs: "🦾",
+  opposableDigits: "🤏",
+  oxygenRespiration: "💨",
+  lowOxygenMetabolism: "⚗️",
+  anaerobicMetabolism: "⚗️",
+  photosynthesis: "🌿",
+  chemosynthesis: "🔬",
+  radiationResistance: "☢️",
+  thermalInsulation: "❄️",
+  heatResistance: "🔥",
+  cryoprotectiveChemistry: "🧊",
+  heatShockProteins: "🧪",
+  mineralShielding: "⛏️",
+  biofilmColony: "🧫",
+  saltTolerance: "🧂",
+  waterConservation: "💧",
+  pressureResistance: "🌊",
+  regenerativeTissue: "🩹",
+  hibernation: "😴",
+  dormantCysts: "🥚",
+  symbioticMetabolism: "🤝",
+  visibleVision: "👁️",
+  infraredVision: "🌡️",
+  echolocation: "📡",
+  chemicalSensing: "👃",
+  rapidReproduction: "🐣",
+  protectedEggs: "🥚",
+  liveBirth: "🤱",
+  spores: "🍄",
+  parentalInvestment: "❤️",
+  simpleNeuralSystem: "🕸️",
+  centralizedBrain: "🧠",
+  bipedalPosture: "🚶",
+  socialCoordination: "🐜",
+  toolUsePotential: "🛠️",
+  complexCommunication: "🗣️",
+  adaptiveLearning: "📚",
+  culturalMemory: "📜",
+};
 
 const DEFAULT_TRAITS: LifeTraitId[] = [];
 
@@ -106,7 +234,34 @@ const PARAMETER_CONFIG: Array<{
 
 /** Creates a fresh validated copy of the immutable laboratory baseline. */
 function createBaselinePlanet(): PlanetState {
-  return PlanetStateSchema.parse(GENESIS_MISSION.planet);
+  return PlanetStateSchema.parse(BASELINE_PLANET);
+}
+
+/** Creates a familiar, fully editable world for an immediately runnable experiment. */
+function createTemperateExperimentPlanet(): PlanetState {
+  const baseline = createBaselinePlanet();
+  return PlanetStateSchema.parse({
+    ...baseline,
+    seed: "VESPERA-TEMPERATE-01",
+    world: {
+      ...baseline.world,
+      atmosphericPressureAtm: 1,
+      atmosphereComposition: {
+        oxygenFraction: 0.21,
+        carbonDioxideFraction: 0.00042,
+        nitrogenFraction: 0.78,
+        inertGasFraction: 0.00958,
+        toxicGasFraction: 0,
+      },
+      averageTemperatureC: 15,
+      temperatureVariationC: 15,
+      radiationDoseRate: { value: 0.0003, unit: "mSv/h" },
+      lightLevel: 1,
+      waterAvailability: 0.71,
+      humidity: 0.6,
+      magneticFieldStrengthEarth: 1,
+    },
+  });
 }
 
 /** Builds the two explicitly parameter-backed worlds used only as the boot-scene tableau. */
@@ -147,6 +302,21 @@ function formatNumber(value: number, language: Language, digits = 1): string {
   return new Intl.NumberFormat(language === "pl" ? "pl-PL" : "en-US", {
     maximumFractionDigits: digits,
   }).format(value);
+}
+
+/** Renders deterministic failure causes with the current world facts. */
+function formatFailureExplanation(
+  reasons: SurvivalFailureReason[],
+  context: WorldContext,
+  copy: LabCopy,
+  language: Language,
+): string {
+  return reasons.map((reason) => copy.simulation.failureReasons[reason]
+    .replace("{minimum}", formatNumber(context.temperatureMinimumC, language, 0))
+    .replace("{maximum}", formatNumber(context.temperatureMaximumC, language, 0))
+    .replace("{light}", formatNumber(context.lightLevel * 100, language, 0))
+    .replace("{radiation}", formatNumber(context.protectedRadiationMilliSvPerHour, language, 3)))
+    .join(" ");
 }
 
 /** Derives a value-sensitive explanation and any physical UI constraint for one control. */
@@ -214,7 +384,6 @@ function createSimulationRequest(
   traitIds: LifeTraitId[],
 ): SurvivalSimulationRequest {
   return {
-    missionId: "genesis-01",
     planet,
     traitIds,
     initialPopulation: 120,
@@ -245,6 +414,8 @@ function ParameterControl({
   influence,
   constraint,
   disabled,
+  emphasized,
+  changed,
   language,
   onChange,
 }: {
@@ -259,6 +430,8 @@ function ParameterControl({
   influence: string;
   constraint: string | null;
   disabled: boolean;
+  emphasized: boolean;
+  changed: boolean;
   language: Language;
   onChange: (value: number) => void;
 }) {
@@ -269,6 +442,7 @@ function ParameterControl({
   const referenceId = `parameter-${id}-earth-reference`;
   const constraintId = `parameter-${id}-constraint`;
   const rangeRef = useRef<HTMLInputElement>(null);
+  const exactInputRef = useRef<HTMLInputElement>(null);
   const pendingValueRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const onChangeRef = useRef(onChange);
@@ -276,6 +450,10 @@ function ParameterControl({
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    if (exactInputRef.current) exactInputRef.current.value = String(value);
+  }, [value]);
 
   useEffect(() => {
     const range = rangeRef.current;
@@ -325,11 +503,38 @@ function ParameterControl({
     });
   };
 
+  /** Commits a precise typed value while retaining the physical control bounds. */
+  const commitExactValue = (input: HTMLInputElement) => {
+    const nextValue = input.valueAsNumber;
+    if (!Number.isFinite(nextValue)) {
+      input.value = String(value);
+      return;
+    }
+    onChange(Math.min(max, Math.max(min, nextValue)));
+  };
+
   return (
-    <div className="parameter-control">
+    <div className={`parameter-control ${emphasized ? "guidance-highlight" : ""} ${changed ? "last-changed" : ""}`}>
       <div className="parameter-heading">
         <label htmlFor={`parameter-${id}`}>{label}</label>
-        <output htmlFor={`parameter-${id}`}>{display}</output>
+        <span className="parameter-value-input">
+          <input
+            aria-label={`${label} ${unit}`}
+            disabled={disabled}
+            inputMode="decimal"
+            max={max}
+            min={min}
+            defaultValue={value}
+            onBlur={(event) => commitExactValue(event.currentTarget)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+            }}
+            ref={exactInputRef}
+            step={step}
+            type="number"
+          />
+          <span>{unit}</span>
+        </span>
       </div>
       <input
         aria-describedby={`${descriptionId} ${referenceId}${constraint ? ` ${constraintId}` : ""}`}
@@ -372,38 +577,126 @@ function ParameterControl({
 }
 
 /** Draws a compact accessible population trend without a chart dependency. */
+/** Expands a mutually exclusive adaptation choice without hiding its tradeoffs. */
+function SingleChoiceTraitDropdown({
+  group,
+  traitIds,
+  copy,
+  onSelect,
+}: {
+  group: TraitConflictGroup;
+  traitIds: LifeTraitId[];
+  copy: LabCopy;
+  onSelect: (group: TraitConflictGroup, traitId: LifeTraitId) => void;
+}) {
+  const selectedTraitId = group.traitIds.find((traitId) => traitIds.includes(traitId));
+  const selectedTrait = selectedTraitId ? copy.traits[selectedTraitId] : null;
+
+  return (
+    <details className="trait-choice-dropdown">
+      <summary>
+        <span>{copy.life.singleChoiceGroups[group.id]}</span>
+        <strong>{selectedTraitId && <span aria-hidden="true" className="trait-emoji">{TRAIT_EMOJIS[selectedTraitId]}</span>}{selectedTrait?.title ?? copy.life.chooseOne}</strong>
+      </summary>
+      {selectedTrait && (
+        <div className="selected-trait-summary">
+          <small><em>{copy.life.advantage}</em>{selectedTrait.advantage}</small>
+          <small><em>{copy.life.tradeoff}</em>{selectedTrait.tradeoff}</small>
+        </div>
+      )}
+      <div aria-label={copy.life.singleChoiceGroups[group.id]} className="trait-choice-options" role="radiogroup">
+        {group.traitIds.map((traitId) => {
+          const traitCopy = copy.traits[traitId];
+          const selected = traitId === selectedTraitId;
+          return (
+            <button
+              aria-checked={selected}
+              className={`trait-choice-option ${selected ? "selected" : ""}`}
+              key={traitId}
+              onClick={() => {
+                onSelect(group, traitId);
+              }}
+              role="radio"
+              type="button"
+            >
+              <span aria-hidden="true" className="trait-choice-indicator">{selected ? "✓" : ""}</span>
+              <span className="trait-copy">
+                <span className="trait-title"><strong><span aria-hidden="true" className="trait-emoji">{TRAIT_EMOJIS[traitId]}</span>{traitCopy.title}</strong></span>
+                <small><em>{copy.life.advantage}</em>{traitCopy.advantage}</small>
+                <small><em>{copy.life.tradeoff}</em>{traitCopy.tradeoff}</small>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 function PopulationChart({
   result,
   language,
   label,
+  copy,
 }: {
   result: SurvivalSimulationResult;
   language: Language;
   label: string;
+  copy: LabCopy;
 }) {
   const gradientId = `population-${useId().replaceAll(":", "")}`;
-  const [activeEvent, setActiveEvent] = useState(0);
+  const [hoveredGeneration, setHoveredGeneration] = useState<number | null>(null);
+  const [hoveredEvent, setHoveredEvent] = useState<number | null>(null);
   const width = 620;
   const height = 190;
   const padding = 18;
   const finalGeneration = result.populationTimeline.at(-1)?.generation ?? 1;
   const maximum = Math.max(1, result.peakPopulation, result.carryingCapacity);
   const points = result.populationTimeline.map(({ generation, population }) => ({
+    generation,
+    population,
     x: padding + (generation / finalGeneration) * (width - padding * 2),
     y: height - padding - (population / maximum) * (height - padding * 2),
   }));
   const line = points.map(({ x, y }) => `${x},${y}`).join(" ");
   const area = `M ${padding} ${height - padding} L ${points.map(({ x, y }) => `${x} ${y}`).join(" L ")} L ${width - padding} ${height - padding} Z`;
+  const activePoint = hoveredGeneration === null ? null : points[hoveredGeneration];
+  const event = hoveredEvent === null ? null : result.populationEvents[hoveredEvent];
+  const tooltipAlignsEnd = activePoint !== null && activePoint.x > width * 0.56;
+  const tooltipStyle = activePoint ? {
+    "--tooltip-x": `${(activePoint.x / width) * 100}%`,
+    "--tooltip-y": `${(activePoint.y / height) * 100}%`,
+  } as React.CSSProperties : undefined;
+  const updateHoveredGeneration = (event: React.PointerEvent<SVGSVGElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const chartX = ((event.clientX - bounds.left) / bounds.width) * width;
+    const generation = Math.round(((chartX - padding) / (width - padding * 2)) * finalGeneration);
+    setHoveredGeneration(Math.max(0, Math.min(finalGeneration, generation)));
+  };
+  const activateEvent = (eventIndex: number, generation: number) => {
+    setHoveredGeneration(generation);
+    setHoveredEvent(eventIndex);
+  };
 
   return (
     <figure className="population-chart">
-      <svg aria-label={label} role="img" viewBox={`0 0 ${width} ${height}`}>
+      <svg
+        aria-label={label}
+        onPointerLeave={() => {
+          setHoveredGeneration(null);
+          setHoveredEvent(null);
+        }}
+        onPointerMove={updateHoveredGeneration}
+        role="img"
+        viewBox={`0 0 ${width} ${height}`}
+      >
         <defs>
           <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0" stopColor="#5eead4" stopOpacity="0.36" />
             <stop offset="1" stopColor="#5eead4" stopOpacity="0.01" />
           </linearGradient>
         </defs>
+        <rect className="population-chart-hit-area" height={height} width={width} x="0" y="0" />
         {[0.25, 0.5, 0.75].map((fraction) => (
           <line key={fraction} x1={padding} x2={width - padding} y1={height * fraction} y2={height * fraction} />
         ))}
@@ -411,16 +704,18 @@ function PopulationChart({
         <polyline fill="none" points={line} stroke="#67e8f9" strokeLinejoin="round" strokeWidth="3" />
         {result.populationEvents.map((event, index) => {
           const point = points[event.generation];
-          return point ? <g key={`${event.id}-${event.generation}`}><line className={`population-event-line ${event.kind}`} x1={point.x} x2={point.x} y1={padding} y2={height - padding} /><circle className={`population-event-dot ${event.kind}`} cx={point.x} cy={point.y} onClick={() => setActiveEvent(index)} onFocus={() => setActiveEvent(index)} r="7" tabIndex={0}><title>{`${EVENT_EMOJI[event.id]} ${label}: ${event.generation}; ${formatNumber(result.populationTimeline[event.generation]?.population ?? 0, language, 0)}`}</title></circle><text className="population-event-icon" x={point.x} y={Math.max(14, point.y - 11)}>{EVENT_EMOJI[event.id]}</text><text className="population-event-population" x={point.x} y={Math.min(height - 5, point.y + 15)}>{formatNumber(result.populationTimeline[event.generation]?.population ?? 0, language, 0)}</text></g> : null;
+          const accessibleEvent = `${EVENT_EMOJI[event.id]} ${copy.populationEvents[event.id].title}: ${copy.populationEvents[event.id].description}`;
+          return point ? <g key={`${event.id}-${event.generation}`}><line className={`population-event-line ${event.kind}`} x1={point.x} x2={point.x} y1={padding} y2={height - padding} /><rect aria-label={accessibleEvent} className="population-event-hit-area" height={height - padding * 2} onBlur={() => setHoveredEvent(null)} onFocus={() => activateEvent(index, event.generation)} onPointerEnter={() => activateEvent(index, event.generation)} onPointerLeave={() => setHoveredEvent(null)} role="img" tabIndex={0} width="30" x={point.x - 15} y={padding} /><circle aria-hidden="true" className={`population-event-dot ${event.kind}`} cx={point.x} cy={point.y} r="7" /><text className="population-event-icon" x={point.x} y={Math.max(14, point.y - 11)}>{EVENT_EMOJI[event.id]}</text></g> : null;
         })}
         <circle cx={points.at(-1)?.x} cy={points.at(-1)?.y} fill="#ecfeff" r="4" />
+        {activePoint && <g className="population-chart-cursor" pointerEvents="none"><line x1={activePoint.x} x2={activePoint.x} y1={padding} y2={height - padding} /><circle cx={activePoint.x} cy={activePoint.y} r="4" /></g>}
       </svg>
+      {activePoint && <output className={`population-chart-tooltip${tooltipAlignsEnd ? " population-chart-tooltip-end" : ""}`} style={tooltipStyle}><strong>{language === "pl" ? "Rok" : "Year"} {activePoint.generation}</strong><span>{formatNumber(activePoint.population, language, 0)} {language === "pl" ? "organizmów" : "organisms"}</span>{event && <div className="population-chart-event-detail"><b>{EVENT_EMOJI[event.id]} {copy.populationEvents[event.id].title} · {event.impactFraction > 0 ? "+" : ""}{Math.round(event.impactFraction * 100)}%</b><span>{copy.populationEvents[event.id].description}</span><small>{copy.simulation.eventImpactContext}</small></div>}</output>}
       <figcaption>
         <span>0</span>
         <span>{formatNumber(maximum, language, 0)}</span>
         <span>{finalGeneration}</span>
       </figcaption>
-      {result.populationEvents[activeEvent] && <p className="population-chart-event">{EVENT_EMOJI[result.populationEvents[activeEvent].id]} {language === "pl" ? "Rok" : "Year"} {result.populationEvents[activeEvent].generation} · {formatNumber(result.populationTimeline[result.populationEvents[activeEvent].generation]?.population ?? 0, language, 0)} {language === "pl" ? "organizmów" : "organisms"}</p>}
     </figure>
   );
 }
@@ -473,7 +768,7 @@ function WorldEvidence({
           <dd><span>{copy.environment.liquid}</span><strong>{percentage(context.liquidWaterFraction)}</strong></dd>
           <dd><span>{copy.environment.ice}</span><strong>{percentage(context.iceWaterFraction)}</strong></dd>
           <dd><span>{copy.environment.vapor}</span><strong>{percentage(context.vaporWaterFraction)}</strong></dd>
-          <dd><span>{copy.environment.boilingPoint}</span><strong>{boilingPoint}</strong></dd>
+          <dd className="world-evidence-boiling-point"><span>{copy.environment.boilingPoint}</span><strong>{boilingPoint}</strong></dd>
         </div>
         <div>
           <dt>{copy.environment.humidity}</dt>
@@ -536,33 +831,31 @@ function lifeStory(context: WorldContext, traitIds: LifeTraitId[], copy: LabCopy
     : `This hypothesis combines ${names}. Its main test will be ${challenge}; every further trait is an experiment, not a guarantee of survival.`;
 }
 
-function traitHighlights(traitIds: LifeTraitId[]): { strengths: LifeTraitId[]; limits: LifeTraitId[] } {
-  const scored = traitIds.map((id) => {
-    const values = Object.values(LIFE_TRAITS[id].modifiers);
-    return { id, benefit: values.reduce((sum, value) => sum + Math.max(0, value ?? 0), 0), cost: values.reduce((sum, value) => sum + Math.max(0, -(value ?? 0)), 0) };
-  });
-  return {
-    strengths: [...scored].sort((a, b) => b.benefit - a.benefit).slice(0, 5).map(({ id }) => id),
-    limits: [...scored].sort((a, b) => b.cost - a.cost || a.benefit - b.benefit).slice(0, 5).map(({ id }) => id),
-  };
-}
-
-const TRAIT_CATEGORY_EMOJI: Record<TraitCategory, string> = {
-  body: "🧬", physiology: "⚗️", senses: "👁️", reproduction: "🥚", intelligence: "🧠",
-};
-
 const EVENT_EMOJI = {
-  thermalShock: "🌡️", radiationStorm: "☢️", hydrosphereStress: "💧", resourceBloom: "🌿", adaptiveBreakthrough: "🧠", reproductiveBottleneck: "🥚",
+  vacuumExposure: "🪐", oxygenShortfall: "💨", thermalShock: "🌡️", radiationStorm: "☢️", hydrosphereStress: "💧", desiccationFront: "🏜️", lowLightFamine: "🌑", resourceBloom: "🌿", geothermalPulse: "🌋", thawWindow: "🧊", reproductiveBottleneck: "🥚", seasonalRefuge: "🛖", adaptiveBreakthrough: "🧠", nutrientUpwelling: "🌊", photosyntheticSurge: "☀️", nurserySeason: "🐣",
 } as const;
 
-/** Compact, parameter-driven visual cue for each simulated regional score. */
+/** Renders a region-specific procedural mini-scene from the engineered world state. */
 function RegionBiomePreview({ context, region, label }: { context: WorldContext; region: RegionId; label: string }) {
   const hasLiquidWater = context.liquidWaterFraction > 0.08;
   const frozen = context.iceWaterFraction > context.liquidWaterFraction;
   const barren = context.effectivePressureAtm < 0.01;
-  const warm = context.meanTemperatureC > 65;
-  const className = `region-biome ${region} ${hasLiquidWater ? "has-water" : "dry"} ${frozen ? "frozen" : ""} ${barren ? "airless" : ""} ${warm ? "hot" : ""}`;
-  return <span aria-label={label} className={className} role="img"><i /><b /><em /></span>;
+  const hot = context.temperatureMaximumC > 50;
+  const cold = context.temperatureMinimumC < 0;
+  const dim = context.lightLevel < 0.28;
+  const irradiated = context.protectedRadiationMilliSvPerHour > 0.1;
+  const thinAir = context.effectivePressureAtm < 0.2;
+  const denseAir = context.effectivePressureAtm > 1.5;
+  const className = `region-biome ${region} ${hasLiquidWater ? "has-water" : "dry"} ${frozen ? "frozen" : ""} ${barren ? "airless" : ""} ${hot ? "hot" : ""} ${cold ? "cold" : ""} ${dim ? "dim" : ""} ${irradiated ? "irradiated" : ""} ${thinAir ? "thin-air" : ""} ${denseAir ? "dense-air" : ""}`;
+  return (
+    <figure aria-label={label} className={className} role="img">
+      <i className="region-sky" />
+      <i className="region-distant" />
+      <i className="region-ground" />
+      <i className="region-detail" />
+      <i className="region-atmosphere" />
+    </figure>
+  );
 }
 
 /** Full application surface for one repeatable procedural life-engineering workspace. */
@@ -586,12 +879,47 @@ export default function Home() {
   const [consultantStatus, setConsultantStatus] = useState<"idle" | "loading" | "error">("idle");
   const [organismImage, setOrganismImage] = useState<OrganismImageResponse | null>(null);
   const [imageStatus, setImageStatus] = useState<"idle" | "loading" | "error" | "fallback">("idle");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStepIndex, setOnboardingStepIndex] = useState(0);
+  const [lastParameterId, setLastParameterId] = useState<ParameterId | null>(null);
+  const [summaryCopyStatus, setSummaryCopyStatus] = useState<"idle" | "copied" | "error">("idle");
   const simulationRunId = useRef(0);
   const stateEpoch = useRef(0);
+  const planetStageRef = useRef<HTMLElement>(null);
+  const planetControlsRef = useRef<HTMLElement>(null);
+  const planetParameterRef = useRef<HTMLDivElement>(null);
+  const evidencePanelRef = useRef<HTMLElement>(null);
+  const worldStoryRef = useRef<HTMLElement>(null);
+  const worldEvidenceRef = useRef<HTMLDivElement>(null);
+  const chooseLifeRef = useRef<HTMLButtonElement>(null);
+  const lifeDropdownRef = useRef<HTMLDivElement>(null);
+  const hypothesisStoryRef = useRef<HTMLElement>(null);
+  const lifeFactsRef = useRef<HTMLDivElement>(null);
+  const readinessRef = useRef<HTMLElement>(null);
+  const lifeEvidenceRef = useRef<HTMLDivElement>(null);
+  const runSimulationRef = useRef<HTMLDivElement>(null);
+  const resultOutcomeRef = useRef<HTMLElement>(null);
+  const resultMetricsRef = useRef<HTMLElement>(null);
+  const resultRegionsRef = useRef<HTMLElement>(null);
+  const resultPopulationRef = useRef<HTMLElement>(null);
+  const organismPortraitRef = useRef<HTMLElement>(null);
+  const consultantRef = useRef<HTMLElement>(null);
   const copy = COPY[language];
+  const activeTutorialStep = TUTORIAL_STEPS[onboardingStepIndex];
+  const tutorialFocus = (target: TutorialTarget) => (
+    showOnboarding && activeTutorialStep.target === target ? "tutorial-focus" : ""
+  );
   const worldContext = useMemo(
     () => deriveWorldContext(planet.world),
     [planet.world],
+  );
+  const viableArchetypes = useMemo(() => deriveViableAdaptationArchetypes(planet), [planet]);
+  const readiness = useMemo(
+    () => deriveExperimentReadiness(
+      worldContext,
+      deriveAdaptationArchetypes(planet).length > 0,
+    ),
+    [planet, worldContext],
   );
 
   useEffect(() => {
@@ -600,6 +928,19 @@ export default function Home() {
     const description = document.querySelector('meta[name="description"]');
     description?.setAttribute("content", copy.document.description);
   }, [copy.document.description, copy.document.title, language]);
+
+  useEffect(() => {
+    if (screen !== "lab" || !showOnboarding) return;
+    const targets: Record<TutorialTarget, React.RefObject<HTMLElement | null>> = {
+      planetStage: planetStageRef, planetControls: planetControlsRef, planetParameter: planetParameterRef,
+      evidencePanel: evidencePanelRef, worldStory: worldStoryRef, worldEvidence: worldEvidenceRef,
+      chooseLife: chooseLifeRef, lifeDropdown: lifeDropdownRef, hypothesisStory: hypothesisStoryRef,
+      lifeFacts: lifeFactsRef, readiness: readinessRef, lifeEvidence: lifeEvidenceRef,
+      runSimulation: runSimulationRef, resultOutcome: resultOutcomeRef, resultMetrics: resultMetricsRef, resultRegions: resultRegionsRef,
+      resultPopulation: resultPopulationRef, organismPortrait: organismPortraitRef, consultant: consultantRef,
+    };
+    targets[activeTutorialStep.target].current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeTutorialStep.target, screen, showOnboarding]);
 
   const invalidateCalculatedState = () => {
     stateEpoch.current += 1;
@@ -610,10 +951,12 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setSummaryCopyStatus("idle");
   };
 
   const updateParameter = (id: ParameterId, value: number) => {
     invalidateCalculatedState();
+    setLastParameterId(id);
     setPlanet((current) => {
       const world = applyWorldEngineeringControlChange(current.world, id, value);
       return PlanetStateSchema.parse({ ...current, world });
@@ -622,7 +965,61 @@ export default function Home() {
 
   const restoreBaseline = () => {
     setPlanet(createBaselinePlanet());
+    setLastParameterId(null);
     invalidateCalculatedState();
+  };
+
+  const loadTemperateExperiment = () => {
+    setPlanet(createTemperateExperimentPlanet());
+    setLastParameterId(null);
+    invalidateCalculatedState();
+  };
+
+  const loadTutorialLifeform = () => {
+    const examplePlanet = createTemperateExperimentPlanet();
+    const exampleTraits = deriveAdaptationArchetypes(examplePlanet)[0]?.traitIds ?? DEFAULT_TRAITS;
+    setPlanet(examplePlanet);
+    setTraitIds(exampleTraits);
+    setActiveCategory("body");
+    setTraitNotice(null);
+    setLastParameterId(null);
+    invalidateCalculatedState();
+  };
+
+  const endOnboarding = () => {
+    window.localStorage.setItem("xenogenesis-onboarding-seen", "true");
+    resetLab();
+    setShowOnboarding(false);
+    setOnboardingStepIndex(0);
+  };
+
+  const dismissOnboarding = endOnboarding;
+
+  const reopenOnboarding = () => {
+    setOnboardingStepIndex(0);
+    setPhase("planet");
+    setShowOnboarding(true);
+  };
+
+  const advanceOnboarding = () => {
+    if (onboardingStepIndex === TUTORIAL_STEPS.length - 1) {
+      endOnboarding();
+      return;
+    }
+    if (activeTutorialStep.id === "parameter") loadTemperateExperiment();
+    if (activeTutorialStep.id === "chooseLife") loadTutorialLifeform();
+    const nextIndex = onboardingStepIndex + 1;
+    setOnboardingStepIndex(nextIndex);
+    setPhase(TUTORIAL_STEPS[nextIndex].phase);
+  };
+
+  const enterLab = () => {
+    if (window.localStorage.getItem("xenogenesis-onboarding-seen") !== "true") {
+      setOnboardingStepIndex(0);
+      setPhase("planet");
+      setShowOnboarding(true);
+    }
+    setScreen("lab");
   };
 
   const resetLab = () => {
@@ -642,6 +1039,20 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setLastParameterId(null);
+    setSummaryCopyStatus("idle");
+  };
+
+  /** Removes only this application's browser keys, then restores the first-run state. */
+  const clearLabData = () => {
+    if (!window.confirm(copy.header.clearDataConfirm)) return;
+    Object.keys(window.localStorage)
+      .filter((key) => key.startsWith("xenogenesis-"))
+      .forEach((key) => window.localStorage.removeItem(key));
+    resetLab();
+    setLanguage("en");
+    setShowOnboarding(false);
+    setScreen("boot");
   };
 
   const changeLanguage = (nextLanguage: Language) => {
@@ -653,6 +1064,13 @@ export default function Home() {
     setImageStatus("idle");
   };
 
+  const removeConflictingTraits = (current: LifeTraitId[], traitId: LifeTraitId) => current.filter(
+    (selectedId) => selectedId === traitId || (
+      !LIFE_TRAITS[traitId].conflicts.includes(selectedId)
+      && !LIFE_TRAITS[selectedId].conflicts.includes(traitId)
+    ),
+  );
+
   const toggleTrait = (traitId: LifeTraitId) => {
     setTraitNotice(null);
     if (traitIds.includes(traitId)) {
@@ -660,22 +1078,23 @@ export default function Home() {
       invalidateCalculatedState();
       return;
     }
-    const conflicts = LIFE_TRAITS[traitId].conflicts.some((id) => traitIds.includes(id));
-    if (conflicts) {
-      setTraitNotice("conflict");
-      return;
-    }
-    setTraitIds((current) => [...current, traitId]);
+    setTraitIds((current) => [...removeConflictingTraits(current, traitId), traitId]);
     invalidateCalculatedState();
   };
 
-  const selectBodyForm = (next: "" | "unicellular" | "multicellular") => {
+  const selectSingleChoiceTrait = (group: TraitConflictGroup, next: LifeTraitId) => {
     setTraitNotice(null);
     invalidateCalculatedState();
     setTraitIds((current) => [
-      ...current.filter((id) => id !== "unicellular" && id !== "multicellular"),
-      ...(next ? [next] : []),
+      ...removeConflictingTraits(current.filter((id) => !group.traitIds.includes(id)), next),
+      next,
     ]);
+  };
+
+  const applyArchetype = (nextTraitIds: LifeTraitId[]) => {
+    setTraitNotice(null);
+    invalidateCalculatedState();
+    setTraitIds(nextTraitIds);
   };
 
   const runSimulation = async () => {
@@ -687,6 +1106,9 @@ export default function Home() {
     setTraitNotice(null);
     setIsSimulating(true);
     setPhase("results");
+    if (showOnboarding && activeTutorialStep.id === "runSimulation") {
+      setOnboardingStepIndex((current) => Math.min(current + 1, TUTORIAL_STEPS.length - 1));
+    }
     const currentRunId = simulationRunId.current + 1;
     simulationRunId.current = currentRunId;
     stateEpoch.current += 1;
@@ -700,7 +1122,29 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setSummaryCopyStatus("idle");
     setIsSimulating(false);
+  };
+
+  /** Copies only user choices and calculated evidence for a reproducible follow-up experiment. */
+  const copyExperimentSummary = async () => {
+    if (!result) return;
+    const traitNames = traitIds.map((id) => copy.traits[id].title).join(", ");
+    const summary = [
+      `${copy.header.system}`,
+      `${copy.simulation.stateHash}: ${result.stateHash} · ${copy.simulation.modelVersion}: ${result.simulatorVersion}`,
+      `${copy.environment.effectivePressure}: ${formatNumber(worldContext.effectivePressureAtm, language, 3)} atm · ${copy.environment.range}: ${formatNumber(worldContext.temperatureMinimumC, language, 0)}–${formatNumber(worldContext.temperatureMaximumC, language, 0)} °C`,
+      `${copy.environment.surfaceWater}: ${formatNumber(worldContext.surfaceWaterFraction * 100, language, 1)}% · ${copy.environment.protected}: ${formatNumber(worldContext.protectedRadiationMilliSvPerHour, language, 5)} mSv/h`,
+      `${language === "pl" ? "Cechy" : "Traits"}: ${traitNames || "—"}`,
+      `${copy.simulation.outcome}: ${copy.outcomes[result.outcome].title} · ${language === "pl" ? "Przeżywalność" : "Survivability"}: ${Math.round((result.finalPopulation === 0 ? 0 : result.metrics.organismCompatibility) * 100)}%`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      setSummaryCopyStatus("copied");
+    } catch {
+      setSummaryCopyStatus("error");
+    }
   };
 
   const requestConsultant = async () => {
@@ -760,7 +1204,7 @@ export default function Home() {
           </div>
           <p className="boot-scene-label"><span aria-hidden="true" />{copy.boot.sceneLabel}</p>
           <div className="boot-actions">
-            <button className="button-primary" onClick={() => setScreen("lab")} type="button">{copy.boot.enter} <span aria-hidden="true">→</span></button>
+            <button className="button-primary" onClick={enterLab} type="button">{copy.boot.enter} <span aria-hidden="true">→</span></button>
           </div>
         </section>
         <div className="boot-language">
@@ -776,13 +1220,18 @@ export default function Home() {
 
   const visibleResult = result && !resultStale ? result : null;
   const biosphereLevel = visibleResult?.metrics.ecosystemPotential ?? 0;
-  const selectedBodyForm = traitIds.includes("unicellular") ? "unicellular" : traitIds.includes("multicellular") ? "multicellular" : "";
-  const highlights = traitHighlights(traitIds);
   const survivability = result ? (result.finalPopulation === 0 ? 0 : result.metrics.organismCompatibility) : 0;
-  const failureExplanation = result && !result.missionSuccess
-    ? (language === "pl"
-      ? `Populacja spadła do ${formatNumber(result.finalPopulation, language, 0)}, ponieważ najsłabsze warunki to ${result.limitingFactors.slice(0, 3).map((metric) => copy.metrics[metric].label.toLowerCase()).join(", ")}. Zmień planetę lub cechy, a potem ponów eksperyment.`
-      : `The population fell to ${formatNumber(result.finalPopulation, language, 0)} because the weakest conditions are ${result.limitingFactors.slice(0, 3).map((metric) => copy.metrics[metric].label.toLowerCase()).join(", ")}. Change the planet or traits, then rerun the experiment.`)
+  const initialPopulation = result?.populationTimeline[0]?.population ?? 0;
+  const failureExplanation = result &&
+    (result.finalPopulation === 0 || result.finalPopulation < initialPopulation)
+    ? formatFailureExplanation(result.failureReasons, worldContext, copy, language)
+    : null;
+  const lastParameterInfluence = lastParameterId
+    ? deriveParameterControlState(
+        PARAMETER_CONFIG.find(({ id }) => id === lastParameterId)!,
+        planet.world,
+        copy,
+      ).influence
     : null;
 
   return (
@@ -797,6 +1246,8 @@ export default function Home() {
             <button aria-pressed={language === "en"} onClick={() => changeLanguage("en")} type="button">EN</button>
             <button aria-pressed={language === "pl"} onClick={() => changeLanguage("pl")} type="button">PL</button>
           </div>
+          <button className="button-quiet compact tutorial-header-action" onClick={reopenOnboarding} type="button">{copy.onboarding.reopen}</button>
+          <button aria-label={copy.header.clearData} className="button-quiet compact clear-data-action" onClick={clearLabData} type="button"><span aria-hidden="true">🗑</span><span className="clear-data-label">{copy.header.clearData}</span></button>
           <button className="button-quiet compact" onClick={resetLab} type="button">{copy.header.reset}</button>
         </div>
       </header>
@@ -810,16 +1261,51 @@ export default function Home() {
       </nav>
 
       <div className={`lab-grid phase-${phase}`}>
-        <section className={`planet-stage planet-stage-${phase}`}>
+        {phase === "planet" && (
+          <aside className={`lab-panel world-evidence-panel ${tutorialFocus("evidencePanel")}`} ref={evidencePanelRef}>
+            <section className={`teaching-brief ${tutorialFocus("worldStory")}`} ref={worldStoryRef}><span>✦ {language === "pl" ? "Historia świata" : "World story"}</span><p>{worldStory(worldContext, language)}</p></section>
+            <div className={tutorialFocus("worldEvidence")} ref={worldEvidenceRef}><WorldEvidence context={worldContext} copy={copy} language={language} phase="planet" /></div>
+          </aside>
+        )}
+        {phase === "life" && (
+          <aside className="lab-panel life-evidence-panel">
+            <section className={`teaching-brief ${tutorialFocus("hypothesisStory")}`} ref={hypothesisStoryRef}><span>✦ {language === "pl" ? "Historia hipotezy" : "Hypothesis story"}</span><p>{lifeStory(worldContext, traitIds, copy, language)}</p></section>
+            <div className={`life-facts ${tutorialFocus("lifeFacts")}`} ref={lifeFactsRef}>
+              <span>🧬 {language === "pl" ? "Cechy" : "Traits"}<b>{traitIds.length}</b></span>
+              <span>⚙️ {language === "pl" ? "Systemy ciała" : "Body systems"}<b>{traitIds.filter((id) => ["body", "physiology"].includes(LIFE_TRAITS[id].category)).length}</b></span>
+              <span>👁️ {language === "pl" ? "Zmysły" : "Senses"}<b>{traitIds.filter((id) => LIFE_TRAITS[id].category === "senses").length}</b></span>
+            </div>
+            <section className={`life-readiness ${tutorialFocus("readiness")}`} ref={readinessRef}>
+              <div><span>✦ {copy.life.readiness.title}</span><p>{copy.life.readiness.description}</p></div>
+              <dl>
+                <div className={readiness.water === "available" ? "ready" : "limited"}><dt>💧 {copy.life.readiness.water}</dt><dd>{copy.life.readiness[readiness.water]}</dd></div>
+                <div className={readiness.energy === "available" ? "ready" : "limited"}><dt>⚗️ {copy.life.readiness.energy}</dt><dd>{copy.life.readiness[readiness.energy]}</dd></div>
+                <div className={readiness.radiation === "manageable" ? "ready" : "limited"}><dt>🛡️ {copy.life.readiness.radiation}</dt><dd>{copy.life.readiness[readiness.radiation]}</dd></div>
+              </dl>
+            </section>
+            <div className={tutorialFocus("lifeEvidence")} ref={lifeEvidenceRef}><WorldEvidence context={worldContext} copy={copy} language={language} phase="design" /></div>
+          </aside>
+        )}
+        <section className={`planet-stage planet-stage-${phase} ${tutorialFocus("planetStage")}`} ref={planetStageRef}>
           <div className="planet-stage-header">
             <div>
               <p className="eyebrow">{phase === "life" ? copy.life.title : phase === "results" ? copy.simulation.title : copy.planet.liveView}</p>
               <span>{phase === "life" ? copy.life.previewHint : phase === "results" ? copy.simulation.populationTitle : copy.planet.visualTransition}</span>
             </div>
-            {phase === "planet" && <div className="planet-mode-switch" aria-label={copy.planet.viewMode} role="group">
-              {(["realistic", "temperature", "radiation"] as PlanetVisualizationMode[]).map((mode) => (
-                <button aria-pressed={visualizationMode === mode} key={mode} onClick={() => setVisualizationMode(mode)} type="button">{copy.planet.modes[mode]}</button>
-              ))}
+            {phase === "planet" && <div className="planet-visual-controls">
+              <div className="planet-mode-switch" aria-label={copy.planet.viewMode} role="group">
+                {(["realistic", "temperature", "radiation"] as PlanetVisualizationMode[]).map((mode) => (
+                  <button aria-pressed={visualizationMode === mode} key={mode} onClick={() => setVisualizationMode(mode)} type="button">{copy.planet.modes[mode]}</button>
+                ))}
+              </div>
+              <div className="planet-toolbar">
+                <button className="button-quiet compact" onClick={() => setCameraResetSignal((value) => value + 1)} type="button">{copy.header.resetCamera}</button>
+                <button className="button-quiet compact" onClick={() => setAutoRotate((value) => !value)} type="button">{autoRotate ? copy.header.rotationOn : copy.header.rotationOff}</button>
+              </div>
+              <div className="planet-control-hint" aria-live="polite">
+                <span className="desktop-control-hint">{copy.planet.controlsDesktop}</span>
+                <span className="mobile-control-hint">{copy.planet.controlsMobile}</span>
+              </div>
             </div>}
           </div>
 
@@ -834,6 +1320,7 @@ export default function Home() {
                   autoRotate={false}
                   biosphereLevel={biosphereLevel}
                   cameraResetSignal={cameraResetSignal}
+                  interactive={false}
                   label={copy.planet.liveView}
                   planet={planet}
                   regionScores={visibleResult?.regionScores}
@@ -843,11 +1330,11 @@ export default function Home() {
             </div>
           ) : phase === "results" ? (
             <div className="analysis-stage">
-              <section className={`analysis-stage-hero ${result?.missionSuccess ? "success" : "continue"}`}>
+              <section className={`analysis-stage-hero ${result?.supportsAdvancedLife ? "success" : "continue"}`}>
                 <p className="eyebrow">{copy.phases.results.label}</p>
                 {result ? (
                   <>
-                    <span>{result.missionSuccess ? copy.simulation.success : copy.simulation.continue}</span>
+                    <span>{result.supportsAdvancedLife ? copy.simulation.success : copy.simulation.continue}</span>
                     <h2>{copy.outcomes[result.outcome].title}</h2>
                     <p>{copy.outcomes[result.outcome].description}</p>
                     {failureExplanation && <p className="failure-explanation">⚠️ {failureExplanation}</p>}
@@ -865,6 +1352,7 @@ export default function Home() {
                   autoRotate={false}
                   biosphereLevel={biosphereLevel}
                   cameraResetSignal={cameraResetSignal}
+                  interactive={false}
                   label={copy.planet.liveView}
                   planet={planet}
                   regionScores={visibleResult?.regionScores}
@@ -907,17 +1395,9 @@ export default function Home() {
             </div>
           )}
 
-          {phase === "planet" && <div className="planet-toolbar">
-            <button className="button-quiet compact" onClick={() => setCameraResetSignal((value) => value + 1)} type="button">{copy.header.resetCamera}</button>
-            <button className="button-quiet compact" onClick={() => setAutoRotate((value) => !value)} type="button">{autoRotate ? copy.header.rotationOn : copy.header.rotationOff}</button>
-          </div>}
-          {phase === "planet" && <div className="planet-control-hint" aria-live="polite">
-            <span className="desktop-control-hint">{copy.planet.controlsDesktop}</span>
-            <span className="mobile-control-hint">{copy.planet.controlsMobile}</span>
-          </div>}
         </section>
 
-        <aside className={`lab-panel analysis-panel ${phase === "planet" ? "mobile-hidden" : ""}`}>
+        <aside className={`lab-panel analysis-panel ${tutorialFocus("planetControls")}`} ref={planetControlsRef}>
           <nav aria-label={copy.header.system} className="phase-tabs">
             {PHASES.map((item, index) => (
               <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => setPhase(item)} type="button">
@@ -930,21 +1410,29 @@ export default function Home() {
 
           {phase === "planet" && (
             <div className="phase-content guidance-content planet-controls-content">
+              <section aria-label={copy.onboarding.progress} className="experiment-workflow">
+                <span>{copy.onboarding.progress}</span>
+                <ol>
+                  {PHASES.map((item, index) => <li className={phase === item ? "active" : ""} key={item}><b>{index + 1}</b>{copy.phases[item].label}</li>)}
+                </ol>
+              </section>
               <div className="panel-section-heading">
                 <div><p className="eyebrow">{copy.planet.baseline}</p><h2>{copy.planet.title}</h2></div>
-                <button className="text-button" onClick={restoreBaseline} type="button">{copy.planet.resetBaseline}</button>
               </div>
               <p className="panel-intro">{copy.planet.instruction}</p>
-              <section className="teaching-brief"><span>✦ {language === "pl" ? "Historia świata" : "World story"}</span><p>{worldStory(worldContext, language)}</p></section>
-              <WorldEvidence context={worldContext} copy={copy} language={language} phase="planet" />
-              <div className="parameter-list">
+              <div className="planet-preset-actions">
+                <button className="button-quiet compact preset-button" onClick={loadTemperateExperiment} type="button"><span aria-hidden="true">🌱</span>{copy.planet.loadTemperateExperiment}</button>
+                <button className="button-quiet compact preset-button" onClick={restoreBaseline} type="button"><span aria-hidden="true">🌑</span>{copy.planet.resetBaseline}</button>
+              </div>
+              {lastParameterId && lastParameterInfluence && <section aria-live="polite" className="change-feedback"><strong>{copy.planet.changedEffect} · {copy.parameters[lastParameterId].label}</strong><p>{lastParameterInfluence}</p></section>}
+              <div className={`parameter-list ${tutorialFocus("planetParameter")}`} ref={planetParameterRef}>
                 {PARAMETER_CONFIG.map((parameter) => {
                   const parameterCopy = copy.parameters[parameter.id];
                   const controlState = deriveParameterControlState(parameter, planet.world, copy);
-                  return <ParameterControl constraint={controlState.constraint} disabled={isSimulating || controlState.disabled} earthReference={parameterCopy.earthReference} id={parameter.id} influence={controlState.influence} key={parameter.id} label={parameterCopy.label} language={language} max={controlState.max} min={controlState.min} onChange={(value) => updateParameter(parameter.id, value)} step={controlState.step} unit={parameterCopy.unit} value={controlState.value} />;
+                  return <ParameterControl changed={lastParameterId === parameter.id} constraint={controlState.constraint} disabled={isSimulating || controlState.disabled} earthReference={parameterCopy.earthReference} emphasized={showOnboarding && ["pressure", "water", "temperature"].includes(parameter.id)} id={parameter.id} influence={controlState.influence} key={parameter.id} label={parameterCopy.label} language={language} max={controlState.max} min={controlState.min} onChange={(value) => updateParameter(parameter.id, value)} step={controlState.step} unit={parameterCopy.unit} value={controlState.value} />;
                 })}
               </div>
-              <button className="button-primary wide" onClick={() => setPhase("life")} type="button">{copy.planet.openDesigner}<span aria-hidden="true">→</span></button>
+              <button className={`button-primary wide ${tutorialFocus("chooseLife")}`} onClick={() => setPhase("life")} ref={chooseLifeRef} type="button">{copy.planet.openDesigner}<span aria-hidden="true">→</span></button>
             </div>
           )}
 
@@ -955,23 +1443,17 @@ export default function Home() {
                 <span className="status-chip">{traitIds.length} {copy.life.selected}</span>
               </div>
               <p className="panel-intro">{copy.life.instruction}</p>
-              <section className="teaching-brief"><span>✦ {language === "pl" ? "Historia hipotezy" : "Hypothesis story"}</span><p>{lifeStory(worldContext, traitIds, copy, language)}</p></section>
-              <div className="life-facts">
-                <span>🧬 {language === "pl" ? "Cechy" : "Traits"}<b>{traitIds.length}</b></span>
-                <span>⚙️ {language === "pl" ? "Systemy ciała" : "Body systems"}<b>{traitIds.filter((id) => ["body", "physiology"].includes(LIFE_TRAITS[id].category)).length}</b></span>
-                <span>👁️ {language === "pl" ? "Zmysły" : "Senses"}<b>{traitIds.filter((id) => LIFE_TRAITS[id].category === "senses").length}</b></span>
-              </div>
-              <WorldEvidence context={worldContext} copy={copy} language={language} phase="design" />
-              <div className="category-tabs" role="tablist">
-                {CATEGORIES.map((category) => (
-                  <button aria-selected={activeCategory === category} key={category} onClick={() => setActiveCategory(category)} role="tab" type="button">{copy.categories[category]}</button>
+              <section className="strategy-library">
+                <div><span>✦ {copy.life.strategyLibrary}</span><p>{copy.life.strategyHint}</p></div>
+                {viableArchetypes.length > 0 ? <div className="strategy-list">{viableArchetypes.map((archetype) => <button key={archetype.id} onClick={() => applyArchetype(archetype.traitIds)} type="button"><strong>{copy.life.strategies[archetype.id]}</strong><small>{archetype.traitIds.length} {copy.life.selected}</small><span>{copy.life.applyStrategy} →</span></button>)}</div> : <p className="strategy-unavailable">{copy.life.noStrategies}</p>}
+              </section>
+              <div className={tutorialFocus("lifeDropdown")} ref={lifeDropdownRef}>
+                {TRAIT_CONFLICT_GROUPS.filter((group) => group.category === activeCategory).map((group) => (
+                  <SingleChoiceTraitDropdown copy={copy} group={group} key={group.id} onSelect={selectSingleChoiceTrait} traitIds={traitIds} />
                 ))}
               </div>
-              {activeCategory === "body" && (
-                <label className="trait-select"><span>{language === "pl" ? "Forma organizmu" : "Organism form"}</span><select onChange={(event) => selectBodyForm(event.target.value as "" | "unicellular" | "multicellular")} value={selectedBodyForm}><option value="">{language === "pl" ? "Wybierz jedną formę" : "Choose one form"}</option><option value="unicellular">{copy.traits.unicellular.title}</option><option value="multicellular">{copy.traits.multicellular.title}</option></select></label>
-              )}
               <div className="trait-list">
-                {(Object.values(LIFE_TRAITS).filter(({ category, id }) => category === activeCategory && id !== "unicellular" && id !== "multicellular")).map((trait) => {
+                {(Object.values(LIFE_TRAITS).filter(({ category, id }) => category === activeCategory && !TRAIT_CONFLICT_GROUPS.some((group) => group.traitIds.includes(id)))).map((trait) => {
                   const selected = traitIds.includes(trait.id);
                   const traitCopy = copy.traits[trait.id];
                   const unavailable = false;
@@ -985,7 +1467,7 @@ export default function Home() {
                     >
                       <span className="trait-check" aria-hidden="true">{selected ? "✓" : "+"}</span>
                       <span className="trait-copy">
-                        <span className="trait-title"><strong>{traitCopy.title}</strong></span>
+                        <span className="trait-title"><strong><span aria-hidden="true" className="trait-emoji">{TRAIT_EMOJIS[trait.id]}</span>{traitCopy.title}</strong></span>
                         <small><em>{copy.life.advantage}</em>{traitCopy.advantage}</small>
                         <small><em>{copy.life.tradeoff}</em>{traitCopy.tradeoff}</small>
                       </span>
@@ -994,7 +1476,12 @@ export default function Home() {
                 })}
               </div>
               {traitNotice && <p aria-live="polite" className="form-notice">{copy.life[traitNotice]}</p>}
-              <div className="phase-actions">
+              <div className="category-tabs" role="tablist">
+                {CATEGORIES.map((category) => (
+                  <button aria-selected={activeCategory === category} key={category} onClick={() => setActiveCategory(category)} role="tab" type="button">{copy.categories[category]}</button>
+                ))}
+              </div>
+              <div className={`phase-actions ${tutorialFocus("runSimulation")}`} ref={runSimulationRef}>
                 <button className="text-button" onClick={() => { setTraitIds([]); invalidateCalculatedState(); }} type="button">{copy.life.clear}</button>
                 <button className="button-primary" disabled={isSimulating} onClick={runSimulation} type="button">{isSimulating ? copy.life.running : copy.life.run}<span aria-hidden="true">→</span></button>
               </div>
@@ -1020,56 +1507,47 @@ export default function Home() {
                   {resultStale && (
                     <div className="stale-notice"><strong>{copy.simulation.staleTitle}</strong><p>{copy.simulation.staleDescription}</p><button className="button-primary" onClick={runSimulation} type="button">{copy.simulation.rerun}</button></div>
                   )}
-                  <section className={`outcome-card ${result.missionSuccess ? "success" : "continue"}`}>
-                    <span>{result.missionSuccess ? copy.simulation.success : copy.simulation.continue}</span>
+                  <section className={`outcome-card ${result.supportsAdvancedLife ? "success" : "continue"} ${tutorialFocus("resultOutcome")}`} ref={resultOutcomeRef}>
+                    <span>{result.supportsAdvancedLife ? copy.simulation.success : copy.simulation.continue}</span>
                     <h3>{copy.outcomes[result.outcome].title}</h3>
                     <p>{copy.outcomes[result.outcome].description}</p>
                     {failureExplanation && <p className="failure-explanation">⚠️ {failureExplanation}</p>}
                     <div className="objective-score"><div><span>{language === "pl" ? "Przeżywalność" : "Survivability"}</span><strong>{Math.round(survivability * 100)}%</strong></div><span><i style={{ width: `${survivability * 100}%` }} /></span></div>
                   </section>
+                  <div className="experiment-summary-action">
+                    <button className="button-quiet wide" onClick={copyExperimentSummary} type="button">{copy.simulation.copySummary}</button>
+                    {summaryCopyStatus !== "idle" && <p aria-live="polite" className={summaryCopyStatus === "error" ? "api-notice error" : "summary-copy-notice"}>{summaryCopyStatus === "copied" ? copy.simulation.summaryCopied : copy.simulation.summaryCopyFailed}</p>}
+                  </div>
 
-                  <section className="result-section">
+                  <section className={`result-section ${tutorialFocus("resultMetrics")}`} ref={resultMetricsRef}>
                     <h3>{copy.simulation.metricsTitle}</h3>
                     <div className="metric-list">
                       {METRIC_ORDER.map((metric) => (
                         <div className="metric-row" key={metric} title={copy.metrics[metric].description}>
-                          <span>{copy.metrics[metric].label}</span>
+                          <span><span aria-hidden="true" className="metric-emoji">{METRIC_EMOJIS[metric]}</span>{copy.metrics[metric].label}</span>
                           <i><b style={{ width: `${result.metrics[metric] * 100}%` }} /></i>
                           <strong>{Math.round(result.metrics[metric] * 100)}</strong>
                         </div>
                       ))}
                     </div>
-                    <div className="factor-grid trait-highlights">
-                      <div><span>{language === "pl" ? "Najmocniejsze wybrane cechy" : "Strongest selected traits"}</span>{highlights.strengths.map((id) => <b key={id}>{TRAIT_CATEGORY_EMOJI[LIFE_TRAITS[id].category]} {copy.traits[id].title}</b>)}</div>
-                      <div><span>{language === "pl" ? "Największe kompromisy cech" : "Largest trait tradeoffs"}</span>{highlights.limits.map((id) => <b key={id}>{TRAIT_CATEGORY_EMOJI[LIFE_TRAITS[id].category]} {copy.traits[id].title}</b>)}</div>
-                    </div>
                   </section>
 
-                  <section className="result-section">
+                  <section className={`result-section ${tutorialFocus("resultRegions")}`} ref={resultRegionsRef}>
                     <h3>{copy.simulation.regionsTitle}</h3>
                     <div className="region-list">
                       {(Object.entries(result.regionScores) as Array<[RegionId, number]>).map(([region, score]) => (
-                        <div key={region}>
+                        <div className="region-card" key={region}>
                           <RegionBiomePreview context={worldContext} label={copy.regions[region].label} region={region} />
-                          <span><strong>{copy.regions[region].label}</strong><small>{score >= 0.5 ? copy.simulation.habitable : copy.regions[region].description}</small></span>
+                          <span className="region-copy"><strong>{copy.regions[region].label}</strong><small>{copy.regions[region].description}</small></span>
                           <b>{Math.round(score * 100)}</b>
                         </div>
                       ))}
                     </div>
                   </section>
 
-                  <section className="result-section">
+                  <section className={`result-section ${tutorialFocus("resultPopulation")}`} ref={resultPopulationRef}>
                     <h3>{copy.simulation.populationTitle}</h3>
-                    <PopulationChart label={copy.simulation.populationTitle} language={language} result={result} />
-                    <div className="population-events">
-                      <h4>{copy.simulation.populationEventsTitle}</h4>
-                      {result.populationEvents.map((event) => (
-                        <div className={event.kind} key={`${event.id}-${event.generation}`}>
-                          <span><strong>{EVENT_EMOJI[event.id]} {copy.populationEvents[event.id].title}</strong><small>{copy.populationEvents[event.id].description}</small></span>
-                          <b>{copy.simulation.generation} {event.generation}<em>{event.impactFraction > 0 ? "+" : ""}{Math.round(event.impactFraction * 100)}% {copy.simulation.eventImpact}</em></b>
-                        </div>
-                      ))}
-                    </div>
+                    <PopulationChart copy={copy} label={copy.simulation.populationTitle} language={language} result={result} />
                     <dl className="population-stats">
                       <div><dt>{copy.simulation.initial}</dt><dd>120</dd></div>
                       <div><dt>{copy.simulation.peak}</dt><dd>{formatNumber(result.peakPopulation, language, 0)}</dd></div>
@@ -1082,7 +1560,7 @@ export default function Home() {
                     </div>
                   </section>
 
-                  <section className="result-section organism-section">
+                  <section className={`result-section organism-section ${tutorialFocus("organismPortrait")}`} ref={organismPortraitRef}>
                     <div className="result-section-heading"><h3>{copy.organism.title}</h3><span className="status-chip">{organismImage?.imageDataUrl ? copy.organism.generated : copy.organism.procedural}</span></div>
                     <OrganismPreview imageDataUrl={organismImage?.imageDataUrl ?? null} label={copy.organism.alt} planet={planet} traitIds={traitIds} />
                     {imageStatus === "fallback" && <p className="api-notice">{copy.organism.fallback}</p>}
@@ -1091,7 +1569,7 @@ export default function Home() {
                     {organismImage?.imageDataUrl && <a className="button-quiet wide download-image" download={`xenogenesis-${result.stateHash}.jpeg`} href={organismImage.imageDataUrl}>{copy.organism.download}</a>}
                   </section>
 
-                  <section className="result-section consultant-section">
+                  <section className={`result-section consultant-section ${tutorialFocus("consultant")}`} ref={consultantRef}>
                     <div className="result-section-heading"><h3>{copy.consultant.title}</h3><span className="status-chip">{copy.status.ai}</span></div>
                     <p>{copy.consultant.description}</p>
                     {!consultant && consultantStatus !== "loading" && <button className="button-quiet wide" disabled={resultStale} onClick={requestConsultant} type="button">{consultantStatus === "error" ? copy.consultant.retry : copy.consultant.request}</button>}
@@ -1122,6 +1600,21 @@ export default function Home() {
           )}
         </aside>
       </div>
+      {showOnboarding && screen === "lab" && (() => {
+        const stepCopy = copy.onboarding.steps[activeTutorialStep.id];
+        return <>
+          <div aria-hidden="true" className="tutorial-overlay" />
+          <section aria-label={stepCopy.title} aria-live="polite" className="tutorial-card">
+            <span>{copy.onboarding.progress} · {onboardingStepIndex + 1}/{TUTORIAL_STEPS.length}</span>
+            <h2>{stepCopy.title}</h2>
+            <p>{stepCopy.description}</p>
+            <div>
+              <button className="text-button" onClick={dismissOnboarding} type="button">{copy.onboarding.dismiss}</button>
+              <button className="button-primary compact" onClick={activeTutorialStep.id === "runSimulation" ? runSimulation : advanceOnboarding} type="button">{activeTutorialStep.id === "runSimulation" ? copy.life.run : onboardingStepIndex === TUTORIAL_STEPS.length - 1 ? copy.onboarding.finish : copy.onboarding.next}<span aria-hidden="true">→</span></button>
+            </div>
+          </section>
+        </>;
+      })()}
       <footer className="lab-footer">{copy.footer}</footer>
     </main>
   );

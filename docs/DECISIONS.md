@@ -142,7 +142,7 @@ Low surface gravity materially constrains the long-term retention of volatiles, 
 
 **Consequences**
 
-- the barren mission start remains a valid concrete world state rather than an unset payload;
+- the barren baseline remains a valid concrete world state rather than an unset payload;
 - the model version and reproducibility hash change to `1.1.0` for affected input;
 - a very low-gravity world visibly loses retained atmosphere, water, and humidity;
 - this remains an educational convention, not a prediction of atmospheric escape.
@@ -153,7 +153,7 @@ Low surface gravity materially constrains the long-term retention of volatiles, 
 
 **Decision**
 
-The product is a dynamic procedural astrobiology laboratory built around `Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt`. Missions define broad outcomes and allow multiple viable strategies rather than one hidden answer.
+The product is a dynamic procedural astrobiology laboratory built around `Observe → Modify Planet → Design Life → Simulate → Visualize → Adapt`. The simulator evaluates outcomes through continuous model conventions and allows multiple viable strategies rather than one hidden answer.
 
 **Rationale**
 
@@ -165,7 +165,7 @@ The prior multi-screen hypothesis flow separated the learner from planet data, a
 - the product now opens after a cinematic boot into one persistent laboratory;
 - world and organism remain editable after every run;
 - success is a broad evaluated outcome, not a disclosed slider recipe;
-- additional missions and persistence remain deferred.
+- additional preset baselines and persistence remain deferred.
 
 ## 2026-07-19 — Use a persistent seeded WebGL planet with custom shaders
 
@@ -208,7 +208,7 @@ Continuous interactions support several strategies and better explain tradeoffs 
 **Consequences**
 
 - model version changes require coefficient, test, and documentation review;
-- outcome and success still use documented conventions for mission evaluation;
+- outcome and advanced-life qualification still use documented model conventions;
 - the first model is educational and cannot be described as predictive planetary science;
 - spatial climate, food webs, mutation, and natural selection remain out of scope.
 
@@ -313,7 +313,7 @@ One application is the shortest maintainable path to a secure hackathon vertical
 
 **Decision**
 
-Prioritize one polished mission through planet engineering, life design, deterministic simulation, optional consultant, and optional image before accounts, campaigns, or detailed ecosystem systems.
+Prioritize one polished simulator workspace through planet engineering, life design, deterministic simulation, optional consultant, and optional image before accounts, campaigns, or detailed ecosystem systems.
 
 **Rationale**
 
@@ -359,6 +359,14 @@ The arbitrary budget restricted experimentation without representing a defensibl
 Keep the boot worlds, the laboratory planet, and the stars in one WebGL rendering system. Add short interface teaching summaries above deterministic evidence in Planet Engineering and Design Life. The text may synthesize existing calculated fields and selected traits, but cannot call GPT, add rules, or alter the simulator. Present the existing 200 deterministic time steps as model years in the UI, with event icons and displayed population values.
 
 The learner needs an intelligible story while experimenting, but the story cannot obscure the boundary between an explanatory visual/UI layer and deterministic evidence. Shared rendering prevents a mismatched CSS-only introduction. “Model years” improves chart comprehension while the documentation preserves the actual indexed-step convention.
+
+## 2026-07-21 — Make population events conditional and spaced
+
+**Status:** Accepted.
+
+Replace the fixed six-event timeline with ten deterministic candidate events. Each candidate must have an explicit source condition in the current planet/organism model, a meaningful calculated impact, and at least ten model years of separation from the previously accepted event. The schedule may therefore be empty or sparse.
+
+This avoids presenting every world as if it experienced the same history. Thermal shock, radiation storm, hydrosphere stress, desiccation, resource bloom, geothermal pulse, thaw window, reproductive bottleneck, seasonal refuge, and adaptive breakthrough remain educational aggregate events—not a weather forecast or evolutionary simulation.
 - Design Life and Analyze hide planet camera and scientific-overlay controls;
 - generated field illustrations use a downloadable 3:2 frame;
 - English and Polish copy, demo script, README, science rules, and product story must stay aligned.

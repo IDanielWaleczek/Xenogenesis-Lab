@@ -56,6 +56,8 @@ type ProceduralPlanetProps = {
   visualizationMode: PlanetVisualizationMode;
   autoRotate: boolean;
   cameraResetSignal: number;
+  /** Disables direct camera controls for static life-design and analysis insets. */
+  interactive?: boolean;
   regionScores?: Partial<Record<RegionId, number>>;
   label: string;
 };
@@ -275,6 +277,7 @@ function PlanetScene({
           uIceWater: { value: initialTargets.iceWater },
           uMeanTemperatureC: { value: initialTargets.meanTemperatureC },
           uTemperatureVariationC: { value: initialTargets.temperatureVariation },
+          uTime: { value: 0 },
           uEffectiveHumidity: { value: initialTargets.humidity },
           uPressurePresence: { value: initialTargets.pressurePresence },
           uSandClimate: { value: initialTargets.sandClimate },
@@ -485,6 +488,7 @@ function PlanetScene({
     lerpUniform(auroraMaterial, "uIntensity", target.aurora, true);
     (atmosphereMaterial.uniforms.uAtmosphereColor.value as Color).lerp(target.atmosphereColor, ease);
     waterMaterial.uniforms.uTime.value = clock.elapsedTime;
+    terrainMaterial.uniforms.uTime.value = clock.elapsedTime;
     cloudMaterial.uniforms.uTime.value = clock.elapsedTime;
     radiationMaterial.uniforms.uTime.value = clock.elapsedTime;
     auroraMaterial.uniforms.uTime.value = clock.elapsedTime;
