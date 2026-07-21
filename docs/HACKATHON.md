@@ -74,7 +74,7 @@ The local deterministic workflow and both fallback routes work without external 
 
 Codex accelerated repository analysis, architecture refactoring, deterministic modeling, shader and UI implementation, bilingual content, test design, browser QA, science-boundary corrections, and documentation. The human selected the product direction and owns the scientific conventions, educational goal, design review, deployment, and submitted claims.
 
-In the app, GPT-5.6 is an optional scientific consultant. It receives validated planet state, selected traits, and server-recalculated deterministic output. It explains tradeoffs and suggests one controlled experiment. It also selects four constrained art-direction enums. The server—not GPT—constructs the final image prompt. GPT-5.6 never calculates the result.
+In the app, GPT-5.6 Luna-low is an optional scientific consultant. It receives validated planet state, selected traits, and server-recalculated deterministic output. It explains tradeoffs, suggests one controlled experiment, and returns a Zod-validated English composition brief plus constrained art-direction values. The server—not GPT—constructs the final image prompt and appends physical prohibitions, including the airless, waterless appearance required for a barren planet. GPT-5.6 never calculates the result.
 
 The fallback is local deterministic text and is visibly labelled. It is not evidence of a live GPT call.
 

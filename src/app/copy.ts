@@ -251,6 +251,9 @@ export type LabCopy = {
     generated: string;
     requestImage: string;
     generating: string;
+    preparing: string;
+    rendering: string;
+    partial: string;
     fallback: string;
     error: string;
     download: string;
@@ -311,7 +314,7 @@ const english: LabCopy = {
   desktopOnly: {
     eyebrow: "Desktop workspace",
     title: "Xenogenesis Lab currently works on computers only",
-    description: "Open this experiment in a desktop browser at least 1081 pixels wide. Mobile and tablet layouts are temporarily unavailable.",
+    description: "Open this experiment in a desktop browser at least 1080 pixels wide. Mobile and tablet layouts are temporarily unavailable.",
   },
   header: {
     system: "Vespera · first-biosphere experiment",
@@ -685,6 +688,9 @@ const english: LabCopy = {
     generated: "GPT-guided field portrait",
     requestImage: "Create a field portrait",
     generating: "Preparing its field portrait…",
+    preparing: "Preparing the validated illustration brief…",
+    rendering: "GPT Image is rendering the field portrait… This can take up to 2 minutes.",
+    partial: "A live intermediate render has arrived; GPT Image is refining it…",
     fallback: "The procedural field model remains available; no generated image was returned.",
     error: "Image generation is unavailable. The deterministic field model is unchanged.",
     download: "Download 3:2 illustration",
@@ -769,7 +775,7 @@ const polish: LabCopy = {
   desktopOnly: {
     eyebrow: "Stanowisko desktopowe",
     title: "Xenogenesis Lab działa obecnie tylko na komputerze",
-    description: "Otwórz eksperyment w przeglądarce na komputerze o szerokości co najmniej 1081 pikseli. Widok mobilny i tabletowy są tymczasowo niedostępne.",
+    description: "Otwórz eksperyment w przeglądarce na komputerze o szerokości co najmniej 1080 pikseli. Widok mobilny i tabletowy są tymczasowo niedostępne.",
   },
   header: {
     system: "Vespera · eksperyment pierwszej biosfery",
@@ -1143,6 +1149,9 @@ const polish: LabCopy = {
     generated: "Portret terenowy pod kierunkiem GPT",
     requestImage: "Stwórz portret terenowy",
     generating: "Przygotowujemy jego portret terenowy…",
+    preparing: "Przygotowywany jest zweryfikowany opis ilustracji…",
+    rendering: "GPT Image renderuje portret terenowy… Może to potrwać do 2 minut.",
+    partial: "Dotarł rzeczywisty podgląd pośredni; GPT Image dopracowuje ilustrację…",
     fallback: "Proceduralny model terenowy pozostaje dostępny; nie zwrócono wygenerowanego obrazu.",
     error: "Generowanie obrazu jest niedostępne. Deterministyczny model terenowy nie uległ zmianie.",
     download: "Pobierz ilustrację 3:2",

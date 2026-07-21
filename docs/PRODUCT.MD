@@ -68,9 +68,9 @@ GPT-5.6 may:
 - identify visible risks and tradeoffs;
 - name and describe the configured organism;
 - recommend one controlled follow-up experiment;
-- choose constrained pose, viewpoint, lighting, and emphasis values for an illustration.
+- provide a Zod-validated English composition brief plus constrained pose, viewpoint, lighting, and emphasis values for an illustration.
 
-GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy, reveal a hidden answer, call continuously during parameter editing, or present speculation as measured fact. Zod validates all external data. The server constructs the final image prompt from deterministic facts and selected traits.
+GPT-5.6 may not calculate or overwrite model values, add unsupported anatomy or environmental features, reveal a hidden answer, call continuously during parameter editing, or present speculation as measured fact. Zod validates all external data. The server constructs the final image prompt from deterministic facts, selected traits, the validated composition brief, and non-negotiable physical prohibitions. For an airless barren world, those prohibitions exclude atmosphere, clouds, auroras, ice, and every water phase.
 
 ## Current implementation status
 
@@ -82,7 +82,7 @@ Surface-water inventory and humidity remain distinct user inputs. Water sets the
 
 ## Experience requirements
 
-Desktop uses a full-screen laboratory with independently scrolling side panels. Planet engineering centers the planet, Design life centers the organism with a smaller planet inset, and Analyze centers the evidence with a smaller contextual planet. Mobile and tablet layouts are temporarily unavailable: widths of `1080px` or less show a translated desktop-only notice instead of the laboratory.
+Desktop uses a full-screen laboratory with independently scrolling side panels. Planet engineering centers the planet, Design life centers the organism with a smaller planet inset, and Analyze centers the evidence with a smaller contextual planet. Mobile and tablet layouts are temporarily unavailable: widths below `1080px` show a translated desktop-only notice instead of the laboratory.
 
 Prioritize immediate comprehension, keyboard access, readable contrast, visible provenance, reduced-motion support, graceful failure, and reviewed English/Polish text.
 

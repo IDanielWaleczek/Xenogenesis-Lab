@@ -478,12 +478,14 @@ input:focus-visible {
 
 .boot-banner {
   width: min(660px, 82vw);
-  height: auto;
+  height: clamp(11.5rem, 19vw, 14.5rem);
+  object-fit: cover;
+  object-position: center;
   filter: drop-shadow(0 0 32px rgb(103 232 249 / 0.17));
 }
 
 .boot-identity p {
-  margin: 1.7rem 0 0.55rem;
+  margin: 0.7rem 0 0.55rem;
   color: #75a5b1;
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.7rem;
@@ -1913,6 +1915,13 @@ input:focus-visible {
   line-height: 1.4;
 }
 
+.image-generation-status {
+  margin: 0.7rem 0;
+  color: #8dd7e8;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 .category-tabs {
   display: flex;
   gap: 0.25rem;
@@ -2648,7 +2657,7 @@ input:focus-visible {
   }
 }
 
-@media (min-width: 1081px) {
+@media (min-width: 1080px) {
   html {
     font-size: 18px;
   }
@@ -2760,7 +2769,7 @@ input:focus-visible {
   }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1079px) {
   .desktop-only-notice {
     display: grid;
   }

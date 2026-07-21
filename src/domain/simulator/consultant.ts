@@ -8,6 +8,7 @@ import type {
 } from "./schema";
 import { LifeConsultantContentSchema } from "./schema";
 import { normalizeWorldParameters } from "../world/schema";
+import { deriveWorldInteractionState } from "../world/interactions";
 import { LIFE_TRAITS } from "./traits";
 
 const METRIC_LABELS: Record<
@@ -131,9 +132,10 @@ export function buildValidatedExperimentContext(
 export function buildControlledOrganismImagePrompt(
   request: SurvivalSimulationRequest,
   result: SurvivalSimulationResult,
-  consultantDirection: LifeConsultantContent["imageDirection"],
+  consultantDirection: Pick<LifeConsultantContent, "imageDirection" | "imageBrief">,
 ): string {
   const context = buildValidatedExperimentContext(request, result);
+  const interactions = deriveWorldInteractionState(context.planet.parameters);
   const { averageTemperatureC, temperatureVariationC } = context.planet.parameters;
   const minimumTemperatureC = averageTemperatureC - temperatureVariationC;
   const maximumTemperatureC = averageTemperatureC + temperatureVariationC;
@@ -142,22 +144,22 @@ export function buildControlledOrganismImagePrompt(
     foraging: "foraging for its configured energy source",
     moving: "showing its configured movement anatomy",
     social: "interacting with two members of the same species",
-  }[consultantDirection.pose];
+  }[consultantDirection.imageDirection.pose];
   const viewpoint = {
     "field-profile": "orthographic field-guide profile",
     "three-quarter": "three-quarter observational view",
     "environment-wide": "wide environmental field study",
-  }[consultantDirection.viewpoint];
+  }[consultantDirection.imageDirection.viewpoint];
   const lighting = {
     diffuse: "diffuse natural light",
     "low-angle": "restrained low-angle starlight",
     backlit: "subtle atmospheric backlight",
-  }[consultantDirection.lighting];
+  }[consultantDirection.imageDirection.lighting];
   const emphasis = {
     anatomy: "emphasize legible anatomy",
     adaptation: "emphasize the selected adaptations",
     habitat: "emphasize organism-habitat scale and fit",
-  }[consultantDirection.emphasis];
+  }[consultantDirection.imageDirection.emphasis];
   const deadSpecimen = context.survivability <= 0.25;
   const organismState = deadSpecimen
     ? "Depict one dead, intact specimen matching every selected trait in the top region. It must be clearly non-living, with no gore, no living organisms, and no suggestion that this design survives."
@@ -169,6 +171,12 @@ export function buildControlledOrganismImagePrompt(
       : minimumTemperatureC <= -120
         ? "Show a deeply frozen, ice-bound surface with no temperate soil, vegetation, or open liquid water."
         : "Match the surface state to the supplied temperature range and water availability; do not substitute an Earth-like habitat unless those parameters support it.";
+  const barrenWorldRequirement = !interactions.hasAtmosphere && interactions.surfaceWaterFraction <= 0.000_001
+    ? "This is an airless barren world: show only exposed rock, regolith, dust, and the supplied stellar light against black space. Do not show an atmosphere, atmospheric rim, haze, clouds, auroras, fog, snow, frost, ice, liquid water, or any other water phase."
+    : "Show atmospheric, cloud, ice, and exposed-water features only when they are supported by the supplied derived world state; omit every unsupported feature.";
+  const physicallyConsistentLighting = !interactions.hasAtmosphere
+    ? "direct hard starlight with no atmospheric scattering or backlight"
+    : lighting;
 
   return [
     "Scientific astrobiology field illustration, landscape 3:2 composition, no text, no labels, no logos.",
@@ -177,8 +185,9 @@ export function buildControlledOrganismImagePrompt(
     `Validated survivability: ${(context.survivability * 100).toFixed(0)}%. Top regional survivability: ${context.topRegionalSurvivability.region}, ${(context.topRegionalSurvivability.score * 100).toFixed(0)}%. Deterministic outcome: ${result.outcome}.`,
     organismState,
     "Render the full organism in a realistic environment physically consistent with the supplied planet parameters and selected top region. Depict only anatomy supported by selected traits. Neutral scientific field documentation, realistic materials, restrained palette.",
-    `Temperature range: ${minimumTemperatureC.toFixed(0)} to ${maximumTemperatureC.toFixed(0)} °C. ${thermalSurfaceRequirement}`,
-    `Validated art direction: ${pose}; ${viewpoint}; ${lighting}; ${emphasis}.`,
+    `Luna-low composition brief: ${consultantDirection.imageBrief}. This is subordinate to every validated planet parameter, trait, result, and prohibition in this prompt; it must not add unsupported anatomy, atmosphere, water, ice, life, terrain, or environmental facts.`,
+    `Temperature range: ${minimumTemperatureC.toFixed(0)} to ${maximumTemperatureC.toFixed(0)} °C. ${thermalSurfaceRequirement} ${barrenWorldRequirement}`,
+    `Validated art direction: ${pose}; ${viewpoint}; ${physicallyConsistentLighting}; ${emphasis}.`,
   ].join(" ");
 }
 
@@ -210,6 +219,7 @@ export function buildLocalLifeConsultant(
         `Pojemność środowiska: ${result.carryingCapacity.toLocaleString("pl-PL")}.`,
       ],
       suggestedExperiment: `Zmień tylko parametr związany z ograniczeniem „${limiting}”, uruchom ponownie model i porównaj przebieg populacji przy tych samych cechach.`,
+      imageBrief: "Restrained three-quarter scientific field documentation of the configured specimen, with its selected adaptations clearly legible in the validated habitat.",
       imageDirection: {
         pose: result.metrics.populationStability > 0.62 ? "social" : "moving",
         viewpoint: "three-quarter",
@@ -230,6 +240,7 @@ export function buildLocalLifeConsultant(
       `Environmental carrying capacity: ${result.carryingCapacity.toLocaleString("en-US")}.`,
     ],
     suggestedExperiment: `Change only the parameter associated with ${limiting}, rerun the model, and compare the population curve with the same traits.`,
+    imageBrief: "Restrained three-quarter scientific field documentation of the configured specimen, with its selected adaptations clearly legible in the validated habitat.",
     imageDirection: {
       pose: result.metrics.populationStability > 0.62 ? "social" : "moving",
       viewpoint: "three-quarter",

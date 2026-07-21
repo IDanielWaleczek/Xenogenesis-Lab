@@ -28,9 +28,9 @@ There is no single hidden correct configuration. The tested model supports disti
 - Deterministic simulator 2.1.0 with strict water, energy, metabolism, thermal, and radiation viability gates; 11 continuous suitability metrics; six representative regions; a 200-step timeline presented as model years; sixteen eligible event types selected by seeded probability (up to three, years 10–190, at least 33 years apart), with chart-visible pressure losses and recovery opportunities; eight outcomes; and four deterministic extreme-life starting strategies when hard life support is present.
 - Unsupported life can reach exactly zero advanced-life potential and population; diagnostic component scores remain visible so the learner can identify what to revise.
 - Server-only GPT-5.6 scientific consultant using structured output validated with Zod, plus an explicitly labelled local fallback.
-- Optional server-only `gpt-image-2` field illustration in an uncropped downloadable 3:2 frame. The server constructs the final prompt from every normalized planet parameter, selected trait configuration, calculated survivability, and the strongest regional context; low-survivability designs are depicted as intact dead specimens rather than thriving organisms.
+- Optional server-only `gpt-image-2` field illustration in an uncropped downloadable 3:2 frame. GPT-5.6 Luna-low supplies a Zod-validated composition brief, while the server appends every normalized planet parameter, selected trait configuration, calculated survivability, strongest regional context, and physical prohibitions. An airless barren world explicitly excludes atmosphere and every water phase; low-survivability designs are depicted as intact dead specimens rather than thriving organisms.
 - Complete reviewed English and Polish interface copy, including accessible labels and failure states.
-- Desktop-only layout; widths of `1080px` or less are blocked with a clear English/Polish notice while mobile and tablet support is unavailable.
+- Desktop-only layout; widths below `1080px` are blocked with a clear English/Polish notice while mobile and tablet support is unavailable.
 
 ## How it works for the learner
 

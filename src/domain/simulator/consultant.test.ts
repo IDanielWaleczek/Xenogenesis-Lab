@@ -53,10 +53,13 @@ describe("local life consultant", () => {
     const result = runSurvivalSimulation(REQUEST);
     const context = buildValidatedExperimentContext(REQUEST, result);
     const prompt = buildControlledOrganismImagePrompt(REQUEST, result, {
+      imageDirection: {
       pose: "moving",
       viewpoint: "environment-wide",
       lighting: "diffuse",
       emphasis: "habitat",
+      },
+      imageBrief: "A sparse documentary composition of the configured specimen.",
     });
 
     for (const parameterName of Object.keys(context.planet.parameters)) {
@@ -68,6 +71,9 @@ describe("local life consultant", () => {
     expect(prompt).toContain("Validated survivability: 0%");
     expect(prompt).toContain(`Top regional survivability: ${context.topRegionalSurvivability.region}`);
     expect(prompt).toContain("dead, intact specimen");
+    expect(prompt).toContain("This is an airless barren world");
+    expect(prompt).toContain("Do not show an atmosphere");
+    expect(prompt).toContain("no atmospheric scattering or backlight");
   });
 
   it("requires an incandescent surface for a planet at 804 C", () => {
@@ -84,10 +90,13 @@ describe("local life consultant", () => {
     };
     const result = runSurvivalSimulation(request);
     const prompt = buildControlledOrganismImagePrompt(request, result, {
+      imageDirection: {
       pose: "resting",
       viewpoint: "field-profile",
       lighting: "diffuse",
       emphasis: "habitat",
+      },
+      imageBrief: "A sparse documentary composition of the configured specimen.",
     });
 
     expect(prompt).toContain("804 to 804 °C");

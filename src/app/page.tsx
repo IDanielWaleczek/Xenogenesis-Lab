@@ -889,7 +889,8 @@ export default function Home() {
   const [consultant, setConsultant] = useState<LifeConsultantResponse | null>(null);
   const [consultantStatus, setConsultantStatus] = useState<"idle" | "loading" | "error">("idle");
   const [organismImage, setOrganismImage] = useState<OrganismImageResponse | null>(null);
-  const [imageStatus, setImageStatus] = useState<"idle" | "loading" | "error" | "fallback">("idle");
+  const [imageStatus, setImageStatus] = useState<"idle" | "preparing" | "rendering" | "partial" | "error" | "fallback">("idle");
+  const [imagePreviewDataUrl, setImagePreviewDataUrl] = useState<string | null>(null);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStepIndex, setOnboardingStepIndex] = useState(0);
@@ -959,6 +960,7 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setImagePreviewDataUrl(null);
     setIsImagePreviewOpen(false);
     setSummaryCopyStatus("idle");
   };
@@ -1071,6 +1073,7 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setImagePreviewDataUrl(null);
     setIsImagePreviewOpen(false);
     setLastParameterId(null);
     setSummaryCopyStatus("idle");
@@ -1095,6 +1098,7 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setImagePreviewDataUrl(null);
   };
 
   const removeConflictingTraits = (current: LifeTraitId[], traitId: LifeTraitId) => current.filter(
@@ -1155,6 +1159,7 @@ export default function Home() {
     setConsultantStatus("idle");
     setOrganismImage(null);
     setImageStatus("idle");
+    setImagePreviewDataUrl(null);
     setSummaryCopyStatus("idle");
     setIsSimulating(false);
   };
@@ -1204,19 +1209,41 @@ export default function Home() {
   const requestOrganismImage = async () => {
     if (!result || resultStale) return;
     const requestEpoch = stateEpoch.current;
-    setImageStatus("loading");
+    setImageStatus("preparing");
+    setImagePreviewDataUrl(null);
     try {
       const response = await fetch("/api/organism-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ language, simulation: createSimulationRequest(planet, traitIds) }),
       });
-      const payload: unknown = await response.json();
-      if (!response.ok) throw new Error("Image request failed.");
-      if (stateEpoch.current !== requestEpoch) return;
-      const parsed = OrganismImageResponseSchema.parse(payload);
-      setOrganismImage(parsed);
-      setImageStatus(parsed.source === "procedural-fallback" ? "fallback" : "idle");
+      if (!response.ok || !response.body) throw new Error("Image request failed.");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const messages = buffer.split("\n\n");
+        buffer = messages.pop() ?? "";
+        for (const message of messages) {
+          if (!message.startsWith("data: ") || stateEpoch.current !== requestEpoch) continue;
+          const event: unknown = JSON.parse(message.slice(6));
+          if (!event || typeof event !== "object" || !("type" in event)) continue;
+          if (event.type === "status" && "stage" in event && (event.stage === "preparing" || event.stage === "rendering")) {
+            setImageStatus(event.stage);
+          } else if (event.type === "partial" && "imageDataUrl" in event && typeof event.imageDataUrl === "string") {
+            setImagePreviewDataUrl(event.imageDataUrl);
+            setImageStatus("partial");
+          } else if (event.type === "complete" && "response" in event) {
+            const parsed = OrganismImageResponseSchema.parse(event.response);
+            setOrganismImage(parsed);
+            setImagePreviewDataUrl(null);
+            setImageStatus(parsed.source === "procedural-fallback" ? "fallback" : "idle");
+          }
+        }
+      }
     } catch {
       if (stateEpoch.current !== requestEpoch) return;
       setImageStatus("error");
@@ -1601,10 +1628,11 @@ export default function Home() {
                       <button aria-label={copy.organism.openPreview} className="organism-image-open" onClick={() => setIsImagePreviewOpen(true)} type="button">
                         <OrganismPreview imageDataUrl={organismImage.imageDataUrl} label={copy.organism.alt} planet={planet} traitIds={traitIds} />
                       </button>
-                    ) : <OrganismPreview imageDataUrl={null} label={copy.organism.alt} planet={planet} traitIds={traitIds} />}
+                    ) : <OrganismPreview imageDataUrl={imagePreviewDataUrl} label={copy.organism.alt} planet={planet} traitIds={traitIds} />}
                     {imageStatus === "fallback" && <p className="api-notice">{copy.organism.fallback}</p>}
                     {imageStatus === "error" && <p className="api-notice error">{copy.organism.error}</p>}
-                    <button className="button-quiet wide" disabled={resultStale || imageStatus === "loading"} onClick={requestOrganismImage} type="button">{imageStatus === "loading" ? copy.organism.generating : copy.organism.requestImage}</button>
+                    {(imageStatus === "preparing" || imageStatus === "rendering" || imageStatus === "partial") && <p aria-live="polite" className="image-generation-status">{copy.organism[imageStatus]}</p>}
+                    <button className="button-quiet wide" disabled={resultStale || imageStatus === "preparing" || imageStatus === "rendering" || imageStatus === "partial"} onClick={requestOrganismImage} type="button">{imageStatus === "preparing" || imageStatus === "rendering" || imageStatus === "partial" ? copy.organism.generating : copy.organism.requestImage}</button>
                     {organismImage?.imageDataUrl && <a className="button-quiet wide download-image" download={`xenogenesis-${result.stateHash}.jpeg`} href={organismImage.imageDataUrl}>{copy.organism.download}</a>}
                   </section>
 

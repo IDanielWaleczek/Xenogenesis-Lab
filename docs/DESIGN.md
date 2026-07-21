@@ -26,7 +26,7 @@ Do not imply a remote service is contacted during local shader or rules initiali
 
 ## Desktop behavior
 
-At widths above `1080px`, use a full-screen `100svh` shell without global page scrolling:
+At widths of `1080px` or more, use a full-screen `100svh` shell without global page scrolling:
 
 - the right panel scrolls independently;
 - the phase's primary visual stays centered;
@@ -38,7 +38,7 @@ In Planet Engineering only, the central globe supports drag rotation, wheel zoom
 
 ## Narrow-screen behavior
 
-The laboratory is temporarily desktop-only. At widths of `1080px` or less, a translated full-screen notice blocks the boot and laboratory interfaces and asks the learner to open the experiment in a browser at least `1081px` wide. Do not expose a partial mobile or tablet workflow until it has been implemented and verified.
+The laboratory is temporarily desktop-only. At widths below `1080px`, a translated full-screen notice blocks the boot and laboratory interfaces and asks the learner to open the experiment in a browser at least `1080px` wide. Do not expose a partial mobile or tablet workflow until it has been implemented and verified.
 
 ## Visual system
 
@@ -125,7 +125,7 @@ A network or provider failure must preserve the planet, selected traits, calcula
 
 ## Illustration rules
 
-Generated images should resemble neutral astrobiology field documentation or restrained scientific concept art. The server prompt receives every normalized planet parameter, every selected trait configuration, calculated survivability, and the highest-scoring regional context. It must render the organism in that regional environment and may depict only selected traits and supplied world conditions. If calculated survivability is `≤25%` (including zero), it must instead show an intact dead specimen matching those traits—never a thriving organism, gore, or unsupported anatomy. This is an illustration convention tied to deterministic output, not additional biological evidence. GPT chooses validated pose, viewpoint, lighting, and emphasis enums; it cannot add free-form anatomy.
+Generated images should resemble neutral astrobiology field documentation or restrained scientific concept art. GPT-5.6 Luna-low provides a Zod-validated English composition brief and constrained visual direction from the supplied deterministic experiment. The server then appends every normalized planet parameter, every selected trait configuration, calculated survivability, the highest-scoring regional context, and non-negotiable prohibitions. It must render the organism in that regional environment and may depict only selected traits and supplied world conditions. An airless barren world must show exposed rock, regolith, dust, and stellar light against black space; it must not show atmosphere, haze, clouds, auroras, fog, snow, frost, ice, liquid water, or another water phase. If calculated survivability is `≤25%` (including zero), it must instead show an intact dead specimen matching those traits—never a thriving organism, gore, or unsupported anatomy. This is an illustration convention tied to deterministic output, not additional biological evidence. The UI may show only provider-emitted partial images and real request stages; it must not show a simulated percentage or invented progress.
 
 Do not imitate named artists or protected franchises. Do not present generated pixels as evidence. The deterministic organism SVG remains the honest no-network fallback.
 

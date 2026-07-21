@@ -1,16 +1,5 @@
 # Xenogenesis Lab — 2:45 Working-Build Demo Script
 
-## Recording rule
-
-Record only the deployed build that matches repository HEAD. Keep the video public on YouTube and under three minutes. Audio must explain both Codex and GPT-5.6 usage.
-
-Before recording:
-
-- verify the live URL, desktop layout, and both OpenAI routes;
-- decide whether the consultant label is **GPT-5.6 analysis** or **Local scientific fallback** and read only the matching narration;
-- show a generated field illustration only if `gpt-image-2` succeeds live during the recording;
-- do not call shader visuals scientific measurements or fallbacks live AI.
-
 ## 0:00–0:16 — Cinematic boot
 
 Show startup from a fresh reload, then select **Begin training** to enter the lab.

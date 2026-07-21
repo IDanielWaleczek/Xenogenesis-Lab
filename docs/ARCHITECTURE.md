@@ -32,9 +32,10 @@ Deterministic baseline seed + WorldParameters
                         │       └── Zod response or labelled local fallback
                         └── POST /api/organism-image
                                 ├── validate and re-run model
-                                ├── use the same validated experiment context for consultant direction and image prompt
-                                ├── construct controlled image prompt
-                                └── gpt-image-2 data URL or procedural fallback
+                                ├── use the same validated experiment context for the Luna-low composition brief and image prompt
+                                ├── construct controlled prompt with non-negotiable physical prohibitions
+                                ├── stream real partial-image events when the provider emits them
+                                └── gpt-image-2 final data URL or procedural fallback
 ```
 
 No AI request occurs during rendering, rotation, parameter editing, or deterministic simulation.
@@ -75,7 +76,7 @@ The client keeps one laboratory workspace state: language, phase, planet, traits
 
 `life-consultant.ts` calls the Responses API with `gpt-5.6-luna`, `reasoning.effort: "low"`, and a Zod structured-output format. It receives only validated state and server-recalculated output.
 
-`organism-image.ts` calls the Image API with `gpt-image-2`. GPT output cannot provide a free-form final prompt: it selects a strict `imageDirection` object, and the server combines those enums with one shared, server-derived experiment context: every normalized planet parameter, every selected trait configuration, computed survivability, the highest-scoring region, and the deterministic result. At survivability `≤25%`, the controlled prompt requires an intact dead specimen rather than a misleading thriving organism.
+`organism-image.ts` calls the Image API with `gpt-image-2` at low quality in JPEG 3:2 output. GPT-5.6 Luna-low returns a Zod-validated English composition brief and strict `imageDirection` options from the shared validated experiment context. The server makes the final prompt by appending every normalized planet parameter, selected trait configuration, computed survivability, highest-scoring region, deterministic result, and non-negotiable physical prohibitions; GPT cannot reintroduce unsupported atmosphere, water, ice, anatomy, or environmental facts. A true barren state is explicitly airless and waterless in the final prompt. The image route uses server-sent events for actual preparation/rendering states and provider partial images; a partial image is optional and never represented as a percentage or simulated progress. At survivability `≤25%`, the controlled prompt requires an intact dead specimen rather than a misleading thriving organism.
 
 Both services use process-local `Map` caches keyed by a stable hash. This avoids duplicate calls in one process but is not durable or globally shared on Vercel.
 

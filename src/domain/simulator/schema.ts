@@ -212,6 +212,7 @@ export const LifeConsultantContentSchema = z
     traitAssessment: z.string().trim().min(30).max(700),
     insights: z.array(z.string().trim().min(12).max(260)).min(2).max(4),
     suggestedExperiment: z.string().trim().min(20).max(400),
+    imageBrief: z.string().trim().min(20).max(600),
     imageDirection: z
       .object({
         pose: z.enum(["resting", "foraging", "moving", "social"]),
