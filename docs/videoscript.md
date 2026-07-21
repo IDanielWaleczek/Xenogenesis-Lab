@@ -61,14 +61,3 @@ If the procedural fallback remains:
 Return to a strong three-panel view.
 
 > Codex accelerated the repository refactor, deterministic contracts, continuous population model, custom shaders, bilingual interface, tests, browser QA, and documentation. I directed the product shift, scientific boundaries, learner freedom, and final design decisions. Together they produced one complete educational experiment instead of disconnected AI features.
-
-## Capture checklist
-
-- [ ] Total duration is below three minutes.
-- [ ] Audio mentions Codex and GPT-5.6.
-- [ ] A real world-control change visibly affects the planet.
-- [ ] Trait cost and tradeoff are readable.
-- [ ] Deterministic score, state hash, regions, and population appear.
-- [ ] Consultant provenance is visible and narration matches it.
-- [ ] Generated image is shown only if created live.
-- [ ] No local dev tools, keys, prompts, console errors, or TODO UI appears.

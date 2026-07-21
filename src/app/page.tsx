@@ -604,7 +604,7 @@ function SingleChoiceTraitDropdown({
   const selectedTrait = selectedTraitId ? copy.traits[selectedTraitId] : null;
 
   return (
-    <details className="trait-choice-dropdown">
+    <details className="trait-choice-dropdown" open>
       <summary>
         <span>{copy.life.singleChoiceGroups[group.id]}</span>
         <strong>{selectedTraitId && <span aria-hidden="true" className="trait-emoji">{TRAIT_EMOJIS[selectedTraitId]}</span>}{selectedTrait?.title ?? copy.life.chooseOne}</strong>
@@ -1010,6 +1010,18 @@ export default function Home() {
     window.requestAnimationFrame(reset);
   };
 
+  /** Changes the visible workspace step without carrying a previous panel's scroll position. */
+  const changePhase = (nextPhase: LabPhase) => {
+    setPhase(nextPhase);
+    resetScrollableSurfaces();
+  };
+
+  /** Starts each trait category at its beginning, including every local workspace panel. */
+  const changeTraitCategory = (nextCategory: TraitCategory) => {
+    setActiveCategory(nextCategory);
+    resetScrollableSurfaces();
+  };
+
   const endOnboarding = () => {
     window.localStorage.setItem("xenogenesis-onboarding-seen", "true");
     resetLab();
@@ -1137,12 +1149,12 @@ export default function Home() {
   const runSimulation = async () => {
     if (traitIds.length < 3) {
       setTraitNotice("minimumTraits");
-      setPhase("life");
+      changePhase("life");
       return;
     }
     setTraitNotice(null);
     setIsSimulating(true);
-    setPhase("results");
+    changePhase("results");
     if (showOnboarding && activeTutorialStep.id === "runSimulation") {
       setOnboardingStepIndex((current) => Math.min(current + 1, TUTORIAL_STEPS.length - 1));
     }
@@ -1316,7 +1328,7 @@ export default function Home() {
 
       <nav aria-label={copy.header.system} className="mobile-phase-navigation">
         {PHASES.map((item, index) => (
-          <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => setPhase(item)} type="button">
+          <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => changePhase(item)} type="button">
             <span>{String(index + 1).padStart(2, "0")}</span>{copy.phases[item].label}
           </button>
         ))}
@@ -1462,7 +1474,7 @@ export default function Home() {
         <aside className={`lab-panel analysis-panel ${tutorialFocus("planetControls")}`} ref={planetControlsRef}>
           <nav aria-label={copy.header.system} className="phase-tabs">
             {PHASES.map((item, index) => (
-              <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => setPhase(item)} type="button">
+              <button aria-current={phase === item ? "step" : undefined} key={item} onClick={() => changePhase(item)} type="button">
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <strong>{copy.phases[item].label}</strong>
                 <small>{copy.phases[item].description}</small>
@@ -1494,7 +1506,7 @@ export default function Home() {
                   return <ParameterControl changed={lastParameterId === parameter.id} constraint={controlState.constraint} disabled={isSimulating || controlState.disabled} earthReference={parameterCopy.earthReference} emphasized={showOnboarding && ["pressure", "water", "temperature"].includes(parameter.id)} id={parameter.id} influence={controlState.influence} key={parameter.id} label={parameterCopy.label} language={language} max={controlState.max} min={controlState.min} onChange={(value) => updateParameter(parameter.id, value)} step={controlState.step} unit={parameterCopy.unit} value={controlState.value} />;
                 })}
               </div>
-              <button className={`button-primary wide ${tutorialFocus("chooseLife")}`} onClick={() => setPhase("life")} ref={chooseLifeRef} type="button">{copy.planet.openDesigner}<span aria-hidden="true">→</span></button>
+              <button className={`button-primary wide ${tutorialFocus("chooseLife")}`} onClick={() => changePhase("life")} ref={chooseLifeRef} type="button">{copy.planet.openDesigner}<span aria-hidden="true">→</span></button>
             </div>
           )}
 
@@ -1540,7 +1552,7 @@ export default function Home() {
               {traitNotice && <p aria-live="polite" className="form-notice">{copy.life[traitNotice]}</p>}
               <div className="category-tabs" role="tablist">
                 {CATEGORIES.map((category) => (
-                  <button aria-selected={activeCategory === category} key={category} onClick={() => setActiveCategory(category)} role="tab" type="button">{copy.categories[category]}</button>
+                  <button aria-selected={activeCategory === category} key={category} onClick={() => changeTraitCategory(category)} role="tab" type="button">{copy.categories[category]}</button>
                 ))}
               </div>
               <div className={`phase-actions ${tutorialFocus("runSimulation")}`} ref={runSimulationRef}>
@@ -1561,7 +1573,7 @@ export default function Home() {
                   <OrbitMark large />
                   <h3>{copy.simulation.emptyTitle}</h3>
                   <p>{copy.simulation.emptyDescription}</p>
-                  <button className="button-primary" onClick={() => setPhase("life")} type="button">{copy.phases.life.label}</button>
+                  <button className="button-primary" onClick={() => changePhase("life")} type="button">{copy.phases.life.label}</button>
                 </div>
               )}
               {result && (
@@ -1657,8 +1669,8 @@ export default function Home() {
                   </section>
 
                   <div className="adapt-actions">
-                    <button className="button-quiet" onClick={() => setPhase("planet")} type="button">{copy.simulation.adaptPlanet}</button>
-                    <button className="button-quiet" onClick={() => setPhase("life")} type="button">{copy.simulation.adaptLife}</button>
+                    <button className="button-quiet" onClick={() => changePhase("planet")} type="button">{copy.simulation.adaptPlanet}</button>
+                    <button className="button-quiet" onClick={() => changePhase("life")} type="button">{copy.simulation.adaptLife}</button>
                   </div>
                   <p className="educational-notice">{copy.simulation.educationalNotice}</p>
                 </>
