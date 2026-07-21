@@ -134,6 +134,9 @@ export function buildControlledOrganismImagePrompt(
   consultantDirection: LifeConsultantContent["imageDirection"],
 ): string {
   const context = buildValidatedExperimentContext(request, result);
+  const { averageTemperatureC, temperatureVariationC } = context.planet.parameters;
+  const minimumTemperatureC = averageTemperatureC - temperatureVariationC;
+  const maximumTemperatureC = averageTemperatureC + temperatureVariationC;
   const pose = {
     resting: "resting in a stable pose",
     foraging: "foraging for its configured energy source",
@@ -159,6 +162,13 @@ export function buildControlledOrganismImagePrompt(
   const organismState = deadSpecimen
     ? "Depict one dead, intact specimen matching every selected trait in the top region. It must be clearly non-living, with no gore, no living organisms, and no suggestion that this design survives."
     : "Depict a living organism matching every selected trait, actively adapted to the top region.";
+  const thermalSurfaceRequirement = minimumTemperatureC >= 600
+    ? "The entire depicted surface is an incandescent, heat-ravaged rocky landscape with glowing molten or thermally altered material. Do not show Earth-like soil, grass, forests, temperate water, or a cool terrestrial surface."
+    : maximumTemperatureC >= 400
+      ? "Show a severely heat-ravaged rocky surface with visible thermal alteration and no Earth-like temperate terrain, vegetation, or cool water."
+      : minimumTemperatureC <= -120
+        ? "Show a deeply frozen, ice-bound surface with no temperate soil, vegetation, or open liquid water."
+        : "Match the surface state to the supplied temperature range and water availability; do not substitute an Earth-like habitat unless those parameters support it.";
 
   return [
     "Scientific astrobiology field illustration, landscape 3:2 composition, no text, no labels, no logos.",
@@ -167,6 +177,7 @@ export function buildControlledOrganismImagePrompt(
     `Validated survivability: ${(context.survivability * 100).toFixed(0)}%. Top regional survivability: ${context.topRegionalSurvivability.region}, ${(context.topRegionalSurvivability.score * 100).toFixed(0)}%. Deterministic outcome: ${result.outcome}.`,
     organismState,
     "Render the full organism in a realistic environment physically consistent with the supplied planet parameters and selected top region. Depict only anatomy supported by selected traits. Neutral scientific field documentation, realistic materials, restrained palette.",
+    `Temperature range: ${minimumTemperatureC.toFixed(0)} to ${maximumTemperatureC.toFixed(0)} °C. ${thermalSurfaceRequirement}`,
     `Validated art direction: ${pose}; ${viewpoint}; ${lighting}; ${emphasis}.`,
   ].join(" ");
 }

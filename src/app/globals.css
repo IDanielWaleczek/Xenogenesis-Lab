@@ -1350,6 +1350,13 @@ input:focus-visible {
   margin-top: 0.75rem;
 }
 
+.tutorial-card-actions-secondary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .tutorial-card .text-button { font-size: 0.66rem; }
 .tutorial-card .button-primary { min-height: 1.95rem; font-size: 0.68rem; }
 
@@ -2925,6 +2932,18 @@ input:focus-visible {
   .lab-footer {
     padding: 0 0.5rem;
     text-align: center;
+  }
+}
+
+@media (max-height: 680px) {
+  .boot-hero {
+    transform: scale(0.86);
+  }
+}
+
+@media (max-height: 480px) {
+  .boot-hero {
+    transform: scale(0.72);
   }
 }
 

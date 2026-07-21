@@ -279,6 +279,7 @@ export type LabCopy = {
     description: string;
     focus: string;
     dismiss: string;
+    previous: string;
     reopen: string;
     progress: string;
     next: string;
@@ -705,6 +706,7 @@ const english: LabCopy = {
     description: "Adjust atmosphere, surface water, and mean temperature first. The planet and evidence panels update immediately.",
     focus: "Suggested first controls",
     dismiss: "Explore on my own",
+    previous: "Back",
     reopen: "🧭 Guide",
     progress: "Experiment path",
     next: "Next",
@@ -1155,6 +1157,7 @@ const polish: LabCopy = {
     description: "Najpierw zmień atmosferę, wodę powierzchniową i średnią temperaturę. Planeta oraz panele dowodów od razu się zaktualizują.",
     focus: "Sugerowane pierwsze kontrolki",
     dismiss: "Chcę eksplorować samodzielnie",
+    previous: "Wstecz",
     reopen: "🧭 Przewodnik",
     progress: "Ścieżka eksperymentu",
     next: "Dalej",

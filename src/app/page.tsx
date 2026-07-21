@@ -986,9 +986,23 @@ export default function Home() {
     invalidateCalculatedState();
   };
 
+  const resetScrollableSurfaces = () => {
+    const reset = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      document.querySelectorAll<HTMLElement>(".lab-panel, .planet-stage").forEach((surface) => {
+        surface.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
+    };
+    reset();
+    window.requestAnimationFrame(reset);
+  };
+
   const endOnboarding = () => {
     window.localStorage.setItem("xenogenesis-onboarding-seen", "true");
     resetLab();
+    resetScrollableSurfaces();
     setShowOnboarding(false);
     setOnboardingStepIndex(0);
   };
@@ -999,6 +1013,13 @@ export default function Home() {
     setOnboardingStepIndex(0);
     setPhase("planet");
     setShowOnboarding(true);
+  };
+
+  const retreatOnboarding = () => {
+    if (onboardingStepIndex === 0) return;
+    const previousIndex = onboardingStepIndex - 1;
+    setOnboardingStepIndex(previousIndex);
+    setPhase(TUTORIAL_STEPS[previousIndex].phase);
   };
 
   const advanceOnboarding = () => {
@@ -1609,7 +1630,10 @@ export default function Home() {
             <h2>{stepCopy.title}</h2>
             <p>{stepCopy.description}</p>
             <div>
-              <button className="text-button" onClick={dismissOnboarding} type="button">{copy.onboarding.dismiss}</button>
+              <div className="tutorial-card-actions-secondary">
+                <button className="text-button" onClick={dismissOnboarding} type="button">{copy.onboarding.dismiss}</button>
+                {onboardingStepIndex > 0 && <button className="text-button" onClick={retreatOnboarding} type="button">← {copy.onboarding.previous}</button>}
+              </div>
               <button className="button-primary compact" onClick={activeTutorialStep.id === "runSimulation" ? runSimulation : advanceOnboarding} type="button">{activeTutorialStep.id === "runSimulation" ? copy.life.run : onboardingStepIndex === TUTORIAL_STEPS.length - 1 ? copy.onboarding.finish : copy.onboarding.next}<span aria-hidden="true">→</span></button>
             </div>
           </section>

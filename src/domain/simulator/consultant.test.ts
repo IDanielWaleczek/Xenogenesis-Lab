@@ -69,4 +69,29 @@ describe("local life consultant", () => {
     expect(prompt).toContain(`Top regional survivability: ${context.topRegionalSurvivability.region}`);
     expect(prompt).toContain("dead, intact specimen");
   });
+
+  it("requires an incandescent surface for a planet at 804 C", () => {
+    const request: SurvivalSimulationRequest = {
+      ...REQUEST,
+      planet: {
+        ...REQUEST.planet,
+        world: {
+          ...REQUEST.planet.world,
+          averageTemperatureC: 804,
+          temperatureVariationC: 0,
+        },
+      },
+    };
+    const result = runSurvivalSimulation(request);
+    const prompt = buildControlledOrganismImagePrompt(request, result, {
+      pose: "resting",
+      viewpoint: "field-profile",
+      lighting: "diffuse",
+      emphasis: "habitat",
+    });
+
+    expect(prompt).toContain("804 to 804 °C");
+    expect(prompt).toContain("incandescent, heat-ravaged rocky landscape");
+    expect(prompt).toContain("Do not show Earth-like soil, grass, forests");
+  });
 });
